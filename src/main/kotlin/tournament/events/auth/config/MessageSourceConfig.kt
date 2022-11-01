@@ -1,0 +1,15 @@
+package tournament.events.auth.config
+
+import io.micronaut.context.MessageSource
+import io.micronaut.context.annotation.Factory
+import io.micronaut.context.i18n.ResourceBundleMessageSource
+import jakarta.inject.Singleton
+
+@Factory
+class MessageSourceConfig {
+
+    @Singleton
+    fun provideMessageSource(): MessageSource {
+        return ResourceBundleMessageSource("messages")
+    }
+}

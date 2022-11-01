@@ -49,25 +49,18 @@ dependencies {
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-jackson-databind")
 
-    // JSON (serialization + schema)
-    implementation("com.fasterxml.jackson.core:jackson-databind:${project.extra["jacksonVersion"]}")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:${project.extra["jacksonKotlinVersion"]}")
-    implementation("io.vertx:vertx-json-schema:${project.extra["vertxJsonSchemaVersion"]}")
-    implementation("com.networknt:json-schema-validator:1.0.73")
-
     // Validation
     kapt("io.micronaut:micronaut-http-validation")
-    implementation("io.micronaut:micronaut-validation")
-    implementation("io.micronaut.beanvalidation:micronaut-hibernate-validator")
-    implementation("io.micronaut.problem:micronaut-problem-json")
-
-    // Reactive programming
-    implementation("io.micronaut.rxjava3:micronaut-rxjava3")
-    implementation("io.micronaut.rxjava3:micronaut-rxjava3-http-client")
 
     // Security
     kapt("io.micronaut.security:micronaut-security-annotations")
     implementation("io.micronaut.security:micronaut-security")
+    implementation("io.micronaut.security:micronaut-security-oauth2")
+    implementation("io.micronaut.security:micronaut-security-jwt")
+
+    // Reactive programming
+    implementation("io.micronaut.rxjava3:micronaut-rxjava3")
+    implementation("io.micronaut.rxjava3:micronaut-rxjava3-http-client")
 
     // Database
     platform("org.komapper:komapper-platform:${project.extra["komapperVersion"]}").let {
@@ -78,6 +71,9 @@ dependencies {
     implementation("org.komapper:komapper-dialect-postgresql-r2dbc")
     implementation("org.postgresql:r2dbc-postgresql:${project.extra["r2dbcPostgres"]}")
     ksp("org.komapper:komapper-processor")
+
+    // Views
+    implementation("io.micronaut.views:micronaut-views-thymeleaf")
 
     // Object mapping
     api("org.mapstruct:mapstruct:${project.extra["mapStructVersion"]}")

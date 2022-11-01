@@ -1,6 +1,24 @@
 micronaut:
   application:
     name: auth
+  security:
+    oauth2:
+      enabled: true
+    token:
+      jwt:
+        bearer:
+          enabled: true
+    endpoints:
+      login:
+        enabled: true
+        path: /api/login
+      logout:
+        enabled: true
+        path: /api/logout
+    intercept-url-map:
+      - pattern: /api/login/**
+        access:
+          - isAnonymous()
 netty:
   default:
     allocator:
