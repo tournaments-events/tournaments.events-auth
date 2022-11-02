@@ -1,7 +1,7 @@
 -- To create the database on your local PostgreSQL server
 -- CREATE DATABASE tournaments_auth WITH OWNER = DEFAULT;
 
-CREATE TABLE login_attempt
+CREATE TABLE authorize_attempts
 (
     state         text      NOT NULL,
     redirect_uri  text      NOT NULL,

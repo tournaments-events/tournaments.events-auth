@@ -4,7 +4,7 @@ import org.komapper.annotation.*
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 
-data class LoginAttemptEntity(
+data class AuthorizeAttemptEntity(
     val state: String,
     val redirectUri: String,
     val creationDate: LocalDateTime = now(),
@@ -12,9 +12,9 @@ data class LoginAttemptEntity(
 )
 
 @Suppress("unused")
-@KomapperEntityDef(LoginAttemptEntity::class)
-@KomapperTable("login_attempts")
-data class LoginAttemptEntityDef(
+@KomapperEntityDef(AuthorizeAttemptEntity::class)
+@KomapperTable("authorize_attempts")
+data class AuthorizeAttemptEntityDef(
     @KomapperId val state: Nothing,
     @KomapperColumn("redirect_uri") val redirectUri: Nothing,
     @KomapperCreatedAt @KomapperColumn("creation_date") val creationDate: Nothing,
