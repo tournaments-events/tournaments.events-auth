@@ -1,20 +1,20 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.7.20"
-    id("org.jetbrains.kotlin.kapt") version "1.7.20"
-    id("org.jetbrains.kotlin.plugin.allopen") version "1.7.20"
+    id("org.jetbrains.kotlin.jvm") version "1.9.10"
+    id("org.jetbrains.kotlin.kapt") version "1.9.10"
+    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.10"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.micronaut.application") version "3.4.0"
     id("com.google.cloud.tools.jib") version "3.3.0"
-    id("com.google.devtools.ksp") version "1.7.20-1.0.6"
+    id("com.google.devtools.ksp") version "1.9.0-1.0.13"
 }
 
 version = "0.1"
 group = "events.tournament"
 
 extra.apply {
-    set("kotlinVersion", "1.7.20")
+    set("kotlinVersion", "1.9.10")
     set("kotlinCoroutinesVersion", "1.6.4")
     set("mapStructVersion", "1.5.1.Final")
     set("komapperVersion", "1.4.0")
