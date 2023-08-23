@@ -21,13 +21,13 @@ class BusinessException(
     throwable: Throwable? = null
 ) : LocalizedException(status, messageId, values, additionalMessages, throwable)
 
-inline fun <reified T> singleBusinessExceptionOf(
+inline fun <reified T: Any> singleBusinessExceptionOf(
     status: HttpStatus,
     messageId: String,
     vararg values: Pair<String, Any>
 ): Single<T> = Single.error(BusinessException(status, messageId, mapOf(*values)))
 
-inline fun <reified T> observableBusinessExceptionOf(
+inline fun <reified T: Any> observableBusinessExceptionOf(
     status: HttpStatus,
     messageId: String,
     vararg values: Pair<String, Any>
