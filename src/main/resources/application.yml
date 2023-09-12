@@ -1,24 +1,20 @@
 micronaut:
   application:
     name: auth
-  security:
-    oauth2:
+
+  server:
+    cors:
       enabled: true
-    token:
-      jwt:
-        bearer:
-          enabled: true
-    endpoints:
-      login:
+
+  security:
+    enabled: false
+
+  router:
+    static-resources:
+      default:
         enabled: true
-        path: /api/login
-      logout:
-        enabled: true
-        path: /api/logout
-    intercept-url-map:
-      - pattern: /api/login/**
-        access:
-          - isAnonymous()
+        mapping: /public/**
+        paths: 'classpath:public'
 netty:
   default:
     allocator:

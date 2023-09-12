@@ -14,7 +14,8 @@ import java.net.URI
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
-@Secured(SecurityRule.IS_ANONYMOUS)
+// http://localhost:8080/api/oauth2/authorize?response_type=code&client_id=core&state=test
+
 @Controller("/api/oauth2/authorize")
 open class AuthorizeController(
     private val authorizationCodeManager: AuthorizationCodeManager
@@ -23,32 +24,33 @@ open class AuthorizeController(
     @Get
     open fun authorize(
         @QueryValue("response_type")
-        @NotNull @NotBlank
         responseType: String?,
         @QueryValue("client_id")
         clientId: String?,
         @QueryValue("redirect_uri")
-        @NotNull @NotBlank
         redirectUri: String?,
         @QueryValue("scope")
         scope: String?,
         @QueryValue("state")
-        @NotNull @NotBlank
         state: String?
     ): Single<HttpResponse<String>> {
         return when (responseType) {
-            "code" -> authorizeWithCodeFlow(clientId!!, redirectUri!!, state!!)
+            "code" -> authorizeWithCodeFlow(
+                clientId = clientId!!,
+                state = state!!
+            )
             else -> singleBusinessExceptionOf(BAD_REQUEST, "exception.authorize.unsupported_response_type")
         }
     }
 
     internal fun authorizeWithCodeFlow(
         clientId: String,
-        redirectUri: String,
         state: String
     ): Single<HttpResponse<String>> {
-        val response = HttpResponse.redirect<String>(URI("/login"))
-        return authorizationCodeManager.authorize(clientId, redirectUri, state)
+        val redirectUri = URI("/login?state=${state}")
+        val response = HttpResponse.redirect<String>(redirectUri)
+
+        return authorizationCodeManager.authorize(clientId, state)
             .andThen(Single.just(response))
     }
 }

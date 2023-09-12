@@ -7,15 +7,15 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.micronaut.views.View
 
-@Controller("/login")
-@Secured(IS_ANONYMOUS)
+@Controkller("/login")
 class LoginController {
 
     @Get
     @View("login")
     fun login(
-        @QueryValue state: String
-    ) {
-
+        @QueryValue("state")
+        state: String?
+    ): Map<String, Any> {
+        return emptyMap()
     }
 }

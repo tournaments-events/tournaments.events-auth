@@ -14,11 +14,10 @@ class AuthorizationCodeManager(
 
     fun authorize(
         clientId: String,
-        redirectUri: String,
         state: String
     ): Completable {
         return checkExistingAttempt(state)
-            .andThen(registerAttempt(clientId, redirectUri, state))
+            .andThen(registerAttempt(state))
     }
 
     internal fun checkExistingAttempt(
@@ -36,13 +35,11 @@ class AuthorizationCodeManager(
     }
 
     internal fun registerAttempt(
-        clientId: String,
-        redirectUri: String,
         state: String
     ): Completable {
         val attempt = AuthorizeAttemptEntity(
             state = state,
-            redirectUri = redirectUri
+            redirectUri = ""
         )
         return AuthorizeAttemptRepository.insert(attempt)
             .ignoreElement()

@@ -1,0 +1,37 @@
+<!doctype html>
+<html th:lang="#{html.lang}">
+<head>
+    <th:block th:replace="fragments/common.html :: head"/>
+    <link th:href="@{public/signin.css}" rel="stylesheet">
+</head>
+
+<body class="text-center">
+<main class="form-signin">
+    <form method="post">
+        <h1 class="h3 mb-3 fw-normal"></h1>
+
+        <div class="form-floating">
+            <input type="email" class="form-control"
+                   id="floatingInput" name="email"
+                   th:value="email">
+            <label th:text="#{html.common.email}" for="floatingInput"/>
+        </div>
+        <div class="form-floating">
+            <input type="password" class="form-control"
+                   id="floatingPassword" name="password">
+            <label th:text="#{html.common.password}" for="floatingPassword"/>
+        </div>
+        <div class="form-floating">
+            <input type="password" class="form-control"
+                   id="floatingConfirmPassword" name="confirmPassword">
+            <label th:text="Confirm password" for="floatingConfirmPassword"/>
+        </div>
+
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Create</button>
+    </form>
+</main>
+</body>
+
+<th:block th:replace="fragments/common.html :: scripts"/>
+
+</html>
