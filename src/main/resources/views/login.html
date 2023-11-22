@@ -7,29 +7,44 @@
 
 <body class="text-center">
 <main class="form-signin">
+    <th:block th:if="${providers.size > 0}">
+        <div class="with-provider mb-3">
+            <h1 class="h3 mb-3 fw-normal" th:text="#{html.login.withProvider.title}"></h1>
+            <th:block th:each="provider: ${providers}">
+                <button type="button"
+                        class="btn btn-lg w-100 mb-1"
+                        th:href="@{|/login/${provider}?state=${state}|}"
+                        th:style="|background: #{'provider.' + ${provider.name} + '.background'};|"
+                        th:styleappend="|color: #{'provider.' + ${provider.name} + '.color'};|"
+                        th:text="#{'provider.' + ${provider.name} + '.name'}">
+                </button>
+            </th:block>
+        </div>
+
+        <div class="or text-muted mb-3" th:text="#{html.common.or}"></div>
+    </th:block>
+
     <form method="post">
-        <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+        <h1 class="h3 mb-3 fw-normal" th:text="#{html.login.withEmail.title}"></h1>
 
         <div class="form-floating">
-            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
-            <label th:text="#{html.common.email}" for="floatingInput"/>
+            <input type="email" class="form-control" id="email" placeholder="name@example.com">
+            <label th:text="#{html.common.email}" for="email"/>
         </div>
-        <div class="form-floating">
-            <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
-            <label th:text="#{html.common.password}" for="floatingPassword"/>
+        <div class="form-floating mb-1">
+            <input type="password" class="form-control" id="password" placeholder="Password">
+            <label th:text="#{html.common.password}" for="password"/>
+        </div>
+        <div class="mb-4">
+            <a th:text="#{html.login.forgotPassword.link}" th:href="FIXME"/>
         </div>
 
+        <button class="w-100 btn btn-lg btn-primary mb-1" type="submit"
+                th:text="#{html.login.withEmail.button}"></button>
         <div class="create-account">
             <span th:text="#{html.login.createAccount.catchphrase}"></span>
-            <a th:text="#{html.login.createAccount.link}" th:href="@{/account/create}"/>
+            <a th:text="#{html.login.createAccount.link}" th:href="@{|/account/create?state=${state}|}"/>
         </div>
-
-        <div class="checkbox mb-3">
-            <label>
-                <input type="checkbox" value="remember-me"> Remember me
-            </label>
-        </div>
-        <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
     </form>
 </main>
 </body>

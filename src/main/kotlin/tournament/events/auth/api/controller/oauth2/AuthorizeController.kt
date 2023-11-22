@@ -5,16 +5,12 @@ import io.micronaut.http.HttpStatus.BAD_REQUEST
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
-import io.micronaut.security.annotation.Secured
-import io.micronaut.security.rules.SecurityRule
 import io.reactivex.rxjava3.core.Single
 import tournament.events.auth.business.exception.singleBusinessExceptionOf
 import tournament.events.auth.business.manager.AuthorizationCodeManager
 import java.net.URI
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotNull
 
-// http://localhost:8080/api/oauth2/authorize?response_type=code&client_id=core&state=test
+// http://localhost:8092/api/oauth2/authorize?response_type=code&client_id=core&state=test
 
 @Controller("/api/oauth2/authorize")
 open class AuthorizeController(
@@ -39,6 +35,7 @@ open class AuthorizeController(
                 clientId = clientId!!,
                 state = state!!
             )
+
             else -> singleBusinessExceptionOf(BAD_REQUEST, "exception.authorize.unsupported_response_type")
         }
     }

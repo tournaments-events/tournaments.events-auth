@@ -7,7 +7,13 @@ micronaut:
       enabled: true
 
   security:
-    enabled: false
+    enabled: true
+    authentication: idtoken
+    intercept-url-map:
+      - pattern: /public/**
+        http-method: GET
+        access:
+          - isAnonymous()
 
   router:
     static-resources:
