@@ -1,33 +1,52 @@
 package tournament.events.auth.view
 
+import io.micronaut.http.HttpRequest
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
-import io.micronaut.security.rules.SecurityRule
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.micronaut.views.View
-import tournament.events.auth.business.manager.ExternalAuthProvider
-import tournament.events.auth.business.manager.ExternalAuthProviderManager
+import jakarta.inject.Inject
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
+import tournament.events.auth.business.manager.auth.AuthorizeStateManager
+import tournament.events.auth.business.manager.auth.ClientManager
+import tournament.events.auth.config.model.ClientConfig
 
 @Controller("/login")
 class LoginController(
-    private val externalAuthProviderManager: ExternalAuthProviderManager
+    @Inject private val authorizeStateManager: AuthorizeStateManager,
+    @Inject private val clientManager: ClientManager
 ) {
 
     @Get
     @View("login")
     @Secured(IS_ANONYMOUS)
-    fun login(
-        @QueryValue("state")
-        state: String?
-    ): Map<String, *> {
-        val providers = externalAuthProviderManager.listProviders()
-            .sortedBy(ExternalAuthProvider::name)
+    suspend fun login(
+        httpRequest: HttpRequest<*>,
+        @QueryValue state: String?
+    ): Map<String, *> = coroutineScope {
+        val existingState = state?.let {
+            authorizeStateManager.verifyEncodedState(it)
+        }
 
-        return mapOf(
-            "state" to state,
-            "providers" to providers
+        val asyncState = async {
+            val currentState = existingState ?: authorizeStateManager.createState(
+                httpRequest, "test", "test"
+            )
+            authorizeStateManager.encodeState(currentState)
+        }
+
+        val asyncClients = async {
+            clientManager.listAvailableClients().toList()
+                .sortedWith(compareBy(ClientConfig::name))
+        }
+
+        mapOf(
+            "state" to asyncState.await(),
+            "providers" to asyncClients.await()
         )
     }
 }

@@ -6,7 +6,7 @@ import jakarta.inject.Singleton
 import org.komapper.r2dbc.R2dbcDatabase
 
 @Factory
-class DatabaseConfig(
+class DatabaseFactory(
     @Value("\${datasources.postgres.url}") private val datasourceUrl: String
 ) {
 

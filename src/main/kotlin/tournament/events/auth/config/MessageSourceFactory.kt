@@ -6,7 +6,7 @@ import io.micronaut.context.i18n.ResourceBundleMessageSource
 import jakarta.inject.Singleton
 
 @Factory
-class MessageSourceConfig {
+class MessageSourceFactory {
 
     @Singleton
     fun provideMessageSource(): MessageSource {

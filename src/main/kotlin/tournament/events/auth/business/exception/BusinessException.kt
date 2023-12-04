@@ -22,26 +22,14 @@ class BusinessException(
     throwable: Throwable? = null
 ) : LocalizedException(status, messageId, values, additionalMessages, throwable)
 
-inline fun <reified T: Any> singleBusinessExceptionOf(
+fun businessExceptionOf(
+    status: HttpStatus,
+    messageId: String,
+    vararg values: Pair<String, Any>
+): BusinessException = BusinessException(status, messageId, mapOf(*values))
+
+inline fun <reified T : Any> singleBusinessExceptionOf(
     status: HttpStatus,
     messageId: String,
     vararg values: Pair<String, Any>
 ): Single<T> = Single.error(BusinessException(status, messageId, mapOf(*values)))
-
-inline fun <reified T: Any> maybeBusinessExceptionOf(
-    status: HttpStatus,
-    messageId: String,
-    vararg values: Pair<String, Any>
-): Maybe<T> = Maybe.error(BusinessException(status, messageId, mapOf(*values)))
-
-inline fun <reified T: Any> observableBusinessExceptionOf(
-    status: HttpStatus,
-    messageId: String,
-    vararg values: Pair<String, Any>
-): Observable<T> = Observable.error(BusinessException(status, messageId, mapOf(*values)))
-
-fun completableBusinessExceptionOf(
-    status: HttpStatus,
-    messageId: String,
-    vararg values: Pair<String, Any>
-): Completable = Completable.error(BusinessException(status, messageId, mapOf(*values)))

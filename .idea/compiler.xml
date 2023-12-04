@@ -4,7 +4,7 @@
     <annotationProcessing>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
-        <option name="micronaut.processing.annotations" value="events.tournament.*" />
+        <option name="micronaut.processing.annotations" value="tournament.events.*" />
         <option name="micronaut.processing.group" value="events.tournament" />
         <option name="micronaut.processing.incremental" value="true" />
         <option name="micronaut.processing.module" value="auth" />

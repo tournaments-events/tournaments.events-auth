@@ -1,23 +1,23 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.10"
-    id("org.jetbrains.kotlin.kapt") version "1.9.10"
-    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.10"
+    id("org.jetbrains.kotlin.jvm") version "1.9.21"
+    id("org.jetbrains.kotlin.kapt") version "1.9.21"
+    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.21"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.micronaut.application") version "3.4.0"
-    id("com.google.cloud.tools.jib") version "3.3.0"
-    id("com.google.devtools.ksp") version "1.9.0-1.0.13"
+    id("com.google.cloud.tools.jib") version "3.4.0"
+    id("com.google.devtools.ksp") version "1.9.21-1.0.15"
 }
 
 version = "0.1"
 group = "events.tournament"
 
 extra.apply {
-    set("kotlinVersion", "1.9.10")
-    set("kotlinCoroutinesVersion", "1.6.4")
+    set("kotlinVersion", "1.9.21")
+    set("kotlinCoroutinesVersion", "1.7.3")
     set("mapStructVersion", "1.5.1.Final")
-    set("komapperVersion", "1.4.0")
+    set("komapperVersion", "1.15.0")
     set("r2dbcPostgres", "0.9.1.RELEASE")
     set("jacksonVersion", "2.13.4")
     set("jacksonKotlinVersion", "2.13.4")
@@ -37,12 +37,14 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect:${project.extra["kotlinVersion"]}")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.extra["kotlinVersion"]}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.extra["kotlinCoroutinesVersion"]}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx3:${project.extra["kotlinCoroutinesVersion"]}")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut.kotlin:micronaut-kotlin-extension-functions")
 
     // Micronaut
     implementation("io.micronaut:micronaut-runtime")
+    kapt("io.micronaut:micronaut-inject-java")
 
     // HTTP server
     kapt("io.micronaut.jaxrs:micronaut-jaxrs-processor")
@@ -78,6 +80,10 @@ dependencies {
     // Object mapping
     api("org.mapstruct:mapstruct:${project.extra["mapStructVersion"]}")
     kapt("org.mapstruct:mapstruct-processor:${project.extra["mapStructVersion"]}")
+
+    // Serialization/Deserialization
+    kapt("io.micronaut.serde:micronaut-serde-processor")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
 
     // Logging
     runtimeOnly("ch.qos.logback:logback-classic")
@@ -142,6 +148,6 @@ micronaut {
     testRuntime("junit5")
     processing {
         incremental(true)
-        annotations("events.tournament.*")
+        annotations("tournament.events.*")
     }
 }

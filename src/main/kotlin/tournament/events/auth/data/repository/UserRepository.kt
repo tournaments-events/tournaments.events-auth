@@ -15,7 +15,7 @@ class UserRepository(
     Meta.userEntity
 ) {
 
-    fun findByEmail(email: String) = findOne {
+    suspend fun findByEmail(email: String) = findOne {
         QueryDsl.from(it).where { it.email eq email }
     }
 }

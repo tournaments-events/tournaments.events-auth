@@ -23,9 +23,17 @@ CREATE INDEX users__email ON users (email);
 
 CREATE TABLE authorize_attempts
 (
-    state         text      NOT NULL,
-    redirect_uri  text      NOT NULL,
-    creation_date timestamp NOT NULL,
-    update_date   timestamp NOT NULL,
-    PRIMARY KEY (state)
+    id                uuid      NOT NULL,
+    client_id         text      NOT NULL,
+    redirect_uri      text      NOT NULL,
+
+    client_ip         text,
+    client_user_agent text,
+    client_referer    text,
+    client_state      text,
+
+    attempt_date      timestamp NOT NULL,
+    PRIMARY KEY (id)
 );
+
+CREATE INDEX authorize_attempts__client_state ON authorize_attempts (client_state);
