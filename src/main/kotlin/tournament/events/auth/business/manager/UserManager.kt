@@ -23,7 +23,7 @@ class UserManager(
                 email = email,
                 password = password
             )
-            userRepository.insert(newUser)
+            userRepository.save(newUser)
         } else {
             throw BusinessException(BAD_REQUEST, "exception.user.email_already_used")
         }

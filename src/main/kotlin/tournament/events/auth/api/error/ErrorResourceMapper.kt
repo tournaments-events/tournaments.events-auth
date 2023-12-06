@@ -4,14 +4,14 @@ import io.micronaut.context.MessageSource
 import io.micronaut.context.MessageSource.MessageContext
 import io.micronaut.http.HttpStatus
 import jakarta.inject.Singleton
+import jakarta.validation.ConstraintViolation
+import jakarta.validation.ConstraintViolationException
 import tournament.events.auth.api.model.AdditionalMessageResource
 import tournament.events.auth.api.model.ErrorResource
 import tournament.events.auth.util.AdditionalLocalizedMessage
 import tournament.events.auth.util.LocalizedException
 import tournament.events.auth.util.pathAsString
 import java.util.*
-import javax.validation.ConstraintViolation
-import javax.validation.ConstraintViolationException
 
 @Singleton
 class ErrorResourceMapper(

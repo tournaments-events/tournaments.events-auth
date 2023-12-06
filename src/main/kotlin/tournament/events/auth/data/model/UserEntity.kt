@@ -1,13 +1,14 @@
 package tournament.events.auth.data.model
 
-import org.komapper.annotation.KomapperColumn
-import org.komapper.annotation.KomapperEntityDef
-import org.komapper.annotation.KomapperId
-import org.komapper.annotation.KomapperTable
+import io.micronaut.data.annotation.GeneratedValue
+import io.micronaut.data.annotation.Id
+import io.micronaut.data.annotation.MappedEntity
+import io.micronaut.serde.annotation.Serdeable
 import java.util.*
 
+@Serdeable
+@MappedEntity("users")
 data class UserEntity(
-    override var id: UUID? = null,
     val username: String,
 
     val firstname: String? = null,
@@ -21,17 +22,8 @@ data class UserEntity(
     val password: String? = null,
 
     val admin: Boolean = false
-) : IdentifiableEntity
-
-@KomapperEntityDef(UserEntity::class)
-@KomapperTable(name = "users")
-data class UserEntityDef(
-    @KomapperId val id: Nothing,
-    val username: Nothing,
-    val firstname: Nothing,
-    val lastname: Nothing,
-    val email: Nothing,
-    val password: Nothing,
-    @KomapperColumn("is_admin") val admin: Nothing
-)
+) {
+    @Id @GeneratedValue
+    var id: UUID? = null
+}
 

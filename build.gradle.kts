@@ -4,10 +4,10 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.21"
     id("org.jetbrains.kotlin.kapt") version "1.9.21"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.9.21"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("io.micronaut.application") version "3.4.0"
-    id("com.google.cloud.tools.jib") version "3.4.0"
     id("com.google.devtools.ksp") version "1.9.21-1.0.15"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.micronaut.application") version "4.2.1"
+    id("com.google.cloud.tools.jib") version "3.4.0"
 }
 
 version = "0.1"
@@ -26,6 +26,7 @@ extra.apply {
     set("mockitoVersion", "4.8.0")
     set("mockitoKotlinVersion", "4.0.0")
     set("junitJupiterVersion", "5.9.1")
+    set("javaJwtVersion", "4.4.0")
 }
 
 repositories {
@@ -44,35 +45,31 @@ dependencies {
 
     // Micronaut
     implementation("io.micronaut:micronaut-runtime")
-    kapt("io.micronaut:micronaut-inject-java")
+    ksp("io.micronaut:micronaut-inject-java")
 
     // HTTP server
-    kapt("io.micronaut.jaxrs:micronaut-jaxrs-processor")
+    ksp("io.micronaut.jaxrs:micronaut-jaxrs-processor")
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-jackson-databind")
 
     // Validation
-    kapt("io.micronaut:micronaut-http-validation")
+    ksp("io.micronaut:micronaut-http-validation")
+    implementation("io.micronaut.validation:micronaut-validation")
 
     // Security
-    kapt("io.micronaut.security:micronaut-security-annotations")
+    ksp("io.micronaut.security:micronaut-security-annotations")
     implementation("io.micronaut.security:micronaut-security")
     implementation("io.micronaut.security:micronaut-security-oauth2")
     implementation("io.micronaut.security:micronaut-security-jwt")
+    implementation("com.auth0:java-jwt:${project.extra["javaJwtVersion"]}")
 
     // Reactive programming
     implementation("io.micronaut.rxjava3:micronaut-rxjava3")
     implementation("io.micronaut.rxjava3:micronaut-rxjava3-http-client")
 
     // Database
-    platform("org.komapper:komapper-platform:${project.extra["komapperVersion"]}").let {
-        implementation(it)
-        ksp(it)
-    }
-    implementation("org.komapper:komapper-starter-r2dbc")
-    implementation("org.komapper:komapper-dialect-postgresql-r2dbc")
-    implementation("org.postgresql:r2dbc-postgresql:${project.extra["r2dbcPostgres"]}")
-    ksp("org.komapper:komapper-processor")
+    implementation("io.micronaut.data:micronaut-data-r2dbc")
+    runtimeOnly("org.postgresql:r2dbc-postgresql")
 
     // Views
     implementation("io.micronaut.views:micronaut-views-thymeleaf")
@@ -90,8 +87,11 @@ dependencies {
 
     // API documentation
     // kapt("io.micronaut.configuration:micronaut-openapi:1.4.5")
-    kapt("io.micronaut.openapi:micronaut-openapi")
+    ksp("io.micronaut.openapi:micronaut-openapi")
     implementation("io.swagger.core.v3:swagger-annotations")
+
+    // YAML: for configuration
+    runtimeOnly("org.yaml:snakeyaml")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:${project.extra["junitJupiterVersion"]}")
@@ -104,7 +104,7 @@ application {
 }
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("11")
+    sourceCompatibility = JavaVersion.VERSION_17
 }
 
 kotlin {
@@ -119,12 +119,12 @@ kotlin {
 tasks {
     compileKotlin {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
         }
     }
     compileTestKotlin {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
         }
     }
     withType<Test> {

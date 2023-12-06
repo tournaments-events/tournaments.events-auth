@@ -9,9 +9,9 @@ import io.micronaut.http.annotation.Produces
 import io.micronaut.http.server.exceptions.ExceptionHandler
 import io.micronaut.validation.exceptions.ConstraintExceptionHandler
 import jakarta.inject.Singleton
+import jakarta.validation.ConstraintViolationException
 import tournament.events.auth.api.model.ErrorResource
 import java.util.*
-import javax.validation.ConstraintViolationException
 
 @Produces
 @Singleton

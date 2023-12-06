@@ -21,6 +21,7 @@ micronaut:
         enabled: true
         mapping: /public/**
         paths: 'classpath:public'
+
 netty:
   default:
     allocator:

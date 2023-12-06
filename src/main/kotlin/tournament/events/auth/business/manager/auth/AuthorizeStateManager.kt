@@ -5,6 +5,7 @@ import io.micronaut.http.HttpStatus.BAD_REQUEST
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.exception.businessExceptionOf
+import tournament.events.auth.business.manager.jwt.JwtManager
 import tournament.events.auth.business.model.oauth2.State
 import tournament.events.auth.data.model.AuthorizeAttemptEntity
 import tournament.events.auth.data.repository.AuthorizeAttemptRepository
@@ -14,7 +15,8 @@ import tournament.events.auth.data.repository.AuthorizeAttemptRepository
  */
 @Singleton
 class AuthorizeStateManager(
-    @Inject private val authorizeAttemptRepository: AuthorizeAttemptRepository
+    @Inject private val authorizeAttemptRepository: AuthorizeAttemptRepository,
+    @Inject private val jwtManager: JwtManager
 ) {
 
     /**
@@ -60,11 +62,13 @@ class AuthorizeStateManager(
             redirectUri = redirectUri,
             clientState = clientState
         )
-        return authorizeAttemptRepository.insert(attempt)
+        return authorizeAttemptRepository.save(attempt)
     }
 
-    fun encodeState(state: State): String {
-        return state.id.toString() // TODO: Use a JWT token.
+    suspend fun encodeState(state: State): String {
+        return jwtManager.create("state") {
+            withAudience(state.id.toString())
+        }
     }
 
     fun verifyEncodedState(state: String?): State {

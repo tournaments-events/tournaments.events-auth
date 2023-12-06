@@ -1,7 +1,7 @@
 package tournament.events.auth.util
 
-import javax.validation.ConstraintViolation
-import javax.validation.ElementKind
+import jakarta.validation.ConstraintViolation
+import jakarta.validation.ElementKind
 
 val <T> ConstraintViolation<T>.pathAsString: String
     get() {

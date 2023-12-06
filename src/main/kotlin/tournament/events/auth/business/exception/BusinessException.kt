@@ -1,10 +1,7 @@
 package tournament.events.auth.business.exception
 
 import io.micronaut.http.HttpStatus
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Maybe
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
+import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import tournament.events.auth.util.AdditionalLocalizedMessage
 import tournament.events.auth.util.LocalizedException
 
@@ -28,8 +25,13 @@ fun businessExceptionOf(
     vararg values: Pair<String, Any>
 ): BusinessException = BusinessException(status, messageId, mapOf(*values))
 
-inline fun <reified T : Any> singleBusinessExceptionOf(
-    status: HttpStatus,
-    messageId: String,
-    vararg values: Pair<String, Any>
-): Single<T> = Single.error(BusinessException(status, messageId, mapOf(*values)))
+inline fun <reified T : Any> T?.orMissingConfig(key: String): T {
+    if (this == null) {
+        throw businessExceptionOf(
+            INTERNAL_SERVER_ERROR,
+            "exception.config.missing_key",
+            "key" to key
+        )
+    }
+    return this
+}

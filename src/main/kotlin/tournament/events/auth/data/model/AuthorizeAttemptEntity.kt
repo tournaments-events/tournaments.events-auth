@@ -1,6 +1,9 @@
 package tournament.events.auth.data.model
 
-import org.komapper.annotation.*
+import io.micronaut.data.annotation.GeneratedValue
+import io.micronaut.data.annotation.Id
+import io.micronaut.data.annotation.MappedEntity
+import io.micronaut.serde.annotation.Serdeable
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 import java.util.*
@@ -8,8 +11,9 @@ import java.util.*
 /**
  * This entity store all information related to an user trying to authenticate through this service.
  */
+@Serdeable
+@MappedEntity("authorize_attempts")
 data class AuthorizeAttemptEntity(
-    override var id: UUID? = null,
     /**
      * Identifier of the client initiating the authentication.
      */
@@ -29,21 +33,7 @@ data class AuthorizeAttemptEntity(
     val clientState: String? = null,
 
     val attemptDate: LocalDateTime = now(),
-) : IdentifiableEntity
-
-@Suppress("unused")
-@KomapperEntityDef(AuthorizeAttemptEntity::class)
-@KomapperTable("authorize_attempts")
-data class AuthorizeAttemptEntityDef(
-    @KomapperId val id: Nothing,
-    @KomapperColumn("client_id") val clientId: Nothing,
-    @KomapperColumn("redirect_uri") val redirectUri: Nothing,
-
-    @KomapperColumn("client_ip") val clientIp: Nothing,
-    @KomapperColumn("client_user_agent") val clientUserAgent: Nothing,
-    @KomapperColumn("client_referer") val clientReferer: Nothing,
-
-    @KomapperColumn("client_state") val clientState: Nothing,
-
-    @KomapperCreatedAt @KomapperColumn("attempt_date") val attemptDate: Nothing
-)
+) {
+    @Id @GeneratedValue
+    var id: UUID? = null
+}

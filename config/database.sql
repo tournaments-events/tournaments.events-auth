@@ -5,7 +5,7 @@
 
 CREATE TABLE users
 (
-    id        uuid    NOT NULL,
+    id        uuid    NOT NULL DEFAULT gen_random_uuid(),
     username  text    NOT NULL,
 
     firstname text,
@@ -23,7 +23,7 @@ CREATE INDEX users__email ON users (email);
 
 CREATE TABLE authorize_attempts
 (
-    id                uuid      NOT NULL,
+    id                uuid      NOT NULL DEFAULT gen_random_uuid(),
     client_id         text      NOT NULL,
     redirect_uri      text      NOT NULL,
 
@@ -37,3 +37,32 @@ CREATE TABLE authorize_attempts
 );
 
 CREATE INDEX authorize_attempts__client_state ON authorize_attempts (client_state);
+
+-- JWT table
+
+CREATE TABLE jwt_keys
+(
+    name          text      NOT NULL,
+    algorithm     text      NOT NULL,
+
+    public_key    bytea     NOT NULL,
+    private_key   bytea     NOT NULL,
+
+    creation_date timestamp NOT NULL,
+    PRIMARY KEY (name)
+);
+
+CREATE TABLE indexed_jwt_keys
+(
+    name          text      NOT NULL,
+    index         SERIAL,
+    algorithm     text      NOT NULL,
+
+    public_key    bytea     NOT NULL,
+    private_key   bytea     NOT NULL,
+
+    creation_date timestamp NOT NULL,
+    PRIMARY KEY (name, index)
+);
+
+CREATE INDEX indexed_jwt_keys__name ON indexed_jwt_keys (name);

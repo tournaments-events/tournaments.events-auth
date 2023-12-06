@@ -1,8 +1,10 @@
 package tournament.events.auth.api.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.serde.annotation.Serdeable
 import io.swagger.v3.oas.annotations.media.Schema
 
+@Serdeable
 data class ErrorResource(
     @get:Schema(description = "HTTP status responded.")
     val status: Int,
@@ -20,6 +22,7 @@ Additional messages providing more details if the error is caused by one or more
     val additionalMessages: List<AdditionalMessageResource>?
 )
 
+@Serdeable
 data class AdditionalMessageResource(
     @get:Schema(description = "Path of the property")
     val path: String,
