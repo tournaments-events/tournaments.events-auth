@@ -8,5 +8,8 @@ import org.mapstruct.factory.Mappers
 class BusinessMapperFactory {
 
     @Singleton
-    fun jwtKeysMapper() = Mappers.getMapper(JwtKeysMapper::class.java)
+    fun cryptoKeysMapper() = Mappers.getMapper(CryptoKeysMapper::class.java)
+
+    @Singleton
+    fun indexedCryptoKeysMapper() = Mappers.getMapper(IndexedCryptoKeysMapper::class.java)
 }

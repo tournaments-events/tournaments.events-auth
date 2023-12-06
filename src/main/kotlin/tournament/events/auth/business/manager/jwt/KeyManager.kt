@@ -1,7 +1,5 @@
 package tournament.events.auth.business.manager.jwt
 
-import com.auth0.jwt.algorithms.Algorithm
-import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.core.Single
@@ -9,46 +7,25 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.rx3.await
 import kotlinx.coroutines.rx3.rxMaybe
+import kotlinx.coroutines.rx3.rxSingle
 import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.exception.orMissingConfig
-import tournament.events.auth.business.manager.mapper.JwtKeysMapper
-import tournament.events.auth.business.model.jwt.JwtAlgorithm
-import tournament.events.auth.business.model.jwt.JwtKeys
-import tournament.events.auth.config.model.JwtConfig
-import tournament.events.auth.data.repository.JwtKeysRepository
-import tournament.events.auth.util.enumValueOfOrNull
-
+import tournament.events.auth.business.manager.mapper.CryptoKeysMapper
+import tournament.events.auth.business.model.key.CryptoKeys
+import tournament.events.auth.business.model.key.KeyAlgorithm
+import tournament.events.auth.config.model.ClusterConfig
+import tournament.events.auth.data.repository.CryptoKeysRepository
 
 @Singleton
 class KeyManager(
-    @Inject private val jwtConfig: JwtConfig,
-    @Inject private val keysRepository: JwtKeysRepository,
-    @Inject private val jwtKeysMapper: JwtKeysMapper
+    @Inject private val keysRepository: CryptoKeysRepository,
+    @Inject private val keysMapper: CryptoKeysMapper,
+    @Inject private val keyGenerationStategies: Map<String, CryptoKeysGenerationStrategy>,
+    @Inject private val clusterConfig: ClusterConfig
 ) {
-    private val keysMap = mutableMapOf<String, Single<JwtKeys>>()
+    private val keysMap = mutableMapOf<String, Single<CryptoKeys>>()
 
-    fun getJwtAlgorithm(): JwtAlgorithm {
-        return enumValueOfOrNull<JwtAlgorithm>(jwtConfig.algorithm.orMissingConfig("jwt.algorithm"))
-            ?: throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.jwt.unsupported_algorithm",
-                "algorithm" to (jwtConfig.algorithm ?: ""),
-                "algorithms" to JwtAlgorithm.values().joinToString(", ")
-            )
-    }
-
-    /**
-     * Return the [Algorithm] initialized with the signing key named [name].
-     *
-     * If the key does not exist in the database or has not been configured in the application.yml,
-     * then it will be generated according to the key generation strategy.
-     */
-    suspend fun getAlgorithm(name: String): Algorithm {
-        val algorithm = getJwtAlgorithm()
-        val key = getKey(name, algorithm)
-        return algorithm.behavior.initializeWithKeys(key)
-    }
-
-    internal suspend fun getKey(name: String, algorithm: JwtAlgorithm): JwtKeys {
+    internal suspend fun getKey(name: String, algorithm: KeyAlgorithm): CryptoKeys {
         // Get key and return if found.
         val existingKey = keysMap[name]?.await()
         if (existingKey != null) {
@@ -71,11 +48,12 @@ class KeyManager(
         return key.await()
     }
 
-    internal fun getOrGenerateKey(name: String, algorithm: JwtAlgorithm): Single<JwtKeys> {
-        return getStoredKey(name, algorithm).toSingle()
+    internal fun getOrGenerateKey(name: String, algorithm: KeyAlgorithm): Single<CryptoKeys> {
+        return getStoredKey(name, algorithm)
+            .switchIfEmpty(generateKey(name, algorithm))
     }
 
-    internal fun getStoredKey(name: String, algorithm: JwtAlgorithm): Maybe<JwtKeys> {
+    internal fun getStoredKey(name: String, algorithm: KeyAlgorithm): Maybe<CryptoKeys> {
         return rxMaybe {
             val existingKey = keysRepository.findByName(name)
             if (existingKey != null) {
@@ -84,6 +62,22 @@ class KeyManager(
                     null
                 } else existingKey
             } else null
-        }.map(jwtKeysMapper::toJwtKeys)
+        }.map(keysMapper::toCryptoKeys)
+    }
+
+    internal fun generateKey(name: String, algorithm: KeyAlgorithm): Single<CryptoKeys> {
+        val strategy = getKeysGenerationStrategy()
+        return rxSingle {
+            strategy.generateKeys(name, algorithm)
+        }
+    }
+
+    internal fun getKeysGenerationStrategy(): CryptoKeysGenerationStrategy {
+        val strategyId = clusterConfig.keysGenerationStrategy.orMissingConfig("cluster.keys-generation-strategy")
+        return keyGenerationStategies[strategyId] ?: throw businessExceptionOf(
+            INTERNAL_SERVER_ERROR, "exception.key.unsupported_generation_algorithm",
+            "algorithm" to strategyId,
+            "algorithms" to keyGenerationStategies.keys.joinToString(", ")
+        )
     }
 }

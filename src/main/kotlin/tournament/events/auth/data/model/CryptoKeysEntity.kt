@@ -7,12 +7,15 @@ import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 
 @Serdeable
-@MappedEntity("jwt_keys")
-data class JwtKeysEntity(
+@MappedEntity("crypto_keys")
+data class CryptoKeysEntity(
     val algorithm: String,
 
-    val publicKey: ByteArray,
+    val publicKey: ByteArray?,
+    val publicKeyFormat: String?,
+
     val privateKey: ByteArray,
+    val privateKeyFormat: String?,
 
     val creationDate: LocalDateTime = now(),
 ) {

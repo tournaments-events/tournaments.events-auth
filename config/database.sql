@@ -38,31 +38,37 @@ CREATE TABLE authorize_attempts
 
 CREATE INDEX authorize_attempts__client_state ON authorize_attempts (client_state);
 
--- JWT table
+-- Cryptographic keys table
 
-CREATE TABLE jwt_keys
+CREATE TABLE crypto_keys
 (
-    name          text      NOT NULL,
-    algorithm     text      NOT NULL,
+    name               text      NOT NULL,
+    algorithm          text      NOT NULL,
 
-    public_key    bytea     NOT NULL,
-    private_key   bytea     NOT NULL,
+    public_key         bytea,
+    public_key_format  text,
 
-    creation_date timestamp NOT NULL,
+    private_key        bytea     NOT NULL,
+    private_key_format text      NOT NULL,
+
+    creation_date      timestamp NOT NULL,
     PRIMARY KEY (name)
 );
 
-CREATE TABLE indexed_jwt_keys
+CREATE TABLE indexed_crypto_keys
 (
-    name          text      NOT NULL,
-    index         SERIAL,
-    algorithm     text      NOT NULL,
+    name               text      NOT NULL,
+    index              SERIAL,
+    algorithm          text      NOT NULL,
 
-    public_key    bytea     NOT NULL,
-    private_key   bytea     NOT NULL,
+    public_key         bytea,
+    public_key_format  text,
 
-    creation_date timestamp NOT NULL,
+    private_key        bytea     NOT NULL,
+    private_key_format text      NOT NULL,
+
+    creation_date      timestamp NOT NULL,
     PRIMARY KEY (name, index)
 );
 
-CREATE INDEX indexed_jwt_keys__name ON indexed_jwt_keys (name);
+CREATE INDEX indexed_crypto_keys__name ON indexed_crypto_keys (name);
