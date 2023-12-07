@@ -1,5 +1,6 @@
 package tournament.events.auth.business.model.key
 
+import com.auth0.jwt.interfaces.RSAKeyProvider
 import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import tournament.events.auth.business.exception.businessExceptionOf
 import java.security.KeyFactory
@@ -16,7 +17,7 @@ enum class KeyAlgorithm(
     RSA(RSAKeyImpl())
 }
 
-inline fun <reified T: KeyAlgorithmImpl> KeyAlgorithm.getImpl(): T {
+inline fun <reified T : KeyAlgorithmImpl> KeyAlgorithm.getImpl(): T {
     return this.impl as T
 }
 
@@ -43,6 +44,16 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
             privateKey = keyPair.private.encoded,
             privateKeyFormat = keyPair.private.format
         )
+    }
+
+    fun toKeyProvider(keys: CryptoKeys): RSAKeyProvider {
+        val publicKey = toPublicKey(keys)
+        val privateKey = toPrivateKey(keys)
+        return object : RSAKeyProvider {
+            override fun getPublicKeyById(keyId: String?): RSAPublicKey = publicKey
+            override fun getPrivateKey(): RSAPrivateKey = privateKey
+            override fun getPrivateKeyId(): String = ""
+        }
     }
 
     fun toPublicKey(keys: CryptoKeys): RSAPublicKey {

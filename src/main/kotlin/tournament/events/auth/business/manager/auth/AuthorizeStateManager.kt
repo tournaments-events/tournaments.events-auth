@@ -9,6 +9,7 @@ import tournament.events.auth.business.manager.jwt.JwtManager
 import tournament.events.auth.business.model.oauth2.State
 import tournament.events.auth.data.model.AuthorizeAttemptEntity
 import tournament.events.auth.data.repository.AuthorizeAttemptRepository
+import java.util.*
 
 /**
  * This class is in charge of handling the [state]()
@@ -66,17 +67,27 @@ class AuthorizeStateManager(
     }
 
     suspend fun encodeState(state: State): String {
-        return jwtManager.create("state") {
-            withAudience(state.id.toString())
+        return jwtManager.create(STATE_KEY_NAME) {
+            withSubject(state.id.toString())
         }
     }
 
-    fun verifyEncodedState(state: String?): State {
+    suspend fun verifyEncodedState(state: String?): State {
         if (state == null) {
             throw businessExceptionOf(BAD_REQUEST, "exception.authorize_state.missing_state")
         }
-        return State(
-            TODO()
+        val jwt = jwtManager.decodeAndVerify(STATE_KEY_NAME, state) ?: throw businessExceptionOf(
+            BAD_REQUEST, "exception.authorize_state.invalid_state"
         )
+        return State(
+            id = UUID.fromString(jwt.subject)
+        )
+    }
+
+    companion object {
+        /**
+         * Name of the cryptographic key used to sign the state.
+         */
+        const val STATE_KEY_NAME = "state"
     }
 }

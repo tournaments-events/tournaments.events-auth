@@ -53,8 +53,7 @@ sealed class JwtAlgorithmImpl {
 class RS256AlgorithmImpl : JwtAlgorithmImpl() {
 
     override fun unsafetoAlgorithm(cryptoKeys: CryptoKeys): Algorithm {
-        val privateKey = RSA.getImpl<RSAKeyImpl>()
-            .toPrivateKey(cryptoKeys)
-        return Algorithm.RSA256(privateKey)
+        val keyProvider = RSA.getImpl<RSAKeyImpl>().toKeyProvider(cryptoKeys)
+        return Algorithm.RSA256(keyProvider)
     }
 }

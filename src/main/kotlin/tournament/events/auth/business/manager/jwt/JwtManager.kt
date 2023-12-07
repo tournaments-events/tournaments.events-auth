@@ -3,6 +3,9 @@ package tournament.events.auth.business.manager.jwt
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTCreator
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTDecodeException
+import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.interfaces.DecodedJWT
 import io.micronaut.http.HttpStatus
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -42,6 +45,28 @@ class JwtManager(
             .withIssuer(jwtConfig.issuer.orMissingConfig("jwt.issuer"))
 
         return block(builder).sign(algorithm)
+    }
+
+    suspend fun decodeAndVerify(
+        name: String,
+        token: String
+    ): DecodedJWT? {
+        val decodedJwt = try {
+            JWT.decode(token)
+        } catch (e: JWTDecodeException) {
+            return null
+        }
+
+        val algorithm = getAlgorithm(name)
+        return try {
+            JWT.require(algorithm)
+                .build()
+                .verify(decodedJwt)
+            decodedJwt
+        } catch (e: JWTVerificationException) {
+            e.printStackTrace()
+            null
+        }
     }
 
     /**

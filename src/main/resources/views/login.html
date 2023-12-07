@@ -7,16 +7,16 @@
 
 <body class="text-center">
 <main class="form-signin">
-    <th:block th:if="${providers.size > 0}">
+    <th:block th:if="${clients.size > 0}">
         <div class="with-provider mb-3">
-            <h1 class="h3 mb-3 fw-normal" th:text="#{html.login.withProvider.title}"></h1>
-            <th:block th:each="provider: ${providers}">
+            <h1 class="h3 mb-3 fw-normal" th:text="#{html.login.withClient.title}"></h1>
+            <th:block th:each="client: ${clients}">
                 <a type="button"
                    class="btn btn-lg w-100 mb-1"
-                   th:href="@{|/external/${provider.name}/authorize?state=${state}|}"
-                   th:style="|background: #{'provider.' + ${provider.name} + '.background'};|"
-                   th:styleappend="|color: #{'provider.' + ${provider.name} + '.color'};|"
-                   th:text="#{'provider.' + ${provider.name} + '.name'}">
+                   th:href="@{|/clients/${client.id}/authorize?state=${state}|}"
+                   th:style="|background: #{'client.' + ${client.name} + '.background'};|"
+                   th:styleappend="|color: #{'client.' + ${client.name} + '.color'};|"
+                   th:text="${client.name}">
                 </a>
             </th:block>
         </div>

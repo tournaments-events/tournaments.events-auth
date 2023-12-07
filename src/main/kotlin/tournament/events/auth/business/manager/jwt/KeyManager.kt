@@ -13,7 +13,7 @@ import tournament.events.auth.business.exception.orMissingConfig
 import tournament.events.auth.business.manager.mapper.CryptoKeysMapper
 import tournament.events.auth.business.model.key.CryptoKeys
 import tournament.events.auth.business.model.key.KeyAlgorithm
-import tournament.events.auth.config.model.ClusterConfig
+import tournament.events.auth.config.model.CryptoConfig
 import tournament.events.auth.data.repository.CryptoKeysRepository
 
 @Singleton
@@ -21,7 +21,7 @@ class KeyManager(
     @Inject private val keysRepository: CryptoKeysRepository,
     @Inject private val keysMapper: CryptoKeysMapper,
     @Inject private val keyGenerationStategies: Map<String, CryptoKeysGenerationStrategy>,
-    @Inject private val clusterConfig: ClusterConfig
+    @Inject private val cryptoConfig: CryptoConfig
 ) {
     private val keysMap = mutableMapOf<String, Single<CryptoKeys>>()
 
@@ -73,7 +73,7 @@ class KeyManager(
     }
 
     internal fun getKeysGenerationStrategy(): CryptoKeysGenerationStrategy {
-        val strategyId = clusterConfig.keysGenerationStrategy.orMissingConfig("cluster.keys-generation-strategy")
+        val strategyId = cryptoConfig.keysGenerationStrategy.orMissingConfig("cluster.keys-generation-strategy")
         return keyGenerationStategies[strategyId] ?: throw businessExceptionOf(
             INTERNAL_SERVER_ERROR, "exception.key.unsupported_generation_algorithm",
             "algorithm" to strategyId,

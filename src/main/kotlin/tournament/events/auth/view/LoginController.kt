@@ -46,7 +46,7 @@ class LoginController(
 
         mapOf(
             "state" to asyncState.await(),
-            "providers" to asyncClients.await()
+            "clients" to asyncClients.await()
         )
     }
 }

@@ -1,16 +1,18 @@
 package tournament.events.auth.config.model
 
+import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.context.annotation.EachProperty
 import io.micronaut.context.annotation.Parameter
-import io.micronaut.serde.annotation.Serdeable
 
 /**
  * Configuration of an external authentication provider (ex. Discord) that can be used to
  * create an account on tournaments.events.
  */
-@Serdeable
 @EachProperty("clients")
 class ClientConfig(
+    /**
+     * Identifier of the client.
+     */
     @param:Parameter val id: String
 ) {
     /**
@@ -27,5 +29,30 @@ class ClientConfig(
     /**
      * To be used the client must support the authorization code grant type
      */
-    val oauth: ClientOauth2Config? = null
+    var oauth2: ClientOauth2Config? = null
+
+    // Must be nested: https://github.com/micronaut-projects/micronaut-core/issues/2373
+    @ConfigurationProperties("ui")
+    interface ClientUIConfig {
+        /**
+         * CSS code of the color to use for the background when displaying a button redirecting
+         * to the client login page.
+         */
+        val buttonBackground: String?
+
+        /**
+         * CSS code of the color to use as the text when displaying a button redirecting
+         * to the client login page.
+         */
+        val buttonText: String?
+    }
+
+    // Must be nested: https://github.com/micronaut-projects/micronaut-core/issues/2373
+    @ConfigurationProperties("oauth2")
+    interface ClientOauth2Config {
+        val clientId: String
+        val clientSecret: String
+        val scopes: List<String>?
+        val authorizationUrl: String
+    }
 }

@@ -10,7 +10,7 @@ import jakarta.inject.Inject
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
 import tournament.events.auth.business.manager.auth.ClientManager
 
-@Controller("/external/{name}")
+@Controller("/clients/{name}")
 class ClientController(
     @Inject private val authorizeStateManager: AuthorizeStateManager,
     @Inject private val clientManager: ClientManager
@@ -20,17 +20,19 @@ class ClientController(
     @Secured(IS_ANONYMOUS)
     suspend fun authorize(
         name: String,
-        @QueryValue state: String?
+        @QueryValue("state") serializedState: String?
     ): HttpResponse<*> {
-        authorizeStateManager.verifyEncodedState(state)
-        return clientManager.authorizeWithClient(name)
+        val state = authorizeStateManager.verifyEncodedState(serializedState)
+        return clientManager.authorizeWithClient(name, state)
     }
 
     @Get("callback")
     @Secured(IS_ANONYMOUS)
-    fun callback(
-
+    suspend fun callback(
+        name: String,
+        code: String,
+        @QueryValue("state") serializedState: String?
     ) {
-
+        val state = authorizeStateManager.verifyEncodedState(serializedState)
     }
 }
