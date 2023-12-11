@@ -52,6 +52,9 @@ dependencies {
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-jackson-databind")
 
+    // HTTP client
+    implementation("io.micronaut:micronaut-http-client")
+
     // Validation
     ksp("io.micronaut:micronaut-http-validation")
     implementation("io.micronaut.validation:micronaut-validation")

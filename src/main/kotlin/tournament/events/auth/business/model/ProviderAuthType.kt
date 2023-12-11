@@ -1,5 +1,5 @@
 package tournament.events.auth.business.model
 
-enum class ExternalAuthProviderType {
+enum class ProviderAuthType {
     OAUTH2
 }

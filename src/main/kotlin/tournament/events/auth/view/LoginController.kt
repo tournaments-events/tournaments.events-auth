@@ -10,15 +10,14 @@ import io.micronaut.views.View
 import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.toList
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
-import tournament.events.auth.business.manager.auth.ClientManager
-import tournament.events.auth.config.model.ClientConfig
+import tournament.events.auth.business.manager.auth.ProviderConfigManager
+import tournament.events.auth.business.model.EnabledProvider
 
 @Controller("/login")
 class LoginController(
     @Inject private val authorizeStateManager: AuthorizeStateManager,
-    @Inject private val clientManager: ClientManager
+    @Inject private val providerConfigManager: ProviderConfigManager
 ) {
 
     @Get
@@ -40,13 +39,13 @@ class LoginController(
         }
 
         val asyncClients = async {
-            clientManager.listAvailableClients().toList()
-                .sortedWith(compareBy(ClientConfig::name))
+            providerConfigManager.listEnabledProviders().toList()
+                .sortedWith(compareBy(EnabledProvider::name))
         }
 
         mapOf(
             "state" to asyncState.await(),
-            "clients" to asyncClients.await()
+            "providers" to asyncClients.await()
         )
     }
 }

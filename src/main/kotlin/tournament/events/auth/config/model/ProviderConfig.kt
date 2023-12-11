@@ -5,11 +5,10 @@ import io.micronaut.context.annotation.EachProperty
 import io.micronaut.context.annotation.Parameter
 
 /**
- * Configuration of an external authentication provider (ex. Discord) that can be used to
- * create an account on tournaments.events.
+ * Configuration of an external authentication provider (ex. Discord).
  */
-@EachProperty("clients")
-class ClientConfig(
+@EachProperty(ProviderConfig.PROVIDERS_CONFIG_KEY)
+class ProviderConfig(
     /**
      * Identifier of the client.
      */
@@ -29,7 +28,7 @@ class ClientConfig(
     /**
      * To be used the client must support the authorization code grant type
      */
-    var oauth2: ClientOauth2Config? = null
+    var oauth2: Oauth2Config? = null
 
     // Must be nested: https://github.com/micronaut-projects/micronaut-core/issues/2373
     @ConfigurationProperties("ui")
@@ -47,12 +46,20 @@ class ClientConfig(
         val buttonText: String?
     }
 
-    // Must be nested: https://github.com/micronaut-projects/micronaut-core/issues/2373
+    // Only one level of nester properties are supported by Micronaut.
     @ConfigurationProperties("oauth2")
-    interface ClientOauth2Config {
-        val clientId: String
-        val clientSecret: String
+    interface Oauth2Config {
+        val clientId: String?
+        val clientSecret: String?
         val scopes: List<String>?
-        val authorizationUrl: String
+
+        val authorizationUrl: String?
+
+        val tokenUrl: String?
+        val tokenAuthMethod: String?
+    }
+
+    companion object {
+        const val PROVIDERS_CONFIG_KEY = "providers"
     }
 }
