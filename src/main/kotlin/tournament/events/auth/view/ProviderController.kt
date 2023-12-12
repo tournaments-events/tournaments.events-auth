@@ -7,6 +7,8 @@ import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import jakarta.inject.Inject
+import tournament.events.auth.business.manager.ProviderUserInfoManager
+import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
 import tournament.events.auth.business.manager.auth.ProviderConfigManager
 import tournament.events.auth.business.manager.auth.ProviderManager
@@ -15,9 +17,11 @@ import tournament.events.auth.business.manager.auth.oauth2.Oauth2ProviderManager
 @Controller("/providers/{id}")
 class ProviderController(
     @Inject private val authorizeStateManager: AuthorizeStateManager,
-    @Inject private val providerManager: ProviderManager,
+    @Inject private val oauth2ProviderManager: Oauth2ProviderManager,
     @Inject private val providerConfigManager: ProviderConfigManager,
-    @Inject private val oauth2ProviderManager: Oauth2ProviderManager
+    @Inject private val providerManager: ProviderManager,
+    @Inject private val userManager: UserManager,
+    @Inject private val userDetailsManager: ProviderUserInfoManager,
 ) {
 
     @Get("authorize")
@@ -42,11 +46,24 @@ class ProviderController(
     ): HttpResponse<*> {
         val provider = providerConfigManager.findEnabledProviderById(id)
         val state = authorizeStateManager.verifyEncodedState(serializedState)
-        return oauth2ProviderManager.continueWithAuthorizationCodeOrError(
+        val authentication = oauth2ProviderManager.getAuthenticationWithAuthorizationCodeOrError(
             provider = provider,
             authorizeCode = code,
             error = error,
             errorDescription = errorDescription
         )
+
+        val userDetails = userDetailsManager.fetchUserInfo(provider, authentication)
+
+        val existingUser = userManager.findByProviderUserId(
+            providerId = userDetails.providerId,
+            userId = userDetails.userId
+        )
+        val user = if (existingUser == null) {
+            userManager.createOrAssociateUserWithUserDetails(userDetails)
+        } else {
+            userManager.refreshUserDetails(existingUser, userDetails)
+        }
+        return TODO()
     }
 }

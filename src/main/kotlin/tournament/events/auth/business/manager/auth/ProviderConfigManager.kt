@@ -13,7 +13,9 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.rx3.await
 import tournament.events.auth.business.exception.BusinessException
 import tournament.events.auth.business.exception.businessExceptionOf
-import tournament.events.auth.business.model.*
+import tournament.events.auth.business.model.provider.*
+import tournament.events.auth.business.model.provider.config.ProviderAuth
+import tournament.events.auth.business.model.provider.config.ProviderOauth2
 import tournament.events.auth.config.model.ProviderConfig
 import tournament.events.auth.config.model.ProviderConfig.Companion.PROVIDERS_CONFIG_KEY
 import tournament.events.auth.util.loggerForClass

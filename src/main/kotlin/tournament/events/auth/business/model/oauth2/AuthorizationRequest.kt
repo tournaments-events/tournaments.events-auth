@@ -1,7 +1,7 @@
 package tournament.events.auth.business.model.oauth2
 
 import io.micronaut.http.uri.UriBuilder
-import tournament.events.auth.business.model.ProviderOauth2
+import tournament.events.auth.business.model.provider.config.ProviderOauth2
 import java.net.URI
 
 data class AuthorizationRequest(

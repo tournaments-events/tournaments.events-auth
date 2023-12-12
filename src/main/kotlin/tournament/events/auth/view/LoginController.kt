@@ -12,7 +12,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
 import tournament.events.auth.business.manager.auth.ProviderConfigManager
-import tournament.events.auth.business.model.EnabledProvider
+import tournament.events.auth.business.model.provider.EnabledProvider
 
 @Controller("/login")
 class LoginController(

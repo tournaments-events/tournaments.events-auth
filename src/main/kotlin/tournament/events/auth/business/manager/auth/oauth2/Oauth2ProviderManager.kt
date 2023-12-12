@@ -6,14 +6,18 @@ import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.exception.businessExceptionOf
+import tournament.events.auth.business.manager.ProviderUserInfoManager
+import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthManager
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
-import tournament.events.auth.business.model.EnabledProvider
-import tournament.events.auth.business.model.Provider
-import tournament.events.auth.business.model.ProviderOauth2
+import tournament.events.auth.business.model.provider.EnabledProvider
+import tournament.events.auth.business.model.provider.Provider
+import tournament.events.auth.business.model.provider.config.ProviderOauth2
 import tournament.events.auth.business.model.oauth2.AuthorizationRequest
+import tournament.events.auth.business.model.oauth2.ProviderOauth2Tokens
 import tournament.events.auth.business.model.oauth2.State
 import tournament.events.auth.business.model.oauth2.TokenRequest
+import tournament.events.auth.business.model.provider.ProviderCredentials
 import tournament.events.auth.client.oauth2.TokenEndpointClient
 import tournament.events.auth.util.loggerForClass
 import java.net.URI
@@ -22,7 +26,9 @@ import java.net.URI
 class Oauth2ProviderManager(
     @Inject private val authManager: AuthManager,
     @Inject private val stateManager: AuthorizeStateManager,
-    @Inject private val tokenEndpointClient: TokenEndpointClient
+    @Inject private val tokenEndpointClient: TokenEndpointClient,
+    @Inject private val userManager: UserManager,
+    @Inject private val userDetailsManager: ProviderUserInfoManager,
 ) {
 
     private val logger = loggerForClass()
@@ -60,17 +66,16 @@ class Oauth2ProviderManager(
         return HttpResponse.redirect<Any>(redirectUri)
     }
 
-    suspend fun continueWithAuthorizationCodeOrError(
+    suspend fun getAuthenticationWithAuthorizationCodeOrError(
         provider: EnabledProvider,
         authorizeCode: String?,
         error: String?,
         errorDescription: String?
-    ): HttpResponse<*> {
+    ): ProviderCredentials {
         val oauth2 = getOauth2(provider)
 
         return if (authorizeCode != null) {
-            val tokens = fetchTokens(provider, oauth2, authorizeCode)
-            TODO()
+            fetchTokens(provider, oauth2, authorizeCode)
         } else {
             TODO() // Handle error
         }
@@ -80,13 +85,16 @@ class Oauth2ProviderManager(
         provider: Provider,
         oauth2: ProviderOauth2,
         authorizeCode: String
-    ) {
+    ): ProviderOauth2Tokens {
         val request = TokenRequest(
             oauth2 = oauth2,
             authorizeCode = authorizeCode,
             redirectUri = getRedirectUri(provider)
         )
         val tokens = tokenEndpointClient.fetchTokens(request)
-        logger.info(tokens.toString())
+        return ProviderOauth2Tokens(
+            accessToken = tokens.accessToken,
+            refreshToken = tokens.refreshToken
+        )
     }
 }

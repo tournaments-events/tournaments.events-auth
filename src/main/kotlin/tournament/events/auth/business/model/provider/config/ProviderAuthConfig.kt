@@ -1,5 +1,6 @@
-package tournament.events.auth.business.model
+package tournament.events.auth.business.model.provider.config
 
+import tournament.events.auth.business.model.provider.ProviderAuthType
 import java.net.URI
 
 sealed class ProviderAuth(

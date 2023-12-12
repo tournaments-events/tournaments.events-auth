@@ -19,6 +19,40 @@ CREATE TABLE users
 
 CREATE INDEX users__email ON users (email);
 
+CREATE TABLE provider_user_info
+(
+    provider_id           text NOT NULL,
+    user_id               text NOT NULL,
+
+    name                  text,
+    given_name            text,
+    family_name           text,
+    middle_name           text,
+    nickname              text,
+
+    prefered_username     text,
+    profile               text,
+    picture               text,
+    website               text,
+
+    email                 text,
+    email_verified        boolean,
+
+    gender                text,
+    birth_date            date,
+
+    zone_info             text,
+    locale                text,
+
+    phone_number          text,
+    phone_number_verified boolean,
+
+    last_update_date      timestamp,
+    PRIMARY KEY (provider_id, user_id)
+);
+
+CREATE INDEX provider_user_info__user_id ON provider_user_info (user_id);
+
 -- OAuth2 table
 
 CREATE TABLE authorize_attempts

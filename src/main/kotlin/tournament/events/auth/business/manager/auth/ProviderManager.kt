@@ -6,8 +6,8 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.manager.auth.oauth2.Oauth2ProviderManager
-import tournament.events.auth.business.model.EnabledProvider
-import tournament.events.auth.business.model.ProviderOauth2
+import tournament.events.auth.business.model.provider.EnabledProvider
+import tournament.events.auth.business.model.provider.config.ProviderOauth2
 import tournament.events.auth.business.model.oauth2.State
 
 @Singleton

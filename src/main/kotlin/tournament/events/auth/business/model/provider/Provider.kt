@@ -1,6 +1,7 @@
-package tournament.events.auth.business.model
+package tournament.events.auth.business.model.provider
 
 import tournament.events.auth.business.exception.BusinessException
+import tournament.events.auth.business.model.provider.config.ProviderAuth
 
 /**
  * A third-party authentication provider.
