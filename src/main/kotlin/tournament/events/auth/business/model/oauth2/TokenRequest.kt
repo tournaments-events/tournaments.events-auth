@@ -1,6 +1,6 @@
 package tournament.events.auth.business.model.oauth2
 
-import tournament.events.auth.business.model.provider.config.ProviderOauth2
+import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
 import java.net.URI
 
 /**
@@ -8,7 +8,7 @@ import java.net.URI
  * provider.
  */
 data class TokenRequest(
-    val oauth2: ProviderOauth2,
+    val oauth2: ProviderOauth2Config,
     val authorizeCode: String,
     val redirectUri: URI
 )

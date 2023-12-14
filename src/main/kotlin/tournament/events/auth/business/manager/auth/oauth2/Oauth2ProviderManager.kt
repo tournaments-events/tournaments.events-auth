@@ -6,13 +6,13 @@ import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.exception.businessExceptionOf
-import tournament.events.auth.business.manager.ProviderUserInfoManager
+import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
 import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthManager
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.business.model.provider.Provider
-import tournament.events.auth.business.model.provider.config.ProviderOauth2
+import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
 import tournament.events.auth.business.model.oauth2.AuthorizationRequest
 import tournament.events.auth.business.model.oauth2.ProviderOauth2Tokens
 import tournament.events.auth.business.model.oauth2.State
@@ -33,8 +33,8 @@ class Oauth2ProviderManager(
 
     private val logger = loggerForClass()
 
-    fun getOauth2(provider: EnabledProvider): ProviderOauth2 {
-        if (provider.auth !is ProviderOauth2) {
+    fun getOauth2(provider: EnabledProvider): ProviderOauth2Config {
+        if (provider.auth !is ProviderOauth2Config) {
             throw businessExceptionOf(BAD_REQUEST, "exception.provider.oauth2.unsupported")
         }
         return provider.auth
@@ -83,7 +83,7 @@ class Oauth2ProviderManager(
 
     suspend fun fetchTokens(
         provider: Provider,
-        oauth2: ProviderOauth2,
+        oauth2: ProviderOauth2Config,
         authorizeCode: String
     ): ProviderOauth2Tokens {
         val request = TokenRequest(

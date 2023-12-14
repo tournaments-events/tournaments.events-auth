@@ -1,11 +1,11 @@
 package tournament.events.auth.business.model.oauth2
 
 import io.micronaut.http.uri.UriBuilder
-import tournament.events.auth.business.model.provider.config.ProviderOauth2
+import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
 import java.net.URI
 
 data class AuthorizationRequest(
-    val oauth2: ProviderOauth2,
+    val oauth2: ProviderOauth2Config,
     val responseType: String,
     val state: String?,
     val redirectUri: URI?,

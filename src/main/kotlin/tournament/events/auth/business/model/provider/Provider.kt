@@ -1,7 +1,8 @@
 package tournament.events.auth.business.model.provider
 
 import tournament.events.auth.business.exception.BusinessException
-import tournament.events.auth.business.model.provider.config.ProviderAuth
+import tournament.events.auth.business.model.provider.config.ProviderAuthConfig
+import tournament.events.auth.business.model.provider.config.ProviderUserInfoConfig
 
 /**
  * A third-party authentication provider.
@@ -17,7 +18,8 @@ sealed class Provider(
 class EnabledProvider(
     id: String,
     val name: String,
-    val auth: ProviderAuth
+    val userInfo: ProviderUserInfoConfig,
+    val auth: ProviderAuthConfig
 ): Provider(id, true)
 
 /**

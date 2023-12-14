@@ -3,11 +3,11 @@ package tournament.events.auth.business.model.provider.config
 import tournament.events.auth.business.model.provider.ProviderAuthType
 import java.net.URI
 
-sealed class ProviderAuth(
+sealed class ProviderAuthConfig(
     val type: ProviderAuthType
 )
 
-class ProviderOauth2(
+class ProviderOauth2Config(
     val clientId: String,
     val clientSecret: String,
     val scopes: List<String>?,
@@ -15,4 +15,4 @@ class ProviderOauth2(
     val authorizationUri: URI,
 
     val tokenUri: URI,
-) : ProviderAuth(ProviderAuthType.OAUTH2)
+) : ProviderAuthConfig(ProviderAuthType.OAUTH2)

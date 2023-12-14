@@ -7,11 +7,11 @@ import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import jakarta.inject.Inject
-import tournament.events.auth.business.manager.ProviderUserInfoManager
+import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
 import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
-import tournament.events.auth.business.manager.auth.ProviderConfigManager
-import tournament.events.auth.business.manager.auth.ProviderManager
+import tournament.events.auth.business.manager.provider.ProviderConfigManager
+import tournament.events.auth.business.manager.provider.ProviderManager
 import tournament.events.auth.business.manager.auth.oauth2.Oauth2ProviderManager
 
 @Controller("/providers/{id}")

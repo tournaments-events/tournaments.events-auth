@@ -26,6 +26,11 @@ class ProviderConfig(
     var ui: ClientUIConfig? = null
 
     /**
+     *
+     */
+    var userInfo: UserInfoConfig? = null
+
+    /**
      * To be used the client must support the authorization code grant type
      */
     var oauth2: Oauth2Config? = null
@@ -57,6 +62,12 @@ class ProviderConfig(
 
         val tokenUrl: String?
         val tokenAuthMethod: String?
+    }
+
+    @ConfigurationProperties("user-info")
+    interface UserInfoConfig {
+        val url: String?
+        val paths: Map<String, String?>?
     }
 
     companion object {

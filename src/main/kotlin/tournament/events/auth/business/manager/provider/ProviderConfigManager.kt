@@ -1,4 +1,4 @@
-package tournament.events.auth.business.manager.auth
+package tournament.events.auth.business.manager.provider
 
 import io.micronaut.context.MessageSource
 import io.micronaut.context.event.ApplicationEventListener
@@ -14,8 +14,9 @@ import kotlinx.coroutines.rx3.await
 import tournament.events.auth.business.exception.BusinessException
 import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.model.provider.*
-import tournament.events.auth.business.model.provider.config.ProviderAuth
-import tournament.events.auth.business.model.provider.config.ProviderOauth2
+import tournament.events.auth.business.model.provider.config.ProviderAuthConfig
+import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
+import tournament.events.auth.business.model.provider.config.ProviderUserInfoConfig
 import tournament.events.auth.config.model.ProviderConfig
 import tournament.events.auth.config.model.ProviderConfig.Companion.PROVIDERS_CONFIG_KEY
 import tournament.events.auth.util.loggerForClass
@@ -85,6 +86,7 @@ open class ProviderConfigManager(
         return EnabledProvider(
             id = config.id,
             name = getStringOrThrow(config, "$PROVIDERS_CONFIG_KEY.name", ProviderConfig::name),
+            userInfo = configureProviderUserInfo(config),
             auth = configureProviderAuth(config)
         )
     }
@@ -111,7 +113,20 @@ open class ProviderConfigManager(
         return uri
     }
 
-    private fun configureProviderAuth(config: ProviderConfig): ProviderAuth {
+    private fun configureProviderUserInfo(config: ProviderConfig): ProviderUserInfoConfig {
+        val userInfo = config.userInfo ?: throw businessExceptionOf(
+            INTERNAL_SERVER_ERROR, "exception.config.missing_auth" // TODO
+        )
+        return ProviderUserInfoConfig(
+            uri = getUriOrThrow(
+                userInfo,
+                "${PROVIDERS_CONFIG_KEY}.user-info.url",
+                ProviderConfig.UserInfoConfig::url
+            )
+        )
+    }
+
+    private fun configureProviderAuth(config: ProviderConfig): ProviderAuthConfig {
         return when {
             config.oauth2 != null -> configureProviderOauth2(config, config.oauth2!!)
             else -> throw businessExceptionOf(
@@ -123,8 +138,8 @@ open class ProviderConfigManager(
     private fun configureProviderOauth2(
         config: ProviderConfig,
         oauth2: ProviderConfig.Oauth2Config
-    ): ProviderOauth2 {
-        return ProviderOauth2(
+    ): ProviderOauth2Config {
+        return ProviderOauth2Config(
             clientId = getStringOrThrow(
                 oauth2,
                 "${PROVIDERS_CONFIG_KEY}.${config.id}.client-id",

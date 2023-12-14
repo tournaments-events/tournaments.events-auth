@@ -1,4 +1,4 @@
-package tournament.events.auth.business.manager
+package tournament.events.auth.business.manager.provider
 
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -21,6 +21,7 @@ class ProviderUserInfoManager(
             userInfoConfig = getUserInfoConfig(provider),
             credentials = credentials
         )
+        return TODO()
     }
 
     fun getUserInfoConfig(provider: EnabledProvider): ProviderUserInfoConfig {

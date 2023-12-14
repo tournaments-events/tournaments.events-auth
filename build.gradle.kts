@@ -27,6 +27,7 @@ extra.apply {
     set("mockitoKotlinVersion", "4.0.0")
     set("junitJupiterVersion", "5.9.1")
     set("javaJwtVersion", "4.4.0")
+    set("jsonPathVersion", "2.8.0")
 }
 
 repositories {
@@ -96,6 +97,9 @@ dependencies {
     // YAML: for configuration
     runtimeOnly("org.yaml:snakeyaml")
 
+    // JsonPath: for user info extraction
+    implementation("com.jayway.jsonpath:json-path:${project.extra["jsonPathVersion"]}")
+
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:${project.extra["junitJupiterVersion"]}")
     testImplementation("org.mockito:mockito-junit-jupiter:${project.extra["mockitoVersion"]}")
@@ -140,7 +144,7 @@ tasks {
     }
     jib {
         to {
-            image = "gcr.io/myapp/jib-image"
+            image = "sympauthy"
         }
     }
 }

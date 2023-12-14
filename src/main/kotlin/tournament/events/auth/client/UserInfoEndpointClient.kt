@@ -18,12 +18,13 @@ class UserInfoEndpointClient(
     suspend fun fetchUserInfo(
         userInfoConfig: ProviderUserInfoConfig,
         credentials: ProviderCredentials
-    ): String {
+    ): Map<*, *> {
         val httpRequest = HttpRequest.GET<String>(userInfoConfig.uri)
             .accept(MediaType.APPLICATION_JSON)
+        credentials.authenticate(httpRequest)
 
         return try {
-            httpClient.retrieve(httpRequest, String::class.java)
+            httpClient.retrieve(httpRequest, Map::class.java)
                 .awaitFirst()
         } catch (e: HttpClientResponseException) {
             throw e
