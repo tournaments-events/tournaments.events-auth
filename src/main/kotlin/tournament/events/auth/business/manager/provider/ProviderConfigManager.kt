@@ -1,5 +1,7 @@
 package tournament.events.auth.business.manager.provider
 
+import com.jayway.jsonpath.internal.Path
+import com.jayway.jsonpath.internal.path.PathCompiler
 import io.micronaut.context.MessageSource
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.discovery.event.ServiceReadyEvent
@@ -115,22 +117,69 @@ open class ProviderConfigManager(
 
     private fun configureProviderUserInfo(config: ProviderConfig): ProviderUserInfoConfig {
         val userInfo = config.userInfo ?: throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "exception.config.missing_auth" // TODO
+            INTERNAL_SERVER_ERROR, "exception.config.user_info.missing"
         )
+
         return ProviderUserInfoConfig(
             uri = getUriOrThrow(
                 userInfo,
                 "${PROVIDERS_CONFIG_KEY}.user-info.url",
                 ProviderConfig.UserInfoConfig::url
-            )
+            ),
+            paths = configureProviderUserInfoPaths(userInfo)
         )
+    }
+
+    private fun configureProviderUserInfoPaths(
+        userInfo: ProviderConfig.UserInfoConfig
+    ): Map<ProviderUserInfoPathKey, Path> {
+        val userInfoPathsKey = "$PROVIDERS_CONFIG_KEY.user-info.paths"
+        val userInfoPaths = userInfo.paths ?: throw businessExceptionOf(
+            INTERNAL_SERVER_ERROR, "exception.config.missing",
+            "key" to userInfoPathsKey
+        )
+        val paths = userInfoPaths
+            .map { (key, value) ->
+                val pathKey = pathKeyOfOrNull(key) ?: throw businessExceptionOf(
+                    INTERNAL_SERVER_ERROR, "exception.config.user_info.unsupported_key",
+                    "key" to "$userInfoPathsKey.$key",
+                    "supportedKeys" to ProviderUserInfoPathKey.values().map(ProviderUserInfoPathKey::configKey)
+                        .joinToString(", ")
+                )
+
+                val rawPath = value ?: throw businessExceptionOf(
+                    INTERNAL_SERVER_ERROR, "exception.config.user_info.unsupported_key",
+                    "key" to "$userInfoPathsKey.$key"
+                )
+                val path = try {
+                    PathCompiler.compile(rawPath)
+                } catch (e: Throwable) {
+                    throw BusinessException(
+                        status = INTERNAL_SERVER_ERROR,
+                        messageId = "exception.config.user_info.invalid_value",
+                        values = mapOf(
+                            "key" to "$userInfoPathsKey.$key"
+                        ),
+                        throwable = e
+                    )
+                }
+                pathKey to path
+            }
+            .toMap()
+        if (paths[ProviderUserInfoPathKey.SUBJECT] == null) {
+            throw businessExceptionOf(
+                INTERNAL_SERVER_ERROR, "exception.config.user_info.missing_subject_key",
+                "key" to "${PROVIDERS_CONFIG_KEY}.user-info.paths"
+            )
+        }
+        return paths
     }
 
     private fun configureProviderAuth(config: ProviderConfig): ProviderAuthConfig {
         return when {
             config.oauth2 != null -> configureProviderOauth2(config, config.oauth2!!)
             else -> throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.config.missing_auth"
+                INTERNAL_SERVER_ERROR, "exception.config.auth.missing"
             )
         }
     }

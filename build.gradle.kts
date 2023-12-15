@@ -83,7 +83,7 @@ dependencies {
     kapt("org.mapstruct:mapstruct-processor:${project.extra["mapStructVersion"]}")
 
     // Serialization/Deserialization
-    kapt("io.micronaut.serde:micronaut-serde-processor")
+    ksp("io.micronaut.serde:micronaut-serde-processor")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
 
     // Logging

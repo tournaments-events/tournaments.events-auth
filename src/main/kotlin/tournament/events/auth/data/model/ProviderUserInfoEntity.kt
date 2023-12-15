@@ -1,7 +1,7 @@
 package tournament.events.auth.data.model
 
 import io.micronaut.data.annotation.Embeddable
-import io.micronaut.data.annotation.Id
+import io.micronaut.data.annotation.EmbeddedId
 import io.micronaut.data.annotation.MappedEntity
 import io.micronaut.serde.annotation.Serdeable
 import java.time.LocalDate
@@ -16,7 +16,7 @@ data class ProviderUserInfoEntityId(
 @Serdeable
 @MappedEntity("provider_user_info")
 data class ProviderUserInfoEntity(
-    @Id val id: ProviderUserInfoEntityId,
+    @EmbeddedId val id: ProviderUserInfoEntityId,
 
     val name: String? = null,
     val givenName: String? = null,

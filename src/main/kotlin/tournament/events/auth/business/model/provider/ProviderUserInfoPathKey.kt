@@ -1,9 +1,9 @@
-package tournament.events.auth.config.model
+package tournament.events.auth.business.model.provider
 
-enum class UserInfoConfigEnum(
-    val configName: String,
-    val configUserInfoKeys: List<String> = listOf(configName)
-) {
+/**
+ *
+ */
+enum class ProviderUserInfoPathKey(val configKey: String) {
     SUBJECT("sub"),
 
     NAME("name"),
@@ -30,4 +30,8 @@ enum class UserInfoConfigEnum(
     PHONE_NUMBER_VERIFIED("phone_number_verified"),
 
     UPDATED_AT("updated_at")
+}
+
+fun pathKeyOfOrNull(value: String): ProviderUserInfoPathKey? {
+    return ProviderUserInfoPathKey.values().firstOrNull { it.configKey == value }
 }
