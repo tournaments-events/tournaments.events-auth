@@ -18,6 +18,7 @@ data class AuthorizeRedirect(
 
     fun build(): URI {
         val builder = UriBuilder.of(authorizeAttempt.redirectUri)
+        authorizeAttempt.state?.let { builder.queryParam("state", it) }
         if (authorizationCode != null) {
             authorizationCode.code.let { builder.queryParam("code", it) }
         } else {

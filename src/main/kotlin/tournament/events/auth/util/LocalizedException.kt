@@ -17,7 +17,7 @@ open class LocalizedException(
     /**
      * Value to expose to the mustache template to inject values into the localized message.
      */
-    val values: Map<String, Any>,
+    val values: Map<String, Any?>,
     val additionalMessages: List<AdditionalLocalizedMessage> = emptyList(),
     /**
      * Underlying cause of this exception.
@@ -25,7 +25,7 @@ open class LocalizedException(
     throwable: Throwable?
 ) : Exception(formatMessage(status, messageResourceName, values), throwable) {
     companion object {
-        private fun formatMessage(status: HttpStatus, messageResourceName: String, values: Map<String, Any>): String {
+        private fun formatMessage(status: HttpStatus, messageResourceName: String, values: Map<String, Any?>): String {
             return if (values.isEmpty()) {
                 "${status.code} - $messageResourceName"
             } else {

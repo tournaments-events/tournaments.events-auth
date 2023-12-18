@@ -1,4 +1,4 @@
-package tournament.events.auth.config.factory
+package tournament.events.auth.server
 
 import io.micronaut.context.MessageSource
 import io.micronaut.context.annotation.Factory
