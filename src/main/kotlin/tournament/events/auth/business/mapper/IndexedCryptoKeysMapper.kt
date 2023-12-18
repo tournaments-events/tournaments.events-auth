@@ -1,9 +1,9 @@
-package tournament.events.auth.business.manager.mapper
+package tournament.events.auth.business.mapper
 
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
-import tournament.events.auth.business.manager.mapper.config.BusinessMapperConfig
+import tournament.events.auth.business.mapper.config.BusinessMapperConfig
 import tournament.events.auth.business.model.key.CryptoKeys
 import tournament.events.auth.data.model.IndexedCryptoKeysEntity
 

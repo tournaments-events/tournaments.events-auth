@@ -7,4 +7,7 @@ import tournament.events.auth.data.model.ProviderUserInfoEntity
 import tournament.events.auth.data.model.ProviderUserInfoEntityId
 
 @R2dbcRepository(dialect = Dialect.POSTGRES)
-interface ProviderUserInfoRepository : CoroutineCrudRepository<ProviderUserInfoEntity, ProviderUserInfoEntityId>
+interface ProviderUserInfoRepository : CoroutineCrudRepository<ProviderUserInfoEntity, ProviderUserInfoEntityId> {
+
+    suspend fun findByProviderIdAndSubject(providerId: String, subject: String): ProviderUserInfoEntity?
+}

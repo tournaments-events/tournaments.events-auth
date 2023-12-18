@@ -9,5 +9,5 @@ import java.util.*
 @R2dbcRepository(dialect = POSTGRES)
 interface AuthorizeAttemptRepository : CoroutineCrudRepository<AuthorizeAttemptEntity, UUID> {
 
-    suspend fun findByClientState(state: String): AuthorizeAttemptEntity?
+    suspend fun findByState(state: String): AuthorizeAttemptEntity?
 }

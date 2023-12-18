@@ -3,7 +3,6 @@ package tournament.events.auth.client
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.MediaType
 import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.exceptions.HttpClientResponseException
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactive.awaitFirst
@@ -23,11 +22,7 @@ class UserInfoEndpointClient(
             .accept(MediaType.APPLICATION_JSON)
         credentials.authenticate(httpRequest)
 
-        return try {
-            httpClient.retrieve(httpRequest, Map::class.java)
-                .awaitFirst()
-        } catch (e: HttpClientResponseException) {
-            throw e
-        }
+        return httpClient.retrieve(httpRequest, Map::class.java)
+            .awaitFirst()
     }
 }

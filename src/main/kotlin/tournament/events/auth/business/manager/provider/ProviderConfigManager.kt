@@ -1,13 +1,11 @@
 package tournament.events.auth.business.manager.provider
 
-import com.jayway.jsonpath.internal.Path
-import com.jayway.jsonpath.internal.path.PathCompiler
+import com.jayway.jsonpath.JsonPath
 import io.micronaut.context.MessageSource
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.discovery.event.ServiceReadyEvent
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
-import io.micronaut.http.uri.UriBuilder
 import io.micronaut.scheduling.annotation.Async
 import io.reactivex.rxjava3.core.Single
 import jakarta.inject.Inject
@@ -15,14 +13,24 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.rx3.await
 import tournament.events.auth.business.exception.BusinessException
 import tournament.events.auth.business.exception.businessExceptionOf
-import tournament.events.auth.business.model.provider.*
+import tournament.events.auth.business.model.provider.DisabledProvider
+import tournament.events.auth.business.model.provider.EnabledProvider
+import tournament.events.auth.business.model.provider.Provider
+import tournament.events.auth.business.model.provider.ProviderUserInfoPathKey
+import tournament.events.auth.business.model.provider.ProviderUserInfoPathKey.EMAIL
+import tournament.events.auth.business.model.provider.ProviderUserInfoPathKey.SUB
 import tournament.events.auth.business.model.provider.config.ProviderAuthConfig
 import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
 import tournament.events.auth.business.model.provider.config.ProviderUserInfoConfig
-import tournament.events.auth.config.model.ProviderConfig
-import tournament.events.auth.config.model.ProviderConfig.Companion.PROVIDERS_CONFIG_KEY
+import tournament.events.auth.business.model.user.UserMergingStrategy.BY_MAIL
+import tournament.events.auth.config.model.AdvancedConfig
+import tournament.events.auth.config.model.orThrow
+import tournament.events.auth.config.properties.ProviderConfigurationProperties
+import tournament.events.auth.config.properties.ProviderConfigurationProperties.Companion.PROVIDERS_CONFIG_KEY
+import tournament.events.auth.config.util.convertToEnum
+import tournament.events.auth.config.util.getStringOrThrow
+import tournament.events.auth.config.util.getUriOrThrow
 import tournament.events.auth.util.loggerForClass
-import java.net.URI
 import java.util.*
 
 /**
@@ -31,8 +39,9 @@ import java.util.*
  */
 @Singleton
 open class ProviderConfigManager(
-    @Inject private val providers: List<ProviderConfig>,
-    @Inject private val messageSource: MessageSource
+    @Inject private val providers: List<ProviderConfigurationProperties>,
+    @Inject private val messageSource: MessageSource,
+    @Inject private val advancedConfig: AdvancedConfig
 ) : ApplicationEventListener<ServiceReadyEvent> {
 
     private val logger = loggerForClass()
@@ -84,55 +93,33 @@ open class ProviderConfigManager(
         return configuredProviders
     }
 
-    internal fun configureProvider(config: ProviderConfig): EnabledProvider {
+    internal fun configureProvider(config: ProviderConfigurationProperties): EnabledProvider {
         return EnabledProvider(
             id = config.id,
-            name = getStringOrThrow(config, "$PROVIDERS_CONFIG_KEY.name", ProviderConfig::name),
+            name = getStringOrThrow(config, "$PROVIDERS_CONFIG_KEY.name", ProviderConfigurationProperties::name),
             userInfo = configureProviderUserInfo(config),
             auth = configureProviderAuth(config)
         )
     }
 
-    internal fun <C : Any, R : Any> getOrThrow(config: C, key: String, value: (C) -> R?): R {
-        return value(config) ?: throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "exception.config.missing", "key" to key
-        )
-    }
-
-    internal fun <C : Any> getStringOrThrow(config: C, key: String, value: (C) -> String?): String {
-        val value = getOrThrow(config, key, value)
-        if (value.isBlank()) {
-            throw businessExceptionOf(INTERNAL_SERVER_ERROR, "exception.config.empty", "key" to key)
-        }
-        return value
-    }
-
-    private fun <C : Any> getUriOrThrow(config: C, key: String, value: (C) -> String?): URI {
-        val uri = getOrThrow(config, key, value).let(UriBuilder::of).build()
-        if (uri.scheme.isNullOrBlank() || uri.host.isNullOrBlank()) {
-            throw businessExceptionOf(INTERNAL_SERVER_ERROR, "exception.config.invalid_url", "key" to key)
-        }
-        return uri
-    }
-
-    private fun configureProviderUserInfo(config: ProviderConfig): ProviderUserInfoConfig {
+    private fun configureProviderUserInfo(config: ProviderConfigurationProperties): ProviderUserInfoConfig {
         val userInfo = config.userInfo ?: throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "exception.config.user_info.missing"
+            INTERNAL_SERVER_ERROR, "exception.config.provider.user_info.missing"
         )
 
         return ProviderUserInfoConfig(
             uri = getUriOrThrow(
                 userInfo,
                 "${PROVIDERS_CONFIG_KEY}.user-info.url",
-                ProviderConfig.UserInfoConfig::url
+                ProviderConfigurationProperties.UserInfoConfig::url
             ),
             paths = configureProviderUserInfoPaths(userInfo)
         )
     }
 
     private fun configureProviderUserInfoPaths(
-        userInfo: ProviderConfig.UserInfoConfig
-    ): Map<ProviderUserInfoPathKey, Path> {
+        userInfo: ProviderConfigurationProperties.UserInfoConfig
+    ): Map<ProviderUserInfoPathKey, JsonPath> {
         val userInfoPathsKey = "$PROVIDERS_CONFIG_KEY.user-info.paths"
         val userInfoPaths = userInfo.paths ?: throw businessExceptionOf(
             INTERNAL_SERVER_ERROR, "exception.config.missing",
@@ -140,23 +127,19 @@ open class ProviderConfigManager(
         )
         val paths = userInfoPaths
             .map { (key, value) ->
-                val pathKey = pathKeyOfOrNull(key) ?: throw businessExceptionOf(
-                    INTERNAL_SERVER_ERROR, "exception.config.user_info.unsupported_key",
-                    "key" to "$userInfoPathsKey.$key",
-                    "supportedKeys" to ProviderUserInfoPathKey.values().map(ProviderUserInfoPathKey::configKey)
-                        .joinToString(", ")
+                val pathKey = convertToEnum<ProviderUserInfoPathKey>(
+                    "$userInfoPathsKey.$key", key
                 )
-
                 val rawPath = value ?: throw businessExceptionOf(
-                    INTERNAL_SERVER_ERROR, "exception.config.user_info.unsupported_key",
+                    INTERNAL_SERVER_ERROR, "exception.config.provider.user_info.invalid_value",
                     "key" to "$userInfoPathsKey.$key"
                 )
                 val path = try {
-                    PathCompiler.compile(rawPath)
+                    JsonPath.compile(rawPath)
                 } catch (e: Throwable) {
                     throw BusinessException(
                         status = INTERNAL_SERVER_ERROR,
-                        messageId = "exception.config.user_info.invalid_value",
+                        messageId = "exception.config.provider.user_info.invalid_value",
                         values = mapOf(
                             "key" to "$userInfoPathsKey.$key"
                         ),
@@ -166,16 +149,22 @@ open class ProviderConfigManager(
                 pathKey to path
             }
             .toMap()
-        if (paths[ProviderUserInfoPathKey.SUBJECT] == null) {
+        if (paths[SUB] == null) {
             throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.config.user_info.missing_subject_key",
+                INTERNAL_SERVER_ERROR, "exception.config.provider.user_info.missing_subject_key",
+                "key" to "${PROVIDERS_CONFIG_KEY}.user-info.paths"
+            )
+        }
+        if (advancedConfig.orThrow().userMergingStrategy == BY_MAIL && paths[EMAIL] == null) {
+            throw businessExceptionOf(
+                INTERNAL_SERVER_ERROR, "exception.config.provider.user_info.missing_email_key",
                 "key" to "${PROVIDERS_CONFIG_KEY}.user-info.paths"
             )
         }
         return paths
     }
 
-    private fun configureProviderAuth(config: ProviderConfig): ProviderAuthConfig {
+    private fun configureProviderAuth(config: ProviderConfigurationProperties): ProviderAuthConfig {
         return when {
             config.oauth2 != null -> configureProviderOauth2(config, config.oauth2!!)
             else -> throw businessExceptionOf(
@@ -185,30 +174,30 @@ open class ProviderConfigManager(
     }
 
     private fun configureProviderOauth2(
-        config: ProviderConfig,
-        oauth2: ProviderConfig.Oauth2Config
+        config: ProviderConfigurationProperties,
+        oauth2: ProviderConfigurationProperties.Oauth2Config
     ): ProviderOauth2Config {
         return ProviderOauth2Config(
             clientId = getStringOrThrow(
                 oauth2,
                 "${PROVIDERS_CONFIG_KEY}.${config.id}.client-id",
-                ProviderConfig.Oauth2Config::clientId
+                ProviderConfigurationProperties.Oauth2Config::clientId
             ),
             clientSecret = getStringOrThrow(
                 oauth2,
                 "${PROVIDERS_CONFIG_KEY}.${config.id}.client-secret",
-                ProviderConfig.Oauth2Config::clientSecret
+                ProviderConfigurationProperties.Oauth2Config::clientSecret
             ),
             scopes = oauth2.scopes,
             authorizationUri = getUriOrThrow(
                 oauth2,
                 "${PROVIDERS_CONFIG_KEY}.${config.id}.authorization-url",
-                ProviderConfig.Oauth2Config::authorizationUrl
+                ProviderConfigurationProperties.Oauth2Config::authorizationUrl
             ),
             tokenUri = getUriOrThrow(
                 oauth2,
                 "${PROVIDERS_CONFIG_KEY}.${config.id}.token-url",
-                ProviderConfig.Oauth2Config::tokenUrl
+                ProviderConfigurationProperties.Oauth2Config::tokenUrl
             )
         )
     }

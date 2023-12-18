@@ -6,7 +6,8 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.manager.jwt.JwtManager
-import tournament.events.auth.business.model.oauth2.State
+import tournament.events.auth.business.mapper.AuthorizeAttemptMapper
+import tournament.events.auth.business.model.auth.AuthorizeAttempt
 import tournament.events.auth.data.model.AuthorizeAttemptEntity
 import tournament.events.auth.data.repository.AuthorizeAttemptRepository
 import java.util.*
@@ -17,38 +18,37 @@ import java.util.*
 @Singleton
 class AuthorizeStateManager(
     @Inject private val authorizeAttemptRepository: AuthorizeAttemptRepository,
-    @Inject private val jwtManager: JwtManager
+    @Inject private val jwtManager: JwtManager,
+    @Inject private val authorizeAttemptMapper: AuthorizeAttemptMapper
 ) {
 
     /**
-     * Create a new internal [State] associated to the [clientState] provided by the third-party user.
+     * Verify if the
      */
-    suspend fun createState(
+    suspend fun newAuthorizeAttempt(
         httpRequest: HttpRequest<*>,
         redirectUri: String,
         clientId: String,
         clientState: String? = null
-    ): State {
+    ): AuthorizeAttempt {
         checkIsExistingAttemptWithState(clientState)
-        val attempt = logAttempt(
+        val entity = logAttempt(
             httpRequest = httpRequest,
             redirectUri = redirectUri,
             clientId = clientId,
             clientState = clientState,
         )
-        return State(
-            id = attempt.id!!
-        )
+        return authorizeAttemptMapper.toAuthorizeAttempt(entity)
     }
 
     internal suspend fun checkIsExistingAttemptWithState(
         state: String?
     ) {
         val existingAttempt = state?.let {
-            authorizeAttemptRepository.findByClientState(it)
+            authorizeAttemptRepository.findByState(it)
         }
         if (existingAttempt != null) {
-            throw businessExceptionOf(BAD_REQUEST, "exception.authorize.state_already_used")
+            throw businessExceptionOf(BAD_REQUEST, "exception.authorize.replay")
         }
     }
 
@@ -61,27 +61,36 @@ class AuthorizeStateManager(
         val attempt = AuthorizeAttemptEntity(
             clientId = clientId,
             redirectUri = redirectUri,
-            clientState = clientState
+            state = clientState
         )
         return authorizeAttemptRepository.save(attempt)
     }
 
-    suspend fun encodeState(state: State): String {
+    suspend fun encodeState(authorizeAttempt: AuthorizeAttempt): String {
         return jwtManager.create(STATE_KEY_NAME) {
-            withSubject(state.id.toString())
+            withKeyId(STATE_KEY_NAME)
+            withSubject(authorizeAttempt.id.toString())
         }
     }
 
-    suspend fun verifyEncodedState(state: String?): State {
+    suspend fun verifyEncodedState(state: String?): AuthorizeAttempt {
         if (state == null) {
             throw businessExceptionOf(BAD_REQUEST, "exception.authorize_state.missing_state")
         }
         val jwt = jwtManager.decodeAndVerify(STATE_KEY_NAME, state) ?: throw businessExceptionOf(
             BAD_REQUEST, "exception.authorize_state.invalid_state"
         )
-        return State(
-            id = UUID.fromString(jwt.subject)
+        val attemptId = try {
+            UUID.fromString(jwt.subject)
+        } catch (e: IllegalArgumentException) {
+            throw businessExceptionOf(
+                BAD_REQUEST, "exception.authorize_state.invalid_state"
+            )
+        }
+        val authorizeAttemptEntity = authorizeAttemptRepository.findById(attemptId) ?: throw businessExceptionOf(
+            BAD_REQUEST, "exception.authorize_state.invalid_state"
         )
+        return authorizeAttemptMapper.toAuthorizeAttempt(authorizeAttemptEntity)
     }
 
     companion object {

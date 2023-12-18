@@ -9,7 +9,7 @@ import java.time.LocalDateTime.now
 import java.util.*
 
 /**
- * This entity store all information related to an user trying to authenticate through this service.
+ * This entity store all information related to a user trying to authenticate through this service.
  */
 @Serdeable
 @MappedEntity("authorize_attempts")
@@ -19,18 +19,13 @@ data class AuthorizeAttemptEntity(
      */
     val clientId: String,
     /**
-     * URI where the user must be redirected when the authorization is completed.
+     * URI where the user must be redirected when the authentication is completed.
      */
     val redirectUri: String,
-
-    val clientIp: String? = null,
-    val clientUserAgent: String? = null,
-    val clientReferer: String? = null,
-
     /**
-     * The state provided by the Oauth2/OpenId client initiating the authorization flow.
+     * The state provided by the Oauth2/OpenId client used to initiate the authentication.
      */
-    val clientState: String? = null,
+    val state: String? = null,
 
     val attemptDate: LocalDateTime = now(),
 ) {

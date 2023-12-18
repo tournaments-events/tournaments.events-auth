@@ -1,10 +1,14 @@
-package tournament.events.auth.business.model.oauth2
+package tournament.events.auth.business.model.redirect
 
 import io.micronaut.http.uri.UriBuilder
 import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
 import java.net.URI
 
-data class AuthorizationRequest(
+/**
+ * Contains all the information required to generate the URI where the user must be redirected to initiate
+ * an authentication to a third-party provider.
+ */
+data class ProviderOauth2AuthorizationRedirect(
     val oauth2: ProviderOauth2Config,
     val responseType: String,
     val state: String?,

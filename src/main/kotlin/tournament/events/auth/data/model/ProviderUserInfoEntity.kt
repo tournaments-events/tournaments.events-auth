@@ -3,20 +3,26 @@ package tournament.events.auth.data.model
 import io.micronaut.data.annotation.Embeddable
 import io.micronaut.data.annotation.EmbeddedId
 import io.micronaut.data.annotation.MappedEntity
+import io.micronaut.data.annotation.MappedProperty
 import io.micronaut.serde.annotation.Serdeable
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Embeddable
 data class ProviderUserInfoEntityId(
-    val providerId: String,
-    val userId: String,
+    @MappedProperty("provider_id") val providerId: String,
+    @MappedProperty("user_id") val userId: UUID,
 )
 
 @Serdeable
 @MappedEntity("provider_user_info")
 data class ProviderUserInfoEntity(
     @EmbeddedId val id: ProviderUserInfoEntityId,
+    val lastFetchDate: LocalDateTime,
+    val lastChangeDate: LocalDateTime,
+
+    val subject: String,
 
     val name: String? = null,
     val givenName: String? = null,
@@ -41,5 +47,5 @@ data class ProviderUserInfoEntity(
     val phoneNumber: String? = null,
     val phoneNumberVerified: Boolean? = null,
 
-    val lastUpdateDate: LocalDateTime? = null
+    val updatedAt: LocalDateTime? = null
 )

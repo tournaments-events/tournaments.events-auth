@@ -1,16 +1,16 @@
-package tournament.events.auth.config.model
+package tournament.events.auth.config.properties
 
 import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.context.annotation.EachProperty
 import io.micronaut.context.annotation.Parameter
 
 /**
- * Configuration of an external authentication provider (ex. Discord).
+ * Configuration of a third-party authentication provider (ex. Discord).
  */
-@EachProperty(ProviderConfig.PROVIDERS_CONFIG_KEY)
-class ProviderConfig(
+@EachProperty(ProviderConfigurationProperties.PROVIDERS_CONFIG_KEY)
+class ProviderConfigurationProperties(
     /**
-     * Identifier of the client.
+     * Identifier of the provider.
      */
     @param:Parameter val id: String
 ) {

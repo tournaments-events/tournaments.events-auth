@@ -5,24 +5,22 @@
 
 CREATE TABLE users
 (
-    id        uuid    NOT NULL DEFAULT gen_random_uuid(),
-    username  text    NOT NULL,
+    id            uuid      NOT NULL DEFAULT gen_random_uuid(),
+    email         text,
+    password      text,
 
-    firstname text,
-    lastname  text,
-    email     text,
-
-    password  text,
-    is_admin  boolean NOT NULL,
+    creation_date timestamp NOT NULL,
     PRIMARY KEY (id)
 );
 
-CREATE INDEX users__email ON users (email);
-
 CREATE TABLE provider_user_info
 (
-    provider_id           text NOT NULL,
-    user_id               text NOT NULL,
+    provider_id           text      NOT NULL,
+    user_id               uuid      NOT NULL,
+    last_fetch_date       timestamp NOT NULL,
+    last_change_date      timestamp NOT NULL,
+
+    subject               text      NOT NULL,
 
     name                  text,
     given_name            text,
@@ -30,7 +28,7 @@ CREATE TABLE provider_user_info
     middle_name           text,
     nickname              text,
 
-    prefered_username     text,
+    preferred_username    text,
     profile               text,
     picture               text,
     website               text,
@@ -47,30 +45,46 @@ CREATE TABLE provider_user_info
     phone_number          text,
     phone_number_verified boolean,
 
-    last_update_date      timestamp,
+    updated_at            timestamp,
     PRIMARY KEY (provider_id, user_id)
 );
 
 CREATE INDEX provider_user_info__user_id ON provider_user_info (user_id);
 
--- OAuth2 table
+-- Auth table
 
 CREATE TABLE authorize_attempts
 (
-    id                uuid      NOT NULL DEFAULT gen_random_uuid(),
-    client_id         text      NOT NULL,
-    redirect_uri      text      NOT NULL,
+    id           uuid      NOT NULL DEFAULT gen_random_uuid(),
+    client_id    text      NOT NULL,
+    redirect_uri text      NOT NULL,
+    state        text,
 
-    client_ip         text,
-    client_user_agent text,
-    client_referer    text,
-    client_state      text,
-
-    attempt_date      timestamp NOT NULL,
+    attempt_date timestamp NOT NULL,
     PRIMARY KEY (id)
 );
 
-CREATE INDEX authorize_attempts__client_state ON authorize_attempts (client_state);
+CREATE INDEX authorize_attempts__state ON authorize_attempts (state);
+
+CREATE TABLE authorization_codes
+(
+    attempt_id    uuid      NOT NULL,
+    code          text      NOT NULL,
+    creation_date timestamp NOT NULL,
+    PRIMARY KEY (attempt_id)
+);
+
+CREATE INDEX authorization_codes__code ON authorization_codes (code);
+
+CREATE TABLE tokens
+(
+    user_id             uuid      NOT NULL,
+    client_id           text      NOT NULL,
+
+    attempt_date        timestamp NOT NULL,
+    authentication_date timestamp NOT NULL,
+    PRIMARY KEY (user_id, client_id)
+);
 
 -- Cryptographic keys table
 

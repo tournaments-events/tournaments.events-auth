@@ -8,7 +8,7 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactive.awaitFirst
-import tournament.events.auth.business.model.oauth2.TokenRequest
+import tournament.events.auth.business.model.provider.oauth2.ProviderOAuth2TokenRequest
 import tournament.events.auth.client.oauth2.model.TokenEndpointResponse
 
 @Singleton
@@ -17,7 +17,7 @@ class TokenEndpointClient(
 ) {
 
 
-    suspend fun fetchTokens(request: TokenRequest): TokenEndpointResponse {
+    suspend fun fetchTokens(request: ProviderOAuth2TokenRequest): TokenEndpointResponse {
         val tokenUri = request.oauth2.tokenUri
         val body = mutableMapOf(
             "grant_type" to "authorization_code",

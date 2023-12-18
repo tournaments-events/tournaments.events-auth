@@ -1,4 +1,4 @@
-package tournament.events.auth.config.model
+package tournament.events.auth.config.properties
 
 import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.context.annotation.Parameter
@@ -15,7 +15,7 @@ import io.micronaut.context.annotation.Parameter
  * - not collected
  */
 @ConfigurationProperties("user-info")
-class UserInfoConfig(
+class UserInfoConfigurationProperties(
     @param:Parameter info: String
 ) {
     var type: String? = null

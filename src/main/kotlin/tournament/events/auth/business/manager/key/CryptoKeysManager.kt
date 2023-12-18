@@ -1,6 +1,5 @@
-package tournament.events.auth.business.manager.jwt
+package tournament.events.auth.business.manager.key
 
-import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.core.Single
 import jakarta.inject.Inject
@@ -8,20 +7,18 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.rx3.await
 import kotlinx.coroutines.rx3.rxMaybe
 import kotlinx.coroutines.rx3.rxSingle
-import tournament.events.auth.business.exception.businessExceptionOf
-import tournament.events.auth.business.exception.orMissingConfig
-import tournament.events.auth.business.manager.mapper.CryptoKeysMapper
+import tournament.events.auth.business.mapper.CryptoKeysMapper
 import tournament.events.auth.business.model.key.CryptoKeys
 import tournament.events.auth.business.model.key.KeyAlgorithm
-import tournament.events.auth.config.model.CryptoConfig
+import tournament.events.auth.config.model.AdvancedConfig
+import tournament.events.auth.config.model.orThrow
 import tournament.events.auth.data.repository.CryptoKeysRepository
 
 @Singleton
-class KeyManager(
+class CryptoKeysManager(
     @Inject private val keysRepository: CryptoKeysRepository,
     @Inject private val keysMapper: CryptoKeysMapper,
-    @Inject private val keyGenerationStategies: Map<String, CryptoKeysGenerationStrategy>,
-    @Inject private val cryptoConfig: CryptoConfig
+    @Inject private val advancedConfig: AdvancedConfig
 ) {
     private val keysMap = mutableMapOf<String, Single<CryptoKeys>>()
 
@@ -66,18 +63,8 @@ class KeyManager(
     }
 
     internal fun generateKey(name: String, algorithm: KeyAlgorithm): Single<CryptoKeys> {
-        val strategy = getKeysGenerationStrategy()
         return rxSingle {
-            strategy.generateKeys(name, algorithm)
+            advancedConfig.orThrow().keysGenerationStrategy.generateKeys(name, algorithm)
         }
-    }
-
-    internal fun getKeysGenerationStrategy(): CryptoKeysGenerationStrategy {
-        val strategyId = cryptoConfig.keysGenerationStrategy.orMissingConfig("cluster.keys-generation-strategy")
-        return keyGenerationStategies[strategyId] ?: throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "exception.key.unsupported_generation_algorithm",
-            "algorithm" to strategyId,
-            "algorithms" to keyGenerationStategies.keys.joinToString(", ")
-        )
     }
 }

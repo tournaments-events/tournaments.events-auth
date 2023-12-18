@@ -6,14 +6,12 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
-import io.micronaut.http.HttpStatus
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import tournament.events.auth.business.exception.businessExceptionOf
-import tournament.events.auth.business.exception.orMissingConfig
-import tournament.events.auth.business.model.jwt.JwtAlgorithm
-import tournament.events.auth.config.model.JwtConfig
-import tournament.events.auth.util.enumValueOfOrNull
+import tournament.events.auth.business.manager.key.CryptoKeysManager
+import tournament.events.auth.config.model.AdvancedConfig
+import tournament.events.auth.config.model.AuthConfig
+import tournament.events.auth.config.model.orThrow
 
 /**
  * Manager in charge of all JSON web token issued by this server, it includes:
@@ -22,29 +20,20 @@ import tournament.events.auth.util.enumValueOfOrNull
  */
 @Singleton
 class JwtManager(
-    @Inject private val keyManager: KeyManager,
-    @Inject private val jwtConfig: JwtConfig
+    @Inject private val keyManager: CryptoKeysManager,
+    @Inject private val advancedConfig: AdvancedConfig,
+    @Inject private val authConfig: AuthConfig,
 ) {
-
-    fun getJwtAlgorithm(): JwtAlgorithm {
-        return enumValueOfOrNull<JwtAlgorithm>(jwtConfig.algorithm.orMissingConfig("jwt.algorithm"))
-            ?: throw businessExceptionOf(
-                HttpStatus.INTERNAL_SERVER_ERROR, "exception.jwt.unsupported_algorithm",
-                "algorithm" to (jwtConfig.algorithm ?: ""),
-                "algorithms" to JwtAlgorithm.values().joinToString(", ")
-            )
-    }
 
     suspend fun create(
         name: String,
         block: JWTCreator.Builder.() -> JWTCreator.Builder = { this }
     ): String {
         val algorithm = getAlgorithm(name)
-
-        val builder = JWT.create()
-            .withIssuer(jwtConfig.issuer.orMissingConfig("jwt.issuer"))
-
-        return block(builder).sign(algorithm)
+        return JWT.create().apply {
+            authConfig.orThrow().issuer?.let(this::withIssuer)
+            block(this)
+        }.sign(algorithm)
     }
 
     suspend fun decodeAndVerify(
@@ -76,7 +65,7 @@ class JwtManager(
      * then it will be generated according to the key generation strategy.
      */
     suspend fun getAlgorithm(name: String): Algorithm {
-        val algorithm = getJwtAlgorithm()
+        val algorithm = advancedConfig.orThrow().jwtAlgorithm
         val key = keyManager.getKey(name, algorithm.keyAlgorithm)
         return algorithm.impl.initializeWithKeys(key)
     }

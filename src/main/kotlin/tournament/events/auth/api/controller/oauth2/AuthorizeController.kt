@@ -6,6 +6,8 @@ import io.micronaut.http.HttpStatus.BAD_REQUEST
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
+import io.micronaut.security.annotation.Secured
+import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
 import java.net.URI
@@ -13,6 +15,7 @@ import java.net.URI
 // http://localhost:8092/api/oauth2/authorize?response_type=code&client_id=core&state=test
 
 @Controller("/api/oauth2/authorize")
+@Secured(IS_ANONYMOUS)
 open class AuthorizeController(
     private val authorizeStateManager: AuthorizeStateManager
 ) {
@@ -38,6 +41,7 @@ open class AuthorizeController(
                 clientState = state!!,
                 redirectUri = redirectUri!!
             )
+
             else -> throw businessExceptionOf(BAD_REQUEST, "exception.authorize.unsupported_response_type")
         }
     }
@@ -48,7 +52,7 @@ open class AuthorizeController(
         clientState: String,
         redirectUri: String
     ): HttpResponse<String> {
-        val state = authorizeStateManager.createState(
+        val state = authorizeStateManager.newAuthorizeAttempt(
             httpRequest = httpRequest,
             clientId = clientId,
             clientState = clientState,

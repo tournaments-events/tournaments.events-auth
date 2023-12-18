@@ -3,8 +3,8 @@ package tournament.events.auth.business.manager.jwt
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
-import tournament.events.auth.business.manager.mapper.CryptoKeysMapper
-import tournament.events.auth.business.manager.mapper.IndexedCryptoKeysMapper
+import tournament.events.auth.business.mapper.CryptoKeysMapper
+import tournament.events.auth.business.mapper.IndexedCryptoKeysMapper
 import tournament.events.auth.business.model.key.CryptoKeys
 import tournament.events.auth.business.model.key.KeyAlgorithm
 import tournament.events.auth.data.model.IndexedCryptoKeysEntity

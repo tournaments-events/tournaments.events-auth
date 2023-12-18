@@ -10,28 +10,29 @@ import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
 import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthManager
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
+import tournament.events.auth.business.model.auth.AuthorizeAttempt
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.business.model.provider.Provider
 import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
-import tournament.events.auth.business.model.oauth2.AuthorizationRequest
-import tournament.events.auth.business.model.oauth2.ProviderOauth2Tokens
-import tournament.events.auth.business.model.oauth2.State
-import tournament.events.auth.business.model.oauth2.TokenRequest
+import tournament.events.auth.business.model.redirect.ProviderOauth2AuthorizationRedirect
+import tournament.events.auth.business.model.provider.oauth2.ProviderOauth2Tokens
+import tournament.events.auth.business.model.provider.oauth2.ProviderOAuth2TokenRequest
 import tournament.events.auth.business.model.provider.ProviderCredentials
+import tournament.events.auth.business.model.redirect.AuthorizeRedirect
 import tournament.events.auth.client.oauth2.TokenEndpointClient
-import tournament.events.auth.util.loggerForClass
 import java.net.URI
 
 @Singleton
 class Oauth2ProviderManager(
     @Inject private val authManager: AuthManager,
+    @Inject private val authorizationCodeManager: AuthorizationCodeManager,
+    @Inject private val authorizeStateManager: AuthorizeStateManager,
+    @Inject private val providerUserInfoManager: ProviderUserInfoManager,
     @Inject private val stateManager: AuthorizeStateManager,
     @Inject private val tokenEndpointClient: TokenEndpointClient,
     @Inject private val userManager: UserManager,
     @Inject private val userDetailsManager: ProviderUserInfoManager,
 ) {
-
-    private val logger = loggerForClass()
 
     fun getOauth2(provider: EnabledProvider): ProviderOauth2Config {
         if (provider.auth !is ProviderOauth2Config) {
@@ -54,16 +55,55 @@ class Oauth2ProviderManager(
 
     suspend fun authorizeWithProvider(
         provider: EnabledProvider,
-        state: State
+        authorizeAttempt: AuthorizeAttempt
     ): HttpResponse<*> {
         val oauth2 = getOauth2(provider)
-        val redirectUri = AuthorizationRequest(
+        val redirectUri = ProviderOauth2AuthorizationRedirect(
             oauth2 = oauth2,
             responseType = "code",
             redirectUri = getRedirectUri(provider),
-            state = stateManager.encodeState(state)
+            state = stateManager.encodeState(authorizeAttempt)
         ).build()
         return HttpResponse.redirect<Any>(redirectUri)
+    }
+
+    suspend fun handleCallback(
+        provider: EnabledProvider,
+        authorizeCode: String?,
+        error: String?,
+        errorDescription: String?,
+        state: String?
+    ): AuthorizeRedirect {
+        val authorizeAttempt = authorizeStateManager.verifyEncodedState(state)
+
+        val authentication = getAuthenticationWithAuthorizationCodeOrError(
+            provider = provider,
+            authorizeCode = authorizeCode,
+            error = error,
+            errorDescription = errorDescription
+        )
+
+        val rawUserInfo = userDetailsManager.fetchUserInfo(provider, authentication)
+
+        val existingUserInfo = providerUserInfoManager.findByProviderAndSubject(
+            provider = provider,
+            subject = rawUserInfo.subject
+        )
+        val userId = if (existingUserInfo == null) {
+            userManager.createOrAssociateUserWithUserInfo(provider, rawUserInfo)
+                .user.id
+        } else {
+            providerUserInfoManager.refreshUserInfo(existingUserInfo, rawUserInfo)
+            existingUserInfo.userId
+        }
+
+        // TODO: add redirection to complete user info.
+        // TODO: add redirection to verify email.
+
+        return AuthorizeRedirect(
+            authorizeAttempt = authorizeAttempt,
+            authorizationCode = authorizationCodeManager.generateCode(authorizeAttempt)
+        )
     }
 
     suspend fun getAuthenticationWithAuthorizationCodeOrError(
@@ -86,7 +126,7 @@ class Oauth2ProviderManager(
         oauth2: ProviderOauth2Config,
         authorizeCode: String
     ): ProviderOauth2Tokens {
-        val request = TokenRequest(
+        val request = ProviderOAuth2TokenRequest(
             oauth2 = oauth2,
             authorizeCode = authorizeCode,
             redirectUri = getRedirectUri(provider)

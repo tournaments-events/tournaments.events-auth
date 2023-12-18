@@ -7,21 +7,17 @@ import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import jakarta.inject.Inject
-import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
-import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
+import tournament.events.auth.business.manager.auth.oauth2.Oauth2ProviderManager
 import tournament.events.auth.business.manager.provider.ProviderConfigManager
 import tournament.events.auth.business.manager.provider.ProviderManager
-import tournament.events.auth.business.manager.auth.oauth2.Oauth2ProviderManager
 
 @Controller("/providers/{id}")
 class ProviderController(
     @Inject private val authorizeStateManager: AuthorizeStateManager,
     @Inject private val oauth2ProviderManager: Oauth2ProviderManager,
-    @Inject private val providerConfigManager: ProviderConfigManager,
     @Inject private val providerManager: ProviderManager,
-    @Inject private val userManager: UserManager,
-    @Inject private val userDetailsManager: ProviderUserInfoManager,
+    @Inject private val providerConfigManager: ProviderConfigManager
 ) {
 
     @Get("authorize")
@@ -30,9 +26,9 @@ class ProviderController(
         id: String,
         @QueryValue("state") serializedState: String?
     ): HttpResponse<*> {
-        val state = authorizeStateManager.verifyEncodedState(serializedState)
+        val authorizeAttempt = authorizeStateManager.verifyEncodedState(serializedState)
         val provider = providerConfigManager.findEnabledProviderById(id)
-        return providerManager.authorizeWithProvider(provider, state)
+        return providerManager.authorizeWithProvider(provider, authorizeAttempt)
     }
 
     @Get("callback")
@@ -45,25 +41,13 @@ class ProviderController(
         @QueryValue("state") serializedState: String?
     ): HttpResponse<*> {
         val provider = providerConfigManager.findEnabledProviderById(id)
-        val state = authorizeStateManager.verifyEncodedState(serializedState)
-        val authentication = oauth2ProviderManager.getAuthenticationWithAuthorizationCodeOrError(
+        val redirect = oauth2ProviderManager.handleCallback(
             provider = provider,
             authorizeCode = code,
             error = error,
-            errorDescription = errorDescription
+            errorDescription = errorDescription,
+            state = serializedState
         )
-
-        val userDetails = userDetailsManager.fetchUserInfo(provider, authentication)
-
-        val existingUser = userManager.findByProviderUserId(
-            providerId = userDetails.providerId,
-            userId = userDetails.userId
-        )
-        val user = if (existingUser == null) {
-            userManager.createOrAssociateUserWithUserDetails(userDetails)
-        } else {
-            userManager.refreshUserDetails(existingUser, userDetails)
-        }
-        return TODO()
+        return HttpResponse.redirect<Any>(redirect.build())
     }
 }

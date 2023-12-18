@@ -1,4 +1,4 @@
-package tournament.events.auth.business.manager.mapper.config
+package tournament.events.auth.business.mapper.config
 
 import org.mapstruct.MapperConfig
 import org.mapstruct.NullValuePropertyMappingStrategy

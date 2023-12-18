@@ -1,61 +1,53 @@
 package tournament.events.auth.business.manager
 
-import io.micronaut.http.HttpStatus.BAD_REQUEST
+import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import tournament.events.auth.business.exception.BusinessException
-import tournament.events.auth.business.model.provider.ProviderUserInfo
+import tournament.events.auth.business.mapper.UserMapper
+import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
+import tournament.events.auth.business.model.provider.EnabledProvider
+import tournament.events.auth.business.model.provider.RawProviderUserInfo
 import tournament.events.auth.business.model.user.User
+import tournament.events.auth.config.model.AdvancedConfig
+import tournament.events.auth.business.model.user.UserMergingStrategy.BY_MAIL
+import tournament.events.auth.business.model.user.UserMergingStrategy.NONE
+import tournament.events.auth.config.model.orThrow
 import tournament.events.auth.data.model.UserEntity
 import tournament.events.auth.data.repository.UserRepository
+import java.time.LocalDateTime
 
 @Singleton
 class UserManager(
-    private val userRepository: UserRepository
+    @Inject private val providerUserInfoManager: ProviderUserInfoManager,
+    @Inject private val userRepository: UserRepository,
+    @Inject private val advancedConfig: AdvancedConfig,
+    @Inject private val userMapper: UserMapper
 ) {
 
-    /**
-     * Find the [User] associated to the [userId]
-     */
-    suspend fun findByProviderUserId(
-        providerId: String,
-        userId: String
-    ): User? {
-        TODO()
-    }
-
-    suspend fun createUser(
-        email: String,
-        username: String,
-        password: String
-    ): UserEntity {
-        val user = userRepository.findByEmail(email)
-        return if (user == null) {
+    suspend fun createOrAssociateUserWithUserInfo(
+        provider: EnabledProvider,
+        rawUserInfo: RawProviderUserInfo
+    ): CreateOrAssociateResult {
+        val existingUserEntity = when (advancedConfig.orThrow().userMergingStrategy) {
+            BY_MAIL -> rawUserInfo.email?.let { userRepository.findByEmail(it) }
+            NONE -> null
+        }
+        val userEntity = if (existingUserEntity == null) {
             val newUser = UserEntity(
-                username = username,
-                email = email,
-                password = password
+                email = rawUserInfo.email,
+                creationDate = LocalDateTime.now()
             )
             userRepository.save(newUser)
-        } else {
-            throw BusinessException(BAD_REQUEST, "exception.user.email_already_used")
-        }
-    }
+        } else existingUserEntity
 
-    suspend fun createOrAssociateUserWithUserDetails(
-        userDetails: ProviderUserInfo
-    ): CreateOrAssociateResult {
-        return TODO()
-    }
-
-    suspend fun refreshUserDetails(
-        user: User,
-        userDetails: ProviderUserInfo
-    ): User {
-        TODO()
-    }
-
-    fun isMissingMandatoryUserDetails(user: User): Boolean {
-        return TODO()
+        providerUserInfoManager.saveUserInfo(
+            provider = provider,
+            userId = userEntity.id!!,
+            rawUserInfo = rawUserInfo
+        )
+        return CreateOrAssociateResult(
+            created = existingUserEntity == null,
+            user = userMapper.toUser(userEntity)
+        )
     }
 }
 

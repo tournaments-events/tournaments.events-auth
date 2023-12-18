@@ -1,37 +1,30 @@
 package tournament.events.auth.business.model.provider
 
-/**
- *
- */
-enum class ProviderUserInfoPathKey(val configKey: String) {
-    SUBJECT("sub"),
+enum class ProviderUserInfoPathKey {
+    SUB,
 
-    NAME("name"),
-    GIVEN_NAME("given_name"),
-    FAMILY_NAME("family_name"),
-    MIDDLE_NAME("middle_name"),
-    NICKNAME("middle_name"),
+    NAME,
+    GIVEN_NAME,
+    FAMILY_NAME,
+    MIDDLE_NAME,
+    NICKNAME,
 
-    PREFERRED_USERNAME("preferred_username"),
-    PROFILE("preferred_username"),
-    PICTURE("picture"),
-    WEBSITE("website"),
+    PREFERRED_USERNAME,
+    PROFILE,
+    PICTURE,
+    WEBSITE,
 
-    EMAIL("email"),
-    EMAIL_VERIFIED("email_verified"),
+    EMAIL,
+    EMAIL_VERIFIED,
 
-    GENDER("gender"),
-    BIRTH_DATE("birth_date"),
+    GENDER,
+    BIRTH_DATE,
 
-    ZONE_INFO("zone_info"),
-    LOCALE("locale"),
+    ZONE_INFO,
+    LOCALE,
 
-    PHONE_NUMBER("phone_number"),
-    PHONE_NUMBER_VERIFIED("phone_number_verified"),
+    PHONE_NUMBER,
+    PHONE_NUMBER_VERIFIED,
 
-    UPDATED_AT("updated_at")
-}
-
-fun pathKeyOfOrNull(value: String): ProviderUserInfoPathKey? {
-    return ProviderUserInfoPathKey.values().firstOrNull { it.configKey == value }
+    UPDATED_AT
 }

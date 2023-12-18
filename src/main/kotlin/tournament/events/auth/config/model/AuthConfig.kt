@@ -1,15 +1,23 @@
 package tournament.events.auth.config.model
 
-import io.micronaut.context.annotation.ConfigurationProperties
+import tournament.events.auth.business.exception.BusinessException
 
-@ConfigurationProperties("auth")
-interface AuthConfig {
-    /**
-     * Url where the user will be redirected after completing the authentication with a third-party client.
-     *
-     * The url must include:
-     * - the schema
-     * - the domain
-     */
-    val redirectUrl: String?
+sealed class AuthConfig(
+    configurationErrors: List<BusinessException>? = null
+): Config(configurationErrors)
+
+class EnabledAuthConfig(
+    val issuer: String?,
+    val audience: String?
+): AuthConfig()
+
+class DisabledAuthConfig(
+    configurationErrors: List<BusinessException>
+): AuthConfig(configurationErrors)
+
+fun AuthConfig.orThrow(): EnabledAuthConfig {
+    return when (this) {
+        is EnabledAuthConfig -> this
+        is DisabledAuthConfig -> throw this.invalidConfig
+    }
 }

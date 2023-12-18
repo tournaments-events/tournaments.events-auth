@@ -6,16 +6,16 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.exception.orMissingConfig
-import tournament.events.auth.config.model.AuthConfig
+import tournament.events.auth.config.properties.AuthConfigurationProperties
 import java.net.URI
 
 @Singleton
 class AuthManager(
-    @Inject private val authConfig: AuthConfig
+    @Inject private val authConfigurationProperties: AuthConfigurationProperties
 ) {
 
     fun getRedirectUri(): URI {
-        val authorizeUri = authConfig.redirectUrl?.let(UriBuilder::of)
+        val authorizeUri = authConfigurationProperties.redirectUrl?.let(UriBuilder::of)
             ?.build()
             .orMissingConfig("auth.redirect-uri")
         if (authorizeUri.scheme.isNullOrBlank() || authorizeUri.host.isNullOrBlank()) {

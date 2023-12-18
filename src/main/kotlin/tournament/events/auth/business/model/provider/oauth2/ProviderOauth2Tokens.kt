@@ -1,4 +1,4 @@
-package tournament.events.auth.business.model.oauth2
+package tournament.events.auth.business.model.provider.oauth2
 
 import io.micronaut.http.MutableHttpRequest
 import tournament.events.auth.business.model.provider.ProviderCredentials
