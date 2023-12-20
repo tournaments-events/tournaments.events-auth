@@ -2,14 +2,14 @@ package tournament.events.auth.api.controller.oauth2
 
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus.BAD_REQUEST
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
-import tournament.events.auth.business.exception.businessExceptionOf
+import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.manager.auth.AuthorizeStateManager
+import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
 import java.net.URI
 
 // http://localhost:8092/api/oauth2/authorize?response_type=code&client_id=core&state=test
@@ -22,7 +22,6 @@ open class AuthorizeController(
 
     @Get
     suspend fun authorize(
-        httpRequest: HttpRequest<*>,
         @QueryValue("response_type")
         responseType: String?,
         @QueryValue("client_id")
@@ -36,27 +35,24 @@ open class AuthorizeController(
     ): HttpResponse<String> {
         return when (responseType) {
             "code" -> authorizeWithCodeFlow(
-                httpRequest = httpRequest,
                 clientId = clientId!!,
                 clientState = state!!,
                 redirectUri = redirectUri!!
             )
 
-            else -> throw businessExceptionOf(BAD_REQUEST, "exception.authorize.unsupported_response_type")
+            else -> throw oauth2ExceptionOf(UNSUPPORTED_RESPONSE_TYPE)
         }
     }
 
     internal suspend fun authorizeWithCodeFlow(
-        httpRequest: HttpRequest<*>,
         clientId: String,
         clientState: String,
         redirectUri: String
     ): HttpResponse<String> {
         val state = authorizeStateManager.newAuthorizeAttempt(
-            httpRequest = httpRequest,
             clientId = clientId,
             clientState = clientState,
-            redirectUri = redirectUri,
+            uncheckedRedirectUri = redirectUri,
         )
         val encodedState = authorizeStateManager.encodeState(state)
         return HttpResponse.redirect(

@@ -4,12 +4,17 @@ import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus.BAD_REQUEST
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.manager.jwt.JwtManager
 import tournament.events.auth.business.mapper.AuthorizeAttemptMapper
 import tournament.events.auth.business.model.auth.AuthorizeAttempt
+import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode
+import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import tournament.events.auth.data.model.AuthorizeAttemptEntity
 import tournament.events.auth.data.repository.AuthorizeAttemptRepository
+import tournament.events.auth.util.toAbsoluteUri
+import java.net.URI
 import java.util.*
 
 /**
@@ -22,22 +27,23 @@ class AuthorizeStateManager(
     @Inject private val authorizeAttemptMapper: AuthorizeAttemptMapper
 ) {
 
-    /**
-     * Verify if the
-     */
     suspend fun newAuthorizeAttempt(
-        httpRequest: HttpRequest<*>,
-        redirectUri: String,
         clientId: String,
-        clientState: String? = null
+        uncheckedRedirectUri: String?,
+        clientState: String? = null,
     ): AuthorizeAttempt {
+        val redirectUri = checkRedirectUri(uncheckedRedirectUri)
         checkIsExistingAttemptWithState(clientState)
-        val entity = logAttempt(
-            httpRequest = httpRequest,
-            redirectUri = redirectUri,
+
+        // TODO: check client and redirect uri
+
+        val entity = AuthorizeAttemptEntity(
             clientId = clientId,
-            clientState = clientState,
+            redirectUri = redirectUri.toString(),
+            state = clientState
         )
+        authorizeAttemptRepository.save(entity)
+
         return authorizeAttemptMapper.toAuthorizeAttempt(entity)
     }
 
@@ -48,22 +54,16 @@ class AuthorizeStateManager(
             authorizeAttemptRepository.findByState(it)
         }
         if (existingAttempt != null) {
-            throw businessExceptionOf(BAD_REQUEST, "exception.authorize.replay")
+            throw oauth2ExceptionOf(INVALID_REQUEST, "description.oauth2.replay", "authorize.existing_state")
         }
     }
 
-    internal suspend fun logAttempt(
-        httpRequest: HttpRequest<*>,
-        redirectUri: String,
-        clientId: String,
-        clientState: String?,
-    ): AuthorizeAttemptEntity {
-        val attempt = AuthorizeAttemptEntity(
-            clientId = clientId,
-            redirectUri = redirectUri,
-            state = clientState
-        )
-        return authorizeAttemptRepository.save(attempt)
+    internal fun checkRedirectUri(redirectUri: String?): URI {
+        return redirectUri.toAbsoluteUri() ?: throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.invalid_redirect_uri")
+    }
+
+    internal fun checkClient(clientId: String, redirectUri: URI) {
+
     }
 
     suspend fun encodeState(authorizeAttempt: AuthorizeAttempt): String {
@@ -75,20 +75,20 @@ class AuthorizeStateManager(
 
     suspend fun verifyEncodedState(state: String?): AuthorizeAttempt {
         if (state == null) {
-            throw businessExceptionOf(BAD_REQUEST, "exception.authorize_state.missing_state")
+            throw businessExceptionOf(BAD_REQUEST, "authorize_state.missing_state")
         }
         val jwt = jwtManager.decodeAndVerify(STATE_KEY_NAME, state) ?: throw businessExceptionOf(
-            BAD_REQUEST, "exception.authorize_state.invalid_state"
+            BAD_REQUEST, "description.oauth2.invalid_state"
         )
         val attemptId = try {
             UUID.fromString(jwt.subject)
         } catch (e: IllegalArgumentException) {
             throw businessExceptionOf(
-                BAD_REQUEST, "exception.authorize_state.invalid_state"
+                BAD_REQUEST, "description.oauth2.invalid_state"
             )
         }
         val authorizeAttemptEntity = authorizeAttemptRepository.findById(attemptId) ?: throw businessExceptionOf(
-            BAD_REQUEST, "exception.authorize_state.invalid_state"
+            BAD_REQUEST, "description.oauth2.invalid_state"
         )
         return authorizeAttemptMapper.toAuthorizeAttempt(authorizeAttemptEntity)
     }

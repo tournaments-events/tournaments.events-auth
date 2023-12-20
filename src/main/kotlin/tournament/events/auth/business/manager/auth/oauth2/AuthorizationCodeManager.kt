@@ -37,7 +37,7 @@ class AuthorizationCodeManager(
             authorizeCodeRepository.save(entity)
                 .let(authorizationCodeMapper::toAuthorizationCode)
         } catch (e: R2dbcDataIntegrityViolationException) {
-            throw businessExceptionOf(BAD_REQUEST, "exception.authorize.replay")
+            throw businessExceptionOf(BAD_REQUEST, "description.oauth2.replay")
         }
     }
 }

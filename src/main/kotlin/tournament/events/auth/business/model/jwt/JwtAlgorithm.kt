@@ -38,7 +38,7 @@ sealed class JwtAlgorithmImpl {
         } catch (t: Throwable) {
             throw BusinessException(
                 status = INTERNAL_SERVER_ERROR,
-                messageId = "exception.jwt.invalid_key",
+                detailsId = "jwt.invalid_key",
                 values = mapOf(
                     "name" to cryptoKeys.name
                 ),

@@ -36,7 +36,7 @@ class Oauth2ProviderManager(
 
     fun getOauth2(provider: EnabledProvider): ProviderOauth2Config {
         if (provider.auth !is ProviderOauth2Config) {
-            throw businessExceptionOf(BAD_REQUEST, "exception.provider.oauth2.unsupported")
+            throw businessExceptionOf(BAD_REQUEST, "provider.oauth2.unsupported")
         }
         return provider.auth
     }

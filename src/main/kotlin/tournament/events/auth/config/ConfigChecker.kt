@@ -38,8 +38,8 @@ open class ConfigChecker(
     }
 
     private fun logConfigError(error: BusinessException) {
-        val localizedErrorMessage = messageSource.getMessage(error.messageResourceName, Locale.US, error.values)
-            .orElse(error.messageResourceName)
+        val localizedErrorMessage = messageSource.getMessage(error.detailsId, Locale.US, error.values)
+            .orElse(error.detailsId)
         logger.error("- $localizedErrorMessage")
     }
 }

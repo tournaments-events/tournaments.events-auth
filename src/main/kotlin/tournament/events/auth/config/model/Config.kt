@@ -33,4 +33,4 @@ open class Config(
 )
 
 val Config.invalidConfig: BusinessException
-    get() = businessExceptionOf(INTERNAL_SERVER_ERROR, "exception.config.invalid")
+    get() = businessExceptionOf(INTERNAL_SERVER_ERROR, "config.invalid")

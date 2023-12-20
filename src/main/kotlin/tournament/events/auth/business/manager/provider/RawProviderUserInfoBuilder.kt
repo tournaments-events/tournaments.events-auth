@@ -93,7 +93,7 @@ class RawProviderUserInfoBuilder {
     fun build(provider: EnabledProvider): RawProviderUserInfo {
         return RawProviderUserInfo(
             subject = subject ?: throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.provider.user_info.missing_subject",
+                INTERNAL_SERVER_ERROR, "provider.user_info.missing_subject",
                 "providerId" to provider.id
             ),
             name = name,

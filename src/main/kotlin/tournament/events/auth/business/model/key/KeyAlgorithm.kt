@@ -59,7 +59,7 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
     fun toPublicKey(keys: CryptoKeys): RSAPublicKey {
         if (keys.publicKey == null || keys.publicKeyFormat == null) {
             throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.key.missing_public_key",
+                INTERNAL_SERVER_ERROR, "key.missing_public_key",
                 "name" to keys.name
             )
         }
@@ -92,7 +92,7 @@ fun getKeySpec(
         "PKCS#8" -> PKCS8EncodedKeySpec(key)
         "X.509" -> X509EncodedKeySpec(key)
         else -> throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "exception.key.unsupported_key_spec",
+            INTERNAL_SERVER_ERROR, "key.unsupported_key_spec",
             "name" to name,
             "keySpec" to format
         )

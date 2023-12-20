@@ -69,7 +69,7 @@ open class ProviderConfigManager(
     suspend fun findEnabledProviderById(id: String): EnabledProvider {
         return listEnabledProviders()
             .filter { it.id == id }
-            .firstOrNull() ?: throw businessExceptionOf(HttpStatus.BAD_REQUEST, "exception.provider.missing")
+            .firstOrNull() ?: throw businessExceptionOf(HttpStatus.BAD_REQUEST, "provider.missing")
     }
 
     private fun configureProviders(): List<Provider> {
@@ -78,8 +78,8 @@ open class ProviderConfigManager(
             try {
                 configureProvider(it)
             } catch (e: BusinessException) {
-                val localizedErrorMessage = messageSource.getMessage(e.messageResourceName, Locale.US, e.values)
-                    .orElse(e.messageResourceName)
+                val localizedErrorMessage = messageSource.getMessage(e.detailsId, Locale.US, e.values)
+                    .orElse(e.detailsId)
                 logger.error("Failed to configure ${it.id}: ${localizedErrorMessage}")
                 DisabledProvider(it.id, e)
             }
@@ -104,7 +104,7 @@ open class ProviderConfigManager(
 
     private fun configureProviderUserInfo(config: ProviderConfigurationProperties): ProviderUserInfoConfig {
         val userInfo = config.userInfo ?: throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "exception.config.provider.user_info.missing"
+            INTERNAL_SERVER_ERROR, "config.provider.user_info.missing"
         )
 
         return ProviderUserInfoConfig(
@@ -122,7 +122,7 @@ open class ProviderConfigManager(
     ): Map<ProviderUserInfoPathKey, JsonPath> {
         val userInfoPathsKey = "$PROVIDERS_CONFIG_KEY.user-info.paths"
         val userInfoPaths = userInfo.paths ?: throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "exception.config.missing",
+            INTERNAL_SERVER_ERROR, "config.missing",
             "key" to userInfoPathsKey
         )
         val paths = userInfoPaths
@@ -131,7 +131,7 @@ open class ProviderConfigManager(
                     "$userInfoPathsKey.$key", key
                 )
                 val rawPath = value ?: throw businessExceptionOf(
-                    INTERNAL_SERVER_ERROR, "exception.config.provider.user_info.invalid_value",
+                    INTERNAL_SERVER_ERROR, "config.provider.user_info.invalid_value",
                     "key" to "$userInfoPathsKey.$key"
                 )
                 val path = try {
@@ -139,7 +139,7 @@ open class ProviderConfigManager(
                 } catch (e: Throwable) {
                     throw BusinessException(
                         status = INTERNAL_SERVER_ERROR,
-                        messageId = "exception.config.provider.user_info.invalid_value",
+                        detailsId = "config.provider.user_info.invalid_value",
                         values = mapOf(
                             "key" to "$userInfoPathsKey.$key"
                         ),
@@ -151,13 +151,13 @@ open class ProviderConfigManager(
             .toMap()
         if (paths[SUB] == null) {
             throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.config.provider.user_info.missing_subject_key",
+                INTERNAL_SERVER_ERROR, "config.provider.user_info.missing_subject_key",
                 "key" to "${PROVIDERS_CONFIG_KEY}.user-info.paths"
             )
         }
         if (advancedConfig.orThrow().userMergingStrategy == BY_MAIL && paths[EMAIL] == null) {
             throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.config.provider.user_info.missing_email_key",
+                INTERNAL_SERVER_ERROR, "config.provider.user_info.missing_email_key",
                 "key" to "${PROVIDERS_CONFIG_KEY}.user-info.paths"
             )
         }
@@ -168,7 +168,7 @@ open class ProviderConfigManager(
         return when {
             config.oauth2 != null -> configureProviderOauth2(config, config.oauth2!!)
             else -> throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.config.auth.missing"
+                INTERNAL_SERVER_ERROR, "config.auth.missing"
             )
         }
     }

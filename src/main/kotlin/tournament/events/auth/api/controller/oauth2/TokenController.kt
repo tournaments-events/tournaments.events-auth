@@ -1,14 +1,14 @@
 package tournament.events.auth.api.controller.oauth2
 
-import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType.APPLICATION_FORM_URLENCODED
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Part
 import io.micronaut.http.annotation.Post
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.authentication.Authentication
+import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.api.model.oauth2.TokenResource
-import tournament.events.auth.business.exception.businessExceptionOf
+import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode
 
 @Controller("/api/oauth2/token")
 class TokenController {
@@ -29,8 +29,8 @@ class TokenController {
             )
 
             "refresh_token" -> TODO()
-            else -> throw businessExceptionOf(
-                HttpStatus.BAD_REQUEST, "exception.token.invalid_grant_type",
+            else -> throw oauth2ExceptionOf(
+                OAuth2ErrorCode.SERVER_ERROR, "token.invalid_grant_type",
                 "grantType" to grantType
             )
         }

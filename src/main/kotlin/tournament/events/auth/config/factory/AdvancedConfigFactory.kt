@@ -71,7 +71,7 @@ class AdvancedConfigFactory {
             properties, "sympauthy.keys-generation-strategy"
         ) { it.keysGenerationStrategy }
         return keyGenerationStategies[strategyId] ?: throw businessExceptionOf(
-            HttpStatus.INTERNAL_SERVER_ERROR, "exception.config.unsupported_generation_algorithm",
+            HttpStatus.INTERNAL_SERVER_ERROR, "config.unsupported_generation_algorithm",
             "key" to "sympauthy.keys-generation-strategy",
             "algorithm" to strategyId,
             "algorithms" to keyGenerationStategies.keys.joinToString(", ")

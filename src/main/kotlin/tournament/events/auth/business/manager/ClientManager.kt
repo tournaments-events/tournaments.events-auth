@@ -9,6 +9,10 @@ class ClientManager(
     @Inject private val clients: List<Client>
 ) {
 
+    fun findClientById(clientId: String): Client? {
+        return clients.firstOrNull { it.id == clientId }
+    }
+
     /**
      * Return the [Client] identified by [clientId] if the [clientSecret] matches the one configured.
      * Otherwise, return null whether no client matches or the secret does not match.

@@ -13,17 +13,34 @@ import tournament.events.auth.util.LocalizedException
  */
 class BusinessException(
     status: HttpStatus,
-    messageId: String,
+    detailsId: String,
+    userMessageId: String? = null,
     values: Map<String, Any?> = emptyMap(),
     additionalMessages: List<AdditionalLocalizedMessage> = emptyList(),
     throwable: Throwable? = null
-) : LocalizedException(status, messageId, values, additionalMessages, throwable)
+) : LocalizedException(status, detailsId, userMessageId, values, additionalMessages, throwable)
 
 fun businessExceptionOf(
     status: HttpStatus,
-    messageId: String,
+    technicalMessageId: String,
     vararg values: Pair<String, Any?>
-): BusinessException = BusinessException(status, messageId, mapOf(*values))
+): BusinessException = BusinessException(
+    status = status,
+    detailsId = technicalMessageId,
+    values = mapOf(*values)
+)
+
+fun businessExceptionOf(
+    status: HttpStatus,
+    technicalMessageId: String,
+    userMessageId: String?,
+    vararg values: Pair<String, Any?>
+): BusinessException = BusinessException(
+    status = status,
+    detailsId = technicalMessageId,
+    userMessageId = userMessageId,
+    values = mapOf(*values)
+)
 
 inline fun <reified T : Any> T?.orMissingConfig(key: String): T {
     if (this == null) {

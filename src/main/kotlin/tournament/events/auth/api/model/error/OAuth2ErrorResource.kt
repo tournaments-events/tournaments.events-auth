@@ -1,10 +1,11 @@
-package tournament.events.auth.api.model.oauth2
+package tournament.events.auth.api.model.error
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.serde.annotation.Serdeable
 
 @Serdeable
 data class OAuth2ErrorResource(
-    @JsonProperty("error_code") val errorCode: String,
+    @JsonProperty("error_code")
+    val errorCode: String,
     val description: String? = null,
 )
