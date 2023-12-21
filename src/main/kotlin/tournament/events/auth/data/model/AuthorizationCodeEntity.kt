@@ -11,5 +11,6 @@ import java.util.*
 data class AuthorizationCodeEntity(
     @get:Id val attemptId: UUID,
     val code: String,
-    val creationDate: LocalDateTime
+    val creationDate: LocalDateTime,
+    val expirationDate: LocalDateTime
 )

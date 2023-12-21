@@ -8,14 +8,14 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Serdeable
-@MappedEntity("authorize_attempts")
-data class AuthorizeAttemptEntity(
+@MappedEntity("authentication_tokens")
+class AuthenticationTokenEntity(
+    val type: String,
+    val userId: UUID,
     val clientId: String,
-    val redirectUri: String,
-    val state: String? = null,
-    val userId: UUID? = null,
-    val attemptDate: LocalDateTime,
-    val expirationDate: LocalDateTime
+
+    val creationDate: LocalDateTime,
+    val expirationDate: LocalDateTime?
 ) {
     @Id
     @GeneratedValue

@@ -55,12 +55,14 @@ CREATE INDEX provider_user_info__user_id ON provider_user_info (user_id);
 
 CREATE TABLE authorize_attempts
 (
-    id           uuid      NOT NULL DEFAULT gen_random_uuid(),
-    client_id    text      NOT NULL,
-    redirect_uri text      NOT NULL,
-    state        text,
+    id              uuid      NOT NULL DEFAULT gen_random_uuid(),
+    client_id       text      NOT NULL,
+    redirect_uri    text      NOT NULL,
+    state           text,
+    user_id         uuid,
 
-    attempt_date timestamp NOT NULL,
+    attempt_date    timestamp NOT NULL,
+    expiration_date timestamp NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -68,22 +70,25 @@ CREATE INDEX authorize_attempts__state ON authorize_attempts (state);
 
 CREATE TABLE authorization_codes
 (
-    attempt_id    uuid      NOT NULL,
-    code          text      NOT NULL,
-    creation_date timestamp NOT NULL,
+    attempt_id      uuid      NOT NULL,
+    code            text      NOT NULL,
+    creation_date   timestamp NOT NULL,
+    expiration_date timestamp NOT NULL,
     PRIMARY KEY (attempt_id)
 );
 
 CREATE INDEX authorization_codes__code ON authorization_codes (code);
 
-CREATE TABLE tokens
+CREATE TABLE authentication_tokens
 (
-    user_id             uuid      NOT NULL,
-    client_id           text      NOT NULL,
+    id              uuid      NOT NULL DEFAULT gen_random_uuid(),
+    type            text      NOT NULL,
+    user_id         uuid      NOT NULL,
+    client_id       text      NOT NULL,
 
-    attempt_date        timestamp NOT NULL,
-    authentication_date timestamp NOT NULL,
-    PRIMARY KEY (user_id, client_id)
+    creation_date   timestamp NOT NULL,
+    expiration_date timestamp,
+    PRIMARY KEY (id)
 );
 
 -- Cryptographic keys table

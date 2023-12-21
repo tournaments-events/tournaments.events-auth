@@ -1,6 +1,5 @@
 package tournament.events.auth.api.controller.oauth2
 
-import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
@@ -8,7 +7,7 @@ import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import tournament.events.auth.api.exception.oauth2ExceptionOf
-import tournament.events.auth.business.manager.auth.AuthorizeStateManager
+import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
 import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
 import java.net.URI
 
@@ -17,7 +16,7 @@ import java.net.URI
 @Controller("/api/oauth2/authorize")
 @Secured(IS_ANONYMOUS)
 open class AuthorizeController(
-    private val authorizeStateManager: AuthorizeStateManager
+    private val authorizeManager: AuthorizeManager
 ) {
 
     @Get
@@ -40,7 +39,10 @@ open class AuthorizeController(
                 redirectUri = redirectUri!!
             )
 
-            else -> throw oauth2ExceptionOf(UNSUPPORTED_RESPONSE_TYPE)
+            else -> throw oauth2ExceptionOf(
+                UNSUPPORTED_RESPONSE_TYPE, "authorize.unsupported_response_type",
+                "responseType" to responseType
+            )
         }
     }
 
@@ -49,12 +51,12 @@ open class AuthorizeController(
         clientState: String,
         redirectUri: String
     ): HttpResponse<String> {
-        val state = authorizeStateManager.newAuthorizeAttempt(
+        val state = authorizeManager.newAuthorizeAttempt(
             clientId = clientId,
             clientState = clientState,
             uncheckedRedirectUri = redirectUri,
         )
-        val encodedState = authorizeStateManager.encodeState(state)
+        val encodedState = authorizeManager.encodeState(state)
         return HttpResponse.redirect(
             URI("/login?state=${encodedState}")
         )

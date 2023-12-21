@@ -14,31 +14,31 @@ import tournament.events.auth.util.LocalizedException
 class BusinessException(
     status: HttpStatus,
     detailsId: String,
-    userMessageId: String? = null,
+    descriptionId: String? = null,
     values: Map<String, Any?> = emptyMap(),
     additionalMessages: List<AdditionalLocalizedMessage> = emptyList(),
     throwable: Throwable? = null
-) : LocalizedException(status, detailsId, userMessageId, values, additionalMessages, throwable)
+) : LocalizedException(status, detailsId, descriptionId, values, additionalMessages, throwable)
 
 fun businessExceptionOf(
     status: HttpStatus,
-    technicalMessageId: String,
+    detailsId: String,
     vararg values: Pair<String, Any?>
 ): BusinessException = BusinessException(
     status = status,
-    detailsId = technicalMessageId,
+    detailsId = detailsId,
     values = mapOf(*values)
 )
 
 fun businessExceptionOf(
     status: HttpStatus,
-    technicalMessageId: String,
-    userMessageId: String?,
+    detailsId: String,
+    descriptionId: String?,
     vararg values: Pair<String, Any?>
 ): BusinessException = BusinessException(
     status = status,
-    detailsId = technicalMessageId,
-    userMessageId = userMessageId,
+    detailsId = detailsId,
+    descriptionId = descriptionId,
     values = mapOf(*values)
 )
 

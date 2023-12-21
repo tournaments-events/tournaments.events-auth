@@ -9,8 +9,7 @@ import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
 import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthManager
-import tournament.events.auth.business.manager.auth.AuthorizeStateManager
-import tournament.events.auth.business.model.auth.AuthorizeAttempt
+import tournament.events.auth.business.model.auth.oauth2.AuthorizeAttempt
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.business.model.provider.Provider
 import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
@@ -26,9 +25,9 @@ import java.net.URI
 class Oauth2ProviderManager(
     @Inject private val authManager: AuthManager,
     @Inject private val authorizationCodeManager: AuthorizationCodeManager,
-    @Inject private val authorizeStateManager: AuthorizeStateManager,
+    @Inject private val authorizeManager: AuthorizeManager,
     @Inject private val providerUserInfoManager: ProviderUserInfoManager,
-    @Inject private val stateManager: AuthorizeStateManager,
+    @Inject private val stateManager: AuthorizeManager,
     @Inject private val tokenEndpointClient: TokenEndpointClient,
     @Inject private val userManager: UserManager,
     @Inject private val userDetailsManager: ProviderUserInfoManager,
@@ -74,7 +73,7 @@ class Oauth2ProviderManager(
         errorDescription: String?,
         state: String?
     ): AuthorizeRedirect {
-        val authorizeAttempt = authorizeStateManager.verifyEncodedState(state)
+        val authorizeAttempt = authorizeManager.verifyEncodedState(state)
 
         val authentication = getAuthenticationWithAuthorizationCodeOrError(
             provider = provider,
@@ -89,6 +88,7 @@ class Oauth2ProviderManager(
             provider = provider,
             subject = rawUserInfo.subject
         )
+
         val userId = if (existingUserInfo == null) {
             userManager.createOrAssociateUserWithUserInfo(provider, rawUserInfo)
                 .user.id
@@ -96,6 +96,7 @@ class Oauth2ProviderManager(
             providerUserInfoManager.refreshUserInfo(existingUserInfo, rawUserInfo)
             existingUserInfo.userId
         }
+        authorizeManager.setAuthenticatedUserId(authorizeAttempt, userId)
 
         // TODO: add redirection to complete user info.
         // TODO: add redirection to verify email.

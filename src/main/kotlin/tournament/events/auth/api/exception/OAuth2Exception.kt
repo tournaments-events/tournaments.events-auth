@@ -5,8 +5,8 @@ import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode
 
 class OAuth2Exception(
     val errorCode: OAuth2ErrorCode,
-    val descriptionId: String? = null,
     val detailsId: String? = null,
+    val descriptionId: String? = null,
     val values: Map<String, Any?> = emptyMap(),
 ) : Exception(formatMessage(errorCode, detailsId)) {
 
@@ -34,7 +34,7 @@ fun oauth2ExceptionOf(
 
 fun oauth2ExceptionOf(
     errorCode: OAuth2ErrorCode,
-    descriptionId: String,
     detailsId: String,
+    descriptionId: String,
     vararg values: Pair<String, Any?>
 ) = OAuth2Exception(errorCode, descriptionId, detailsId, mapOf(*values))

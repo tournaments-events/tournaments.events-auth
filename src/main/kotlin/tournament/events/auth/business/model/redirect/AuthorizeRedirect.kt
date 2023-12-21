@@ -1,7 +1,7 @@
 package tournament.events.auth.business.model.redirect
 
 import io.micronaut.http.uri.UriBuilder
-import tournament.events.auth.business.model.auth.AuthorizeAttempt
+import tournament.events.auth.business.model.auth.oauth2.AuthorizeAttempt
 import tournament.events.auth.business.model.auth.oauth2.AuthorizationCode
 import java.net.URI
 

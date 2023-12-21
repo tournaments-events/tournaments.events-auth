@@ -6,7 +6,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.manager.auth.oauth2.Oauth2ProviderManager
-import tournament.events.auth.business.model.auth.AuthorizeAttempt
+import tournament.events.auth.business.model.auth.oauth2.AuthorizeAttempt
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
 

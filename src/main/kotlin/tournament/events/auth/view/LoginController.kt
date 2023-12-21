@@ -10,14 +10,14 @@ import io.micronaut.views.View
 import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import tournament.events.auth.business.manager.auth.AuthorizeStateManager
+import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
 import tournament.events.auth.business.manager.provider.ProviderConfigManager
 import tournament.events.auth.business.model.provider.EnabledProvider
 
 @Controller("/login")
 @Secured(IS_ANONYMOUS)
 class LoginController(
-    @Inject private val authorizeStateManager: AuthorizeStateManager,
+    @Inject private val authorizeManager: AuthorizeManager,
     @Inject private val providerConfigManager: ProviderConfigManager
 ) {
 
@@ -27,7 +27,7 @@ class LoginController(
         httpRequest: HttpRequest<*>,
         @QueryValue state: String?
     ): Map<String, *> = coroutineScope {
-        authorizeStateManager.verifyEncodedState(state)
+        authorizeManager.verifyEncodedState(state)
 
         val asyncClients = async {
             providerConfigManager.listEnabledProviders().toList()
