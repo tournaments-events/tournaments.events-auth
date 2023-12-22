@@ -27,12 +27,13 @@ class JwtManager(
 
     suspend fun create(
         name: String,
-        block: JWTCreator.Builder.() -> JWTCreator.Builder = { this }
+        block: JWTCreator.Builder.() -> Unit = { this }
     ): String {
         val algorithm = getAlgorithm(name)
         return JWT.create().apply {
             authConfig.orThrow().issuer?.let(this::withIssuer)
             block(this)
+            this
         }.sign(algorithm)
     }
 

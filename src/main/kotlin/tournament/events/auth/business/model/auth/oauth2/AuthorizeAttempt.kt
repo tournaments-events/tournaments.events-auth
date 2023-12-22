@@ -37,4 +37,6 @@ data class AuthorizeAttempt(
      */
     val attemptDate: LocalDateTime,
     val expirationDate: LocalDateTime
-)
+) {
+    val expired: Boolean = expirationDate.isBefore(LocalDateTime.now())
+}

@@ -29,7 +29,7 @@ open class Config(
     /**
      * List of errors that we detected in the configuration when parsing it and validating it.
      */
-    val configurationErrors: List<BusinessException>? = null
+    val configurationErrors: List<Exception>? = null
 )
 
 val Config.invalidConfig: BusinessException

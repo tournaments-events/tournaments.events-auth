@@ -26,7 +26,7 @@ import tournament.events.auth.business.model.user.UserMergingStrategy.BY_MAIL
 import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.config.model.orThrow
 import tournament.events.auth.config.properties.ProviderConfigurationProperties
-import tournament.events.auth.config.properties.ProviderConfigurationProperties.Companion.PROVIDERS_CONFIG_KEY
+import tournament.events.auth.config.properties.ProviderConfigurationProperties.Companion.PROVIDERS_KEY
 import tournament.events.auth.config.util.convertToEnum
 import tournament.events.auth.config.util.getStringOrThrow
 import tournament.events.auth.config.util.getUriOrThrow
@@ -96,7 +96,7 @@ open class ProviderConfigManager(
     internal fun configureProvider(config: ProviderConfigurationProperties): EnabledProvider {
         return EnabledProvider(
             id = config.id,
-            name = getStringOrThrow(config, "$PROVIDERS_CONFIG_KEY.name", ProviderConfigurationProperties::name),
+            name = getStringOrThrow(config, "$PROVIDERS_KEY.name", ProviderConfigurationProperties::name),
             userInfo = configureProviderUserInfo(config),
             auth = configureProviderAuth(config)
         )
@@ -110,7 +110,7 @@ open class ProviderConfigManager(
         return ProviderUserInfoConfig(
             uri = getUriOrThrow(
                 userInfo,
-                "${PROVIDERS_CONFIG_KEY}.user-info.url",
+                "${PROVIDERS_KEY}.user-info.url",
                 ProviderConfigurationProperties.UserInfoConfig::url
             ),
             paths = configureProviderUserInfoPaths(userInfo)
@@ -120,7 +120,7 @@ open class ProviderConfigManager(
     private fun configureProviderUserInfoPaths(
         userInfo: ProviderConfigurationProperties.UserInfoConfig
     ): Map<ProviderUserInfoPathKey, JsonPath> {
-        val userInfoPathsKey = "$PROVIDERS_CONFIG_KEY.user-info.paths"
+        val userInfoPathsKey = "$PROVIDERS_KEY.user-info.paths"
         val userInfoPaths = userInfo.paths ?: throw businessExceptionOf(
             INTERNAL_SERVER_ERROR, "config.missing",
             "key" to userInfoPathsKey
@@ -152,13 +152,13 @@ open class ProviderConfigManager(
         if (paths[SUB] == null) {
             throw businessExceptionOf(
                 INTERNAL_SERVER_ERROR, "config.provider.user_info.missing_subject_key",
-                "key" to "${PROVIDERS_CONFIG_KEY}.user-info.paths"
+                "key" to "${PROVIDERS_KEY}.user-info.paths"
             )
         }
         if (advancedConfig.orThrow().userMergingStrategy == BY_MAIL && paths[EMAIL] == null) {
             throw businessExceptionOf(
                 INTERNAL_SERVER_ERROR, "config.provider.user_info.missing_email_key",
-                "key" to "${PROVIDERS_CONFIG_KEY}.user-info.paths"
+                "key" to "${PROVIDERS_KEY}.user-info.paths"
             )
         }
         return paths
@@ -180,23 +180,23 @@ open class ProviderConfigManager(
         return ProviderOauth2Config(
             clientId = getStringOrThrow(
                 oauth2,
-                "${PROVIDERS_CONFIG_KEY}.${config.id}.client-id",
+                "${PROVIDERS_KEY}.${config.id}.client-id",
                 ProviderConfigurationProperties.Oauth2Config::clientId
             ),
             clientSecret = getStringOrThrow(
                 oauth2,
-                "${PROVIDERS_CONFIG_KEY}.${config.id}.client-secret",
+                "${PROVIDERS_KEY}.${config.id}.client-secret",
                 ProviderConfigurationProperties.Oauth2Config::clientSecret
             ),
             scopes = oauth2.scopes,
             authorizationUri = getUriOrThrow(
                 oauth2,
-                "${PROVIDERS_CONFIG_KEY}.${config.id}.authorization-url",
+                "${PROVIDERS_KEY}.${config.id}.authorization-url",
                 ProviderConfigurationProperties.Oauth2Config::authorizationUrl
             ),
             tokenUri = getUriOrThrow(
                 oauth2,
-                "${PROVIDERS_CONFIG_KEY}.${config.id}.token-url",
+                "${PROVIDERS_KEY}.${config.id}.token-url",
                 ProviderConfigurationProperties.Oauth2Config::tokenUrl
             )
         )

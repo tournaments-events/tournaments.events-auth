@@ -12,7 +12,7 @@ import tournament.events.auth.config.model.DisabledAdvancedConfig
 import tournament.events.auth.config.model.EnabledAdvancedConfig
 import tournament.events.auth.business.model.user.UserMergingStrategy
 import tournament.events.auth.config.properties.AdvancedConfigurationProperties
-import tournament.events.auth.config.properties.AdvancedConfigurationProperties.Companion.ADVANCED_CONFIG_KEY
+import tournament.events.auth.config.properties.AdvancedConfigurationProperties.Companion.ADVANCED_KEY
 import tournament.events.auth.config.util.getEnum
 import tournament.events.auth.config.util.getStringOrThrow
 
@@ -27,7 +27,7 @@ class AdvancedConfigFactory {
         val errors = mutableListOf<BusinessException>()
         val userMergingStrategy = try {
             getEnum(
-                properties, "$ADVANCED_CONFIG_KEY.user-merging-strategy",
+                properties, "$ADVANCED_KEY.user-merging-strategy",
                 UserMergingStrategy.BY_MAIL, AdvancedConfigurationProperties::userMergingStrategy
             )
         } catch (e: BusinessException) {
@@ -44,7 +44,7 @@ class AdvancedConfigFactory {
 
         val jwtAlgorithm = try {
             getEnum(
-                properties, "$ADVANCED_CONFIG_KEY.jwt-algorithm",
+                properties, "$ADVANCED_KEY.jwt-algorithm",
                 JwtAlgorithm.RS256, AdvancedConfigurationProperties::jwtAlgorithm
             )
         } catch (e: BusinessException) {

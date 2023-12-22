@@ -86,7 +86,7 @@ CREATE TABLE authentication_tokens
     user_id         uuid      NOT NULL,
     client_id       text      NOT NULL,
 
-    creation_date   timestamp NOT NULL,
+    issue_date      timestamp NOT NULL,
     expiration_date timestamp,
     PRIMARY KEY (id)
 );

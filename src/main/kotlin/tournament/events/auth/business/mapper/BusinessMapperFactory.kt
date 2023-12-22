@@ -17,6 +17,9 @@ class BusinessMapperFactory {
     fun cryptoKeysMapper() = Mappers.getMapper(CryptoKeysMapper::class.java)
 
     @Singleton
+    fun encodedAuthenticationTokenMapper() = Mappers.getMapper(EncodedAuthenticationTokenMapper::class.java)
+
+    @Singleton
     fun providerUserInfoMapper() = Mappers.getMapper(ProviderUserInfoMapper::class.java)
 
     @Singleton

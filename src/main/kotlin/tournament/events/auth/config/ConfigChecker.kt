@@ -6,9 +6,10 @@ import io.micronaut.discovery.event.ServiceReadyEvent
 import io.micronaut.scheduling.annotation.Async
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import tournament.events.auth.business.exception.BusinessException
+import tournament.events.auth.config.exception.ConfigurationException
 import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.config.model.AuthConfig
+import tournament.events.auth.util.LocalizedException
 import tournament.events.auth.util.loggerForClass
 import java.util.*
 
@@ -37,9 +38,16 @@ open class ConfigChecker(
         }
     }
 
-    private fun logConfigError(error: BusinessException) {
-        val localizedErrorMessage = messageSource.getMessage(error.detailsId, Locale.US, error.values)
-            .orElse(error.detailsId)
-        logger.error("- $localizedErrorMessage")
+    private fun logConfigError(error: Exception) {
+        if (error is LocalizedException) {
+            val localizedErrorMessage = messageSource.getMessage(error.detailsId, Locale.US, error.values)
+                .orElse(error.detailsId)
+            logger.error("- $localizedErrorMessage")
+        } else if (error is ConfigurationException) {
+            val values = mapOf("key" to error.key) + error.values
+            val localizedErrorMessage = messageSource.getMessage(error.messageId, Locale.US, values)
+                .orElse(error.messageId)
+            logger.error("- $localizedErrorMessage")
+        }
     }
 }

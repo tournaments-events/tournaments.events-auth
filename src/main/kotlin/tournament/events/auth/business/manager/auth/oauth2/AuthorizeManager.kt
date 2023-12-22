@@ -8,7 +8,6 @@ import tournament.events.auth.business.mapper.AuthorizeAttemptMapper
 import tournament.events.auth.business.model.auth.oauth2.AuthorizeAttempt
 import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.SERVER_ERROR
-import tournament.events.auth.business.model.user.User
 import tournament.events.auth.data.model.AuthorizeAttemptEntity
 import tournament.events.auth.data.repository.AuthorizeAttemptRepository
 import tournament.events.auth.util.toAbsoluteUri
@@ -88,16 +87,12 @@ class AuthorizeManager(
         // If the attempt is missing in DB, most likely a cron cleaned it up since it was expired.
         val authorizeAttempt = authorizeAttemptRepository.findById(attemptId)
             ?.let(authorizeAttemptMapper::toAuthorizeAttempt)
-        if (authorizeAttempt == null || isExpired(authorizeAttempt)) {
+        if (authorizeAttempt == null || authorizeAttempt.expired) {
             throw oauth2ExceptionOf(
                 SERVER_ERROR, "authorize.state.expired", "description.oauth2.expired"
             )
         }
         return authorizeAttempt
-    }
-
-    internal fun isExpired(authorizeAttempt: AuthorizeAttempt): Boolean {
-        return false // TODO
     }
 
     /**
@@ -113,7 +108,7 @@ class AuthorizeManager(
     suspend fun findByCode(code: String): AuthorizeAttempt? {
         val authorizeAttempt = authorizeAttemptRepository.findByCode(code)
             ?.let(authorizeAttemptMapper::toAuthorizeAttempt)
-        return if (authorizeAttempt != null && !isExpired(authorizeAttempt)) {
+        return if (authorizeAttempt?.expired == false) {
             authorizeAttempt
         } else null
     }

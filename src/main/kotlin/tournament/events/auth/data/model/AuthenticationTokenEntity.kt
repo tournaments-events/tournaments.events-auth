@@ -14,7 +14,7 @@ class AuthenticationTokenEntity(
     val userId: UUID,
     val clientId: String,
 
-    val creationDate: LocalDateTime,
+    val issueDate: LocalDateTime,
     val expirationDate: LocalDateTime?
 ) {
     @Id

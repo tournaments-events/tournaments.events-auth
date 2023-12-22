@@ -11,8 +11,10 @@ import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.api.model.oauth2.TokenResource
 import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
 import tournament.events.auth.business.manager.auth.oauth2.TokenManager
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.INVALID_GRANT
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.UNSUPPORTED_GRANT_TYPE
+import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.*
+import java.time.Duration
+import java.time.Instant
+import java.time.ZoneOffset
 
 @Controller("/api/oauth2/token")
 class TokenController(
@@ -20,8 +22,8 @@ class TokenController(
     @Inject private val tokenManager: TokenManager
 ) {
 
-    @Post(consumes = [APPLICATION_FORM_URLENCODED])
     @Secured("ROLE_CLIENT")
+    @Post(consumes = [APPLICATION_FORM_URLENCODED])
     suspend fun getTokens(
         authentication: Authentication,
         @Part("grant_type") grantType: String?,
@@ -56,8 +58,19 @@ class TokenController(
         if (attempt.redirectUri != redirectUri) {
             throw oauth2ExceptionOf(INVALID_GRANT, "token.non_matching_redirect_uri")
         }
-        tokenManager.generateTokens(attempt)
-        return TODO()
+        val (accessToken, refreshToken) = tokenManager.generateTokens(attempt)
+
+        return TokenResource(
+            accessToken = accessToken.token,
+            tokenType = "bearer",
+            expiredIn = accessToken.expirationDate?.let {
+                Duration.between(
+                    Instant.now(),
+                    it.toInstant(ZoneOffset.UTC)
+                ).toMillisPart()
+            },
+            refreshToken = refreshToken?.token
+        )
     }
 
     private suspend fun getTokensUsingRefreshToken(

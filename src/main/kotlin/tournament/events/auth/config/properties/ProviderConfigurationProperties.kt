@@ -7,7 +7,7 @@ import io.micronaut.context.annotation.Parameter
 /**
  * Configuration of a third-party authentication provider (ex. Discord).
  */
-@EachProperty(ProviderConfigurationProperties.PROVIDERS_CONFIG_KEY)
+@EachProperty(ProviderConfigurationProperties.PROVIDERS_KEY)
 class ProviderConfigurationProperties(
     /**
      * Identifier of the provider.
@@ -71,6 +71,6 @@ class ProviderConfigurationProperties(
     }
 
     companion object {
-        const val PROVIDERS_CONFIG_KEY = "providers"
+        const val PROVIDERS_KEY = "providers"
     }
 }
