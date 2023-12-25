@@ -8,7 +8,7 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
 import java.net.URI
 
 // http://localhost:8092/api/oauth2/authorize?response_type=code&client_id=core&state=test

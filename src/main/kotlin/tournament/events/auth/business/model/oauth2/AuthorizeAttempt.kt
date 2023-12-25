@@ -1,4 +1,4 @@
-package tournament.events.auth.business.model.auth.oauth2
+package tournament.events.auth.business.model.oauth2
 
 import java.time.LocalDateTime
 import java.util.*
@@ -20,6 +20,12 @@ data class AuthorizeAttempt(
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc6749#section-2.2">Client identifier</a>
      */
     val clientId: String,
+    /**
+     * The scope that was requested by the client broken down to its token.
+     *
+     * @see <a href="https://datatracker.ietf.org/doc/html/rfc6749#section-3.3">Scope</a>
+     */
+    val scopeTokens: List<String>,
     /**
      * The identifier of the user that was connected at the end of the authentication flow.
      */

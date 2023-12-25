@@ -8,10 +8,16 @@ import org.mapstruct.factory.Mappers
 class BusinessMapperFactory {
 
     @Singleton
+    fun authenticationTokenMapper() = Mappers.getMapper(AuthenticationTokenMapper::class.java)
+
+    @Singleton
     fun authorizationCodeMapper() = Mappers.getMapper(AuthorizationCodeMapper::class.java)
 
     @Singleton
     fun authorizeAttemptMapper() = Mappers.getMapper(AuthorizeAttemptMapper::class.java)
+
+    @Singleton
+    fun collectedUserInfoMapper() = Mappers.getMapper(CollectedUserInfoMapper::class.java)
 
     @Singleton
     fun cryptoKeysMapper() = Mappers.getMapper(CryptoKeysMapper::class.java)

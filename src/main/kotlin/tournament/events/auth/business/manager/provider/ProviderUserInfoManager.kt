@@ -7,11 +7,11 @@ import tournament.events.auth.business.mapper.ProviderUserInfoMapper
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.business.model.provider.ProviderCredentials
 import tournament.events.auth.business.model.provider.ProviderUserInfo
-import tournament.events.auth.business.model.provider.RawProviderUserInfo
+import tournament.events.auth.business.model.user.RawUserInfo
 import tournament.events.auth.client.UserInfoEndpointClient
 import tournament.events.auth.data.repository.ProviderUserInfoRepository
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 @Singleton
 class ProviderUserInfoManager(
@@ -30,10 +30,15 @@ class ProviderUserInfoManager(
         )?.let(userInfoMapper::toProviderUserInfo)
     }
 
+    suspend fun findByUserId(userId: UUID): List<ProviderUserInfo> {
+        return userInfoRepository.findByUserId(userId)
+            .map(userInfoMapper::toProviderUserInfo)
+    }
+
     suspend fun fetchUserInfo(
         provider: EnabledProvider,
         credentials: ProviderCredentials
-    ): RawProviderUserInfo {
+    ): RawUserInfo {
         val rawUserInfoMap = userInfoEndpointClient.fetchUserInfo(
             userInfoConfig = provider.userInfo,
             credentials = credentials
@@ -50,15 +55,15 @@ class ProviderUserInfoManager(
     suspend fun saveUserInfo(
         provider: EnabledProvider,
         userId: UUID,
-        rawUserInfo: RawProviderUserInfo
+        rawUserInfo: RawUserInfo
     ): ProviderUserInfo {
         val now = LocalDateTime.now()
         val entity = userInfoMapper.toEntity(
             providerId = provider.id,
             userId = userId,
             userInfo = rawUserInfo,
-            lastFetchDate = now,
-            lastChangeDate = now
+            fetchDate = now,
+            changeDate = now
         )
         userInfoRepository.save(entity)
         return userInfoMapper.toProviderUserInfo(entity)
@@ -66,7 +71,7 @@ class ProviderUserInfoManager(
 
     fun refreshUserInfo(
         existingUserInfo: ProviderUserInfo,
-        newUserInfo: RawProviderUserInfo
+        newUserInfo: RawUserInfo
     ) {
         if (existingUserInfo.userInfo == newUserInfo) {
             return

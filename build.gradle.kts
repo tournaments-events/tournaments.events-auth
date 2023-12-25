@@ -17,17 +17,13 @@ extra.apply {
     set("kotlinVersion", "1.9.21")
     set("kotlinCoroutinesVersion", "1.7.3")
     set("mapStructVersion", "1.5.1.Final")
-    set("komapperVersion", "1.15.0")
-    set("r2dbcPostgres", "0.9.1.RELEASE")
-    set("jacksonVersion", "2.13.4")
-    set("jacksonKotlinVersion", "2.13.4")
-    set("vertxJsonSchemaVersion", "4.3.1")
-    set("jsonSchemaValidatorVersion", "1.0.73")
+    set("javaJwtVersion", "4.4.0")
+    set("jsonPathVersion", "2.8.0")
+
+    // Test dependencies
     set("mockitoVersion", "4.8.0")
     set("mockitoKotlinVersion", "4.0.0")
     set("junitJupiterVersion", "5.9.1")
-    set("javaJwtVersion", "4.4.0")
-    set("jsonPathVersion", "2.8.0")
 }
 
 repositories {
@@ -51,7 +47,6 @@ dependencies {
     // HTTP server
     ksp("io.micronaut.jaxrs:micronaut-jaxrs-processor")
     implementation("io.micronaut:micronaut-http-client")
-    implementation("io.micronaut:micronaut-jackson-databind")
 
     // HTTP client
     implementation("io.micronaut:micronaut-http-client")
@@ -90,7 +85,6 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic")
 
     // API documentation
-    // kapt("io.micronaut.configuration:micronaut-openapi:1.4.5")
     ksp("io.micronaut.openapi:micronaut-openapi")
     implementation("io.swagger.core.v3:swagger-annotations")
 

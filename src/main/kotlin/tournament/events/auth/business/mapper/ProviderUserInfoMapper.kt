@@ -6,11 +6,11 @@ import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import tournament.events.auth.business.mapper.config.BusinessMapperConfig
 import tournament.events.auth.business.model.provider.ProviderUserInfo
-import tournament.events.auth.business.model.provider.RawProviderUserInfo
+import tournament.events.auth.business.model.user.RawUserInfo
 import tournament.events.auth.data.model.ProviderUserInfoEntity
 import tournament.events.auth.data.model.ProviderUserInfoEntityId
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 @Mapper(
     config = BusinessMapperConfig::class
@@ -24,7 +24,7 @@ interface ProviderUserInfoMapper {
     )
     fun toProviderUserInfo(entity: ProviderUserInfoEntity): ProviderUserInfo
 
-    fun toRawProviderUserInfo(entity: ProviderUserInfoEntity): RawProviderUserInfo
+    fun toRawProviderUserInfo(entity: ProviderUserInfoEntity): RawUserInfo
 
     @InheritInverseConfiguration
     @Mappings(
@@ -33,9 +33,9 @@ interface ProviderUserInfoMapper {
     fun toEntity(
         providerId: String,
         userId: UUID,
-        userInfo: RawProviderUserInfo,
-        lastFetchDate: LocalDateTime,
-        lastChangeDate: LocalDateTime
+        userInfo: RawUserInfo,
+        fetchDate: LocalDateTime,
+        changeDate: LocalDateTime
     ): ProviderUserInfoEntity
 
     fun toEntityId(

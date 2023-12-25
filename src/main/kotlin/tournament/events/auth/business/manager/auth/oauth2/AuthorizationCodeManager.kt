@@ -6,9 +6,9 @@ import jakarta.inject.Singleton
 import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.manager.key.RandomKeyGenerator
 import tournament.events.auth.business.mapper.AuthorizationCodeMapper
-import tournament.events.auth.business.model.auth.oauth2.AuthorizeAttempt
-import tournament.events.auth.business.model.auth.oauth2.AuthorizationCode
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.INVALID_REQUEST
+import tournament.events.auth.business.model.oauth2.AuthorizeAttempt
+import tournament.events.auth.business.model.oauth2.AuthorizationCode
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import tournament.events.auth.data.model.AuthorizationCodeEntity
 import tournament.events.auth.data.repository.AuthorizationCodeRepository
 import java.time.LocalDateTime

@@ -9,7 +9,7 @@ import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
 import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthManager
-import tournament.events.auth.business.model.auth.oauth2.AuthorizeAttempt
+import tournament.events.auth.business.model.oauth2.AuthorizeAttempt
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.business.model.provider.Provider
 import tournament.events.auth.business.model.provider.config.ProviderOauth2Config

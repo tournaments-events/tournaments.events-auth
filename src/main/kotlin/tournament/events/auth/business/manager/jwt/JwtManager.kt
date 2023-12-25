@@ -5,13 +5,18 @@ import com.auth0.jwt.JWTCreator
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.DecodedJWT
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.HttpStatus.UNAUTHORIZED
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import tournament.events.auth.business.exception.BusinessException
 import tournament.events.auth.business.manager.key.CryptoKeysManager
 import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.config.model.AuthConfig
 import tournament.events.auth.config.model.orThrow
+import tournament.events.auth.exception.LocalizedException
 
 /**
  * Manager in charge of all JSON web token issued by this server, it includes:
@@ -37,14 +42,24 @@ class JwtManager(
         }.sign(algorithm)
     }
 
+    /**
+     * Decode the [token] and perform validation on it:
+     * - if the token has not been signed by the key with [name].
+     * – if the token has expired.
+     *
+     * @throws LocalizedException if the [token] is malformed or invalid.
+     */
     suspend fun decodeAndVerify(
         name: String,
         token: String
-    ): DecodedJWT? {
+    ): DecodedJWT {
         val decodedJwt = try {
             JWT.decode(token)
         } catch (e: JWTDecodeException) {
-            return null
+            throw LocalizedException(
+                detailsId = "jwt.malformed",
+                throwable = e
+            )
         }
 
         val algorithm = getAlgorithm(name)
@@ -53,9 +68,25 @@ class JwtManager(
                 .build()
                 .verify(decodedJwt)
             decodedJwt
+        } catch (e: TokenExpiredException) {
+            throw LocalizedException(
+                detailsId = "jwt.expired",
+                throwable = e
+            )
         } catch (e: JWTVerificationException) {
-            e.printStackTrace()
-            null
+            throw LocalizedException(
+                detailsId = "jwt.invalid_signature",
+                throwable = e
+            )
+        }
+    }
+
+    suspend fun decodeAndVerifyOrNull(name: String, token: String) = try {
+        decodeAndVerify(name, token)
+    } catch (e: LocalizedException) {
+        when (e.detailsId) {
+            "jwt.expired", "jwt.malformed", "jwt.invalid_signature" -> null
+            else -> throw e
         }
     }
 
@@ -69,5 +100,12 @@ class JwtManager(
         val algorithm = advancedConfig.orThrow().jwtAlgorithm
         val key = keyManager.getKey(name, algorithm.keyAlgorithm)
         return algorithm.impl.initializeWithKeys(key)
+    }
+
+    companion object {
+        /**
+         * Name of the public key used to sign access tokens and id tokens.
+         */
+        const val PUBLIC_KEY = "public"
     }
 }

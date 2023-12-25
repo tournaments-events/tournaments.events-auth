@@ -2,14 +2,14 @@ package tournament.events.auth.business.manager
 
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import tournament.events.auth.business.mapper.UserMapper
 import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
+import tournament.events.auth.business.mapper.UserMapper
 import tournament.events.auth.business.model.provider.EnabledProvider
-import tournament.events.auth.business.model.provider.RawProviderUserInfo
+import tournament.events.auth.business.model.user.RawUserInfo
 import tournament.events.auth.business.model.user.User
-import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.business.model.user.UserMergingStrategy.BY_MAIL
 import tournament.events.auth.business.model.user.UserMergingStrategy.NONE
+import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.config.model.orThrow
 import tournament.events.auth.data.model.UserEntity
 import tournament.events.auth.data.repository.UserRepository
@@ -25,7 +25,7 @@ class UserManager(
 
     suspend fun createOrAssociateUserWithUserInfo(
         provider: EnabledProvider,
-        rawUserInfo: RawProviderUserInfo
+        rawUserInfo: RawUserInfo
     ): CreateOrAssociateResult {
         val existingUserEntity = when (advancedConfig.orThrow().userMergingStrategy) {
             BY_MAIL -> rawUserInfo.email?.let { userRepository.findByEmail(it) }

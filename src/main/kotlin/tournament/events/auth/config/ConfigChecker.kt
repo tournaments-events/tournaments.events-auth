@@ -9,7 +9,7 @@ import jakarta.inject.Singleton
 import tournament.events.auth.config.exception.ConfigurationException
 import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.config.model.AuthConfig
-import tournament.events.auth.util.LocalizedException
+import tournament.events.auth.exception.LocalizedException
 import tournament.events.auth.util.loggerForClass
 import java.util.*
 

@@ -1,4 +1,4 @@
-package tournament.events.auth.business.model.auth.oauth2
+package tournament.events.auth.business.model.oauth2
 
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.*

@@ -9,9 +9,10 @@ import java.util.*
 
 @Serdeable
 @MappedEntity("authorize_attempts")
-data class AuthorizeAttemptEntity(
+class AuthorizeAttemptEntity(
     val clientId: String,
     val redirectUri: String,
+    val scopeTokens: Array<String> = emptyArray(),
     val state: String? = null,
     val userId: UUID? = null,
     val attemptDate: LocalDateTime,

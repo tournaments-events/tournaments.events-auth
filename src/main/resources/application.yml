@@ -14,13 +14,19 @@ micronaut:
         http-method: GET
         access:
           - isAnonymous()
+      - pattern: /swagger/**
+        http-method: GET
+        access:
+          - isAnonymous()
 
   router:
     static-resources:
       default:
-        enabled: true
         mapping: /public/**
         paths: 'classpath:public'
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
 
 netty:
   default:

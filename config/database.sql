@@ -13,12 +13,46 @@ CREATE TABLE users
     PRIMARY KEY (id)
 );
 
+CREATE TABLE collected_user_info
+(
+    user_id               uuid      NOT NULL,
+    creation_date         timestamp NOT NULL,
+    update_date           timestamp NOT NULL,
+    collected_bits        bytea     NOT NULL,
+
+    name                  text,
+    given_name            text,
+    family_name           text,
+    middle_name           text,
+    nickname              text,
+
+    preferred_username    text,
+    profile               text,
+    picture               text,
+    website               text,
+
+    email                 text,
+    email_verified        boolean,
+
+    gender                text,
+    birth_date            date,
+
+    zone_info             text,
+    locale                text,
+
+    phone_number          text,
+    phone_number_verified boolean,
+    PRIMARY KEY (user_id)
+);
+
+-- Provider-related tables
+
 CREATE TABLE provider_user_info
 (
     provider_id           text      NOT NULL,
     user_id               uuid      NOT NULL,
-    last_fetch_date       timestamp NOT NULL,
-    last_change_date      timestamp NOT NULL,
+    fetch_date            timestamp NOT NULL,
+    change_date           timestamp NOT NULL,
 
     subject               text      NOT NULL,
 
@@ -58,7 +92,9 @@ CREATE TABLE authorize_attempts
     id              uuid      NOT NULL DEFAULT gen_random_uuid(),
     client_id       text      NOT NULL,
     redirect_uri    text      NOT NULL,
+    scope_tokens    text[]    NOT NULL,
     state           text,
+
     user_id         uuid,
 
     attempt_date    timestamp NOT NULL,
@@ -85,6 +121,7 @@ CREATE TABLE authentication_tokens
     type            text      NOT NULL,
     user_id         uuid      NOT NULL,
     client_id       text      NOT NULL,
+    scope_tokens    text[]    NOT NULL,
 
     issue_date      timestamp NOT NULL,
     expiration_date timestamp,
@@ -111,7 +148,7 @@ CREATE TABLE crypto_keys
 CREATE TABLE indexed_crypto_keys
 (
     name               text      NOT NULL,
-    index              SERIAL,
+    index              SERIAL    NOT NULL,
     algorithm          text      NOT NULL,
 
     public_key         bytea,

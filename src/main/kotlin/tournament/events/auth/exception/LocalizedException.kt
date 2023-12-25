@@ -1,15 +1,9 @@
-package tournament.events.auth.util
-
-import io.micronaut.http.HttpStatus
+package tournament.events.auth.exception
 
 /**
  * Base class for exceptions where the message is localized in a resource bundle.
  */
 open class LocalizedException(
-    /**
-     * HTTP status to respond
-     */
-    val status: HttpStatus,
     /**
      * Identifier of the message detailing the issue in a technical way.
      *
@@ -33,14 +27,14 @@ open class LocalizedException(
     /**
      * Underlying cause of this exception.
      */
-    throwable: Throwable? = null
-) : Exception(formatMessage(status, detailsId, values), throwable) {
+    val throwable: Throwable? = null
+) : Exception(formatMessage(detailsId, values), throwable) {
     companion object {
-        private fun formatMessage(status: HttpStatus, messageId: String, values: Map<String, Any?>): String {
+        private fun formatMessage(messageId: String, values: Map<String, Any?>): String {
             return if (values.isEmpty()) {
-                "${status.code} - $messageId"
+                messageId
             } else {
-                "${status.code} - $messageId: $values"
+                "$messageId: $values"
             }
         }
     }
@@ -50,4 +44,12 @@ data class AdditionalLocalizedMessage(
     val path: String,
     val messageId: String,
     val values: Map<String, Any> = emptyMap()
+)
+
+fun localizedExceptionOf(
+    detailsId: String,
+    vararg values: Pair<String, Any?>
+) = LocalizedException(
+    detailsId = detailsId,
+    values = mapOf(*values)
 )

@@ -1,6 +1,11 @@
 package tournament.events.auth.business.model.user
 
-enum class UserInfoEnum {
+/**
+ * List of standard claims that are defined in the OpenID specification.
+ *
+ * @see <a href="https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims">Standard claims</a>
+ */
+enum class StandardClaim {
     SUBJECT,
 
     NAME,

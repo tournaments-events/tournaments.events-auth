@@ -13,6 +13,7 @@ class AuthenticationTokenEntity(
     val type: String,
     val userId: UUID,
     val clientId: String,
+    val scopeTokens: Array<String>,
 
     val issueDate: LocalDateTime,
     val expirationDate: LocalDateTime?

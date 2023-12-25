@@ -2,8 +2,9 @@ package tournament.events.auth.business.exception
 
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
-import tournament.events.auth.util.AdditionalLocalizedMessage
-import tournament.events.auth.util.LocalizedException
+import tournament.events.auth.exception.AdditionalLocalizedMessage
+import tournament.events.auth.exception.LocalizedException
+import tournament.events.auth.exception.LocalizedHttpException
 
 /**
  * Exception describing an error that will be exposed to the end-user.
@@ -18,7 +19,7 @@ class BusinessException(
     values: Map<String, Any?> = emptyMap(),
     additionalMessages: List<AdditionalLocalizedMessage> = emptyList(),
     throwable: Throwable? = null
-) : LocalizedException(status, detailsId, descriptionId, values, additionalMessages, throwable)
+) : LocalizedHttpException(status, detailsId, descriptionId, values, additionalMessages, throwable)
 
 fun businessExceptionOf(
     status: HttpStatus,

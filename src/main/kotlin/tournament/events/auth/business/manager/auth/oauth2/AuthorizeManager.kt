@@ -5,9 +5,9 @@ import jakarta.inject.Singleton
 import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.manager.jwt.JwtManager
 import tournament.events.auth.business.mapper.AuthorizeAttemptMapper
-import tournament.events.auth.business.model.auth.oauth2.AuthorizeAttempt
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.INVALID_REQUEST
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.SERVER_ERROR
+import tournament.events.auth.business.model.oauth2.AuthorizeAttempt
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.SERVER_ERROR
 import tournament.events.auth.data.model.AuthorizeAttemptEntity
 import tournament.events.auth.data.repository.AuthorizeAttemptRepository
 import tournament.events.auth.util.toAbsoluteUri
@@ -74,7 +74,7 @@ class AuthorizeManager(
         if (state.isNullOrBlank()) {
             throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.state.missing")
         }
-        val jwt = jwtManager.decodeAndVerify(STATE_KEY_NAME, state) ?: throw oauth2ExceptionOf(
+        val jwt = jwtManager.decodeAndVerifyOrNull(STATE_KEY_NAME, state) ?: throw oauth2ExceptionOf(
             INVALID_REQUEST, "authorize.state.wrong_signature", "description.oauth2.invalid_state"
         )
         val attemptId = try {

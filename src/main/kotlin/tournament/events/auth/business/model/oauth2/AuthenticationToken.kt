@@ -1,12 +1,15 @@
-package tournament.events.auth.business.model.auth.oauth2
+package tournament.events.auth.business.model.oauth2
 
 import java.time.LocalDateTime
 import java.util.*
 
-data class EncodedAuthenticationToken(
+data class AuthenticationToken(
     val id: UUID,
     val type: AuthenticationTokenType,
-    val token: String,
+    val userId: UUID,
+    val clientId: String,
+    val scopeTokens: List<String>,
+
     val issueDate: LocalDateTime,
     val expirationDate: LocalDateTime?
 )

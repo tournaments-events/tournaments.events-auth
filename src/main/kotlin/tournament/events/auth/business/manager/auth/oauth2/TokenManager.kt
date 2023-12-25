@@ -7,13 +7,16 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.manager.jwt.JwtManager
+import tournament.events.auth.business.manager.jwt.JwtManager.Companion.PUBLIC_KEY
+import tournament.events.auth.business.mapper.AuthenticationTokenMapper
 import tournament.events.auth.business.mapper.EncodedAuthenticationTokenMapper
-import tournament.events.auth.business.model.auth.oauth2.AuthenticationTokenType.ACCESS
-import tournament.events.auth.business.model.auth.oauth2.AuthenticationTokenType.REFRESH
-import tournament.events.auth.business.model.auth.oauth2.AuthorizeAttempt
-import tournament.events.auth.business.model.auth.oauth2.EncodedAuthenticationToken
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.INVALID_GRANT
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.SERVER_ERROR
+import tournament.events.auth.business.model.oauth2.AuthenticationToken
+import tournament.events.auth.business.model.oauth2.AuthenticationTokenType.ACCESS
+import tournament.events.auth.business.model.oauth2.AuthenticationTokenType.REFRESH
+import tournament.events.auth.business.model.oauth2.AuthorizeAttempt
+import tournament.events.auth.business.model.oauth2.EncodedAuthenticationToken
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.INVALID_GRANT
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.SERVER_ERROR
 import tournament.events.auth.config.model.AuthConfig
 import tournament.events.auth.config.model.EnabledAuthConfig
 import tournament.events.auth.config.model.orThrow
@@ -27,9 +30,14 @@ import java.util.*
 class TokenManager(
     @Inject private val jwtManager: JwtManager,
     @Inject private val tokenRepository: AuthenticationTokenRepository,
+    @Inject private val tokenMapper: AuthenticationTokenMapper,
     @Inject private val encodedTokenMapper: EncodedAuthenticationTokenMapper,
     @Inject private val authConfig: AuthConfig
 ) {
+
+    suspend fun findById(id: UUID): AuthenticationToken? {
+        return tokenRepository.findById(id)?.let(tokenMapper::toToken)
+    }
 
     suspend fun generateTokens(
         authorizeAttempt: AuthorizeAttempt
@@ -74,11 +82,12 @@ class TokenManager(
             userId = userId,
             type = ACCESS.name,
             clientId = authorizeAttempt.clientId,
+            scopeTokens = authorizeAttempt.scopeTokens.toTypedArray(),
             issueDate = issueDate,
             expirationDate = expirationDate
         ).let { tokenRepository.save(it) }
 
-        val encodedToken = jwtManager.create("access") {
+        val encodedToken = jwtManager.create(PUBLIC_KEY) {
             entity.id?.toString()?.let(this::withJWTId)
             authConfig.audience?.let { this.withAudience(it) }
             withSubject(userId.toString())
@@ -100,6 +109,7 @@ class TokenManager(
             userId = userId,
             type = REFRESH.name,
             clientId = authorizeAttempt.clientId,
+            scopeTokens = authorizeAttempt.scopeTokens.toTypedArray(),
             issueDate = issueDate,
             expirationDate = expirationDate
         ).let { tokenRepository.save(it) }

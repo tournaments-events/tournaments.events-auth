@@ -11,7 +11,7 @@ import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.api.model.oauth2.TokenResource
 import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
 import tournament.events.auth.business.manager.auth.oauth2.TokenManager
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode.*
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.*
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset

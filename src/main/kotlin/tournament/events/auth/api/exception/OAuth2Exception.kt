@@ -1,7 +1,7 @@
 package tournament.events.auth.api.exception
 
 import io.micronaut.http.HttpStatus
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode
 
 class OAuth2Exception(
     val errorCode: OAuth2ErrorCode,

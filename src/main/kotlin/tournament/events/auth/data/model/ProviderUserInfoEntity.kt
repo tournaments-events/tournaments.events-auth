@@ -19,8 +19,8 @@ data class ProviderUserInfoEntityId(
 @MappedEntity("provider_user_info")
 data class ProviderUserInfoEntity(
     @EmbeddedId val id: ProviderUserInfoEntityId,
-    val lastFetchDate: LocalDateTime,
-    val lastChangeDate: LocalDateTime,
+    val fetchDate: LocalDateTime,
+    val changeDate: LocalDateTime,
 
     val subject: String,
 

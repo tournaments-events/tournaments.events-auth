@@ -5,8 +5,9 @@ import io.micronaut.http.HttpStatus
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.api.model.error.ErrorResource
+import tournament.events.auth.exception.LocalizedException
+import tournament.events.auth.exception.LocalizedHttpException
 import tournament.events.auth.server.ErrorMessages
-import tournament.events.auth.util.LocalizedException
 import java.util.*
 
 @Singleton
@@ -15,19 +16,25 @@ class ErrorResourceMapper(
 ) {
 
     fun toResource(
+        exception: LocalizedHttpException,
+        locale: Locale
+    ) = toResource(exception.status, exception, locale)
+
+    fun toResource(
+        status: HttpStatus,
         exception: LocalizedException,
         locale: Locale
     ): ErrorResource {
         val descriptionId = when {
             exception.descriptionId != null -> exception.descriptionId
-            exception.status.code in 500 until  600 -> "description.server_error"
+            status.code in 500 until 600 -> "description.server_error"
             else -> null
         }
 
         return ErrorResource(
-            status = exception.status.code,
+            status = status.code,
             errorCode = exception.detailsId,
-            description = messageSource.getMessage(descriptionId, locale, exception.values).orElse(null),
+            description = descriptionId?.let { messageSource.getMessage(it, locale, exception.values) }?.orElse(null),
             details = messageSource.getMessage(exception.detailsId, locale, exception.values).orElse(null)
         )
     }

@@ -7,7 +7,7 @@ import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.business.model.provider.ProviderUserInfoPathKey
 import tournament.events.auth.business.model.provider.ProviderUserInfoPathKey.*
-import tournament.events.auth.business.model.provider.RawProviderUserInfo
+import tournament.events.auth.business.model.user.RawUserInfo
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -90,8 +90,8 @@ class RawProviderUserInfoBuilder {
             ?.let { LocalDateTime.ofInstant(it, ZoneId.of("UTC")) }
     }
 
-    fun build(provider: EnabledProvider): RawProviderUserInfo {
-        return RawProviderUserInfo(
+    fun build(provider: EnabledProvider): RawUserInfo {
+        return RawUserInfo(
             subject = subject ?: throw businessExceptionOf(
                 INTERNAL_SERVER_ERROR, "provider.user_info.missing_subject",
                 "providerId" to provider.id

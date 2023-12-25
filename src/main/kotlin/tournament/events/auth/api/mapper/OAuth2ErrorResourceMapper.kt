@@ -6,7 +6,7 @@ import jakarta.inject.Singleton
 import tournament.events.auth.api.exception.OAuth2Exception
 import tournament.events.auth.api.model.error.OAuth2ErrorResource
 import tournament.events.auth.business.exception.BusinessException
-import tournament.events.auth.business.model.auth.oauth2.OAuth2ErrorCode
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode
 import tournament.events.auth.server.ErrorMessages
 
 @Singleton
