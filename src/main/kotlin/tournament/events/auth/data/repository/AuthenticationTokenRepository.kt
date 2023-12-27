@@ -7,4 +7,7 @@ import tournament.events.auth.data.model.AuthenticationTokenEntity
 import java.util.*
 
 @R2dbcRepository(dialect = Dialect.POSTGRES)
-interface AuthenticationTokenRepository : CoroutineCrudRepository<AuthenticationTokenEntity, UUID>
+interface AuthenticationTokenRepository : CoroutineCrudRepository<AuthenticationTokenEntity, UUID> {
+
+    fun updateRevokedById(id: UUID, revoked: Boolean)
+}

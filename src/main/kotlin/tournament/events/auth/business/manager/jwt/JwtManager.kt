@@ -7,11 +7,8 @@ import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.DecodedJWT
-import io.micronaut.http.HttpStatus
-import io.micronaut.http.HttpStatus.UNAUTHORIZED
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import tournament.events.auth.business.exception.BusinessException
 import tournament.events.auth.business.manager.key.CryptoKeysManager
 import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.config.model.AuthConfig
@@ -107,5 +104,11 @@ class JwtManager(
          * Name of the public key used to sign access tokens and id tokens.
          */
         const val PUBLIC_KEY = "public"
+
+        /**
+         * Name of key used to sign refresh tokens.
+         * Unlike the one for access and id tokens, this one is kept secret.
+         */
+        const val REFRESH_KEY = "refresh"
     }
 }

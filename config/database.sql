@@ -117,14 +117,16 @@ CREATE INDEX authorization_codes__code ON authorization_codes (code);
 
 CREATE TABLE authentication_tokens
 (
-    id              uuid      NOT NULL DEFAULT gen_random_uuid(),
-    type            text      NOT NULL,
-    user_id         uuid      NOT NULL,
-    client_id       text      NOT NULL,
-    scope_tokens    text[]    NOT NULL,
+    id                   uuid      NOT NULL DEFAULT gen_random_uuid(),
+    type                 text      NOT NULL,
+    user_id              uuid      NOT NULL,
+    client_id            text      NOT NULL,
+    scope_tokens         text[]    NOT NULL,
+    authorize_attempt_id uuid      NOT NULL,
 
-    issue_date      timestamp NOT NULL,
-    expiration_date timestamp,
+    revoked              boolean   NOT NULL,
+    issue_date           timestamp NOT NULL,
+    expiration_date      timestamp,
     PRIMARY KEY (id)
 );
 

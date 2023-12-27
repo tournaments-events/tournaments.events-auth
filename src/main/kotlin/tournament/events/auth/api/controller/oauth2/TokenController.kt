@@ -11,7 +11,10 @@ import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.api.model.oauth2.TokenResource
 import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
 import tournament.events.auth.business.manager.auth.oauth2.TokenManager
+import tournament.events.auth.business.model.oauth2.AuthenticationTokenType.ACCESS
+import tournament.events.auth.business.model.oauth2.AuthenticationTokenType.REFRESH
 import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.*
+import tournament.events.auth.server.security.client
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
@@ -29,7 +32,7 @@ class TokenController(
         @Part("grant_type") grantType: String?,
         @Part(CODE_PARAM) code: String?,
         @Part("redirect_uri") redirectUri: String?,
-        @Part("refresh_token") refreshToken: String?,
+        @Part(REFRESH_TOKEN_PARAM) refreshToken: String?,
     ): TokenResource {
         return when (grantType) {
             "authorization_code" -> getTokensUsingAuthorizationCode(
@@ -37,7 +40,11 @@ class TokenController(
                 redirectUri = redirectUri
             )
 
-            "refresh_token" -> TODO()
+            "refresh_token" -> getTokensUsingRefreshToken(
+                authentication = authentication,
+                encodedRefreshToken = refreshToken
+            )
+
             else -> throw oauth2ExceptionOf(
                 UNSUPPORTED_GRANT_TYPE, "token.unsupported_grant_type",
                 "grantType" to grantType
@@ -74,14 +81,31 @@ class TokenController(
     }
 
     private suspend fun getTokensUsingRefreshToken(
-        clientId: String,
-        clientSecret: String,
-        refreshToken: String?
+        authentication: Authentication,
+        encodedRefreshToken: String?
     ): TokenResource {
-        TODO()
+        val client = authentication.client
+        if (encodedRefreshToken.isNullOrBlank()) {
+            throw oauth2ExceptionOf(INVALID_GRANT, "token.missing_param", "param" to REFRESH_TOKEN_PARAM)
+        }
+        val tokens = tokenManager.refreshToken(client, encodedRefreshToken)
+        val accessToken = tokens.first { it.type == ACCESS }
+        val refreshedRefreshToken = tokens.firstOrNull { it.type == REFRESH }
+        return TokenResource(
+            accessToken = accessToken.token,
+            tokenType = "bearer",
+            expiredIn = accessToken.expirationDate?.let {
+                Duration.between(
+                    Instant.now(),
+                    it.toInstant(ZoneOffset.UTC)
+                ).toMillisPart()
+            },
+            refreshToken = refreshedRefreshToken?.token ?: encodedRefreshToken
+        )
     }
 
     companion object {
         const val CODE_PARAM = "code"
+        const val REFRESH_TOKEN_PARAM = "refresh_token"
     }
 }

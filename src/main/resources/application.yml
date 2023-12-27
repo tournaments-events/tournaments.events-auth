@@ -14,7 +14,7 @@ micronaut:
         http-method: GET
         access:
           - isAnonymous()
-      - pattern: /swagger/**
+      - pattern: /swagger-ui/**
         http-method: GET
         access:
           - isAnonymous()
@@ -24,9 +24,9 @@ micronaut:
       default:
         mapping: /public/**
         paths: 'classpath:public'
-      swagger:
-        paths: classpath:META-INF/swagger
-        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
 
 netty:
   default:

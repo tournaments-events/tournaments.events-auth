@@ -1,10 +1,13 @@
 package tournament.events.auth.business.manager.user
 
+import io.mockk.every
+import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verifyOrder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.*
 import tournament.events.auth.business.model.provider.ProviderUserInfo
 import tournament.events.auth.business.model.user.CollectedUserInfo
 import tournament.events.auth.business.model.user.RawUserInfo
@@ -14,31 +17,33 @@ import java.time.LocalDate
 import java.time.LocalDateTime.now
 import java.util.*
 
-@ExtendWith(MockitoExtension::class)
+@ExtendWith(MockKExtension::class)
+@MockKExtension.CheckUnnecessaryStub
 class UserInfoMergerTest {
 
     @Test
     fun `merge - Providers in chronological order then collected`() {
         val userId = UUID.randomUUID()
-        val builder = mock<RawUserInfoBuilder>()
-        val collectedUserInfo = mock<CollectedUserInfo>()
-        val providerUserInfo1 = mock<ProviderUserInfo>()
-        val providerUserInfo2 = mock<ProviderUserInfo>()
+        val builder = mockk<RawUserInfoBuilder>()
+        val collectedUserInfo = mockk<CollectedUserInfo>()
+        val providerUserInfo1 = mockk<ProviderUserInfo>()
+        val providerUserInfo2 = mockk<ProviderUserInfo>()
 
-        val merger = spy(UserInfoMerger(
-            userId = userId,
-            collectedUserInfo = collectedUserInfo,
-            providerUserInfoList = listOf(providerUserInfo1, providerUserInfo2)
-        ))
-        doReturn(now()).whenever(merger).getUpdatedAt(providerUserInfo1)
-        doReturn(now().minusDays(1)).whenever(merger).getUpdatedAt(providerUserInfo2)
-        doReturn(builder).whenever(merger).apply(builder, providerUserInfo1)
-        doReturn(builder).whenever(merger).apply(builder, providerUserInfo2)
-        doReturn(builder).whenever(merger).apply(builder, collectedUserInfo)
+        val merger = spyk(
+            UserInfoMerger(
+                userId = userId,
+                collectedUserInfo = collectedUserInfo,
+                providerUserInfoList = listOf(providerUserInfo1, providerUserInfo2)
+            )
+        )
+        every { merger.getUpdatedAt(providerUserInfo1) } returns now()
+        every { merger.getUpdatedAt(providerUserInfo2) } returns now().minusDays(1)
+        every { merger.apply(any(), any<ProviderUserInfo>()) } returns builder
+        every { merger.apply(any(), any<CollectedUserInfo>()) } returns builder
 
         merger.merge(builder)
 
-        inOrder(merger) {
+        verifyOrder {
             merger.apply(builder, providerUserInfo2)
             merger.apply(builder, providerUserInfo1)
             merger.apply(builder, collectedUserInfo)
@@ -49,11 +54,11 @@ class UserInfoMergerTest {
     fun `apply - Copy all fields if everything is provided`() {
         val userId = UUID.randomUUID()
         val providerRawInfo = fullRawInfo(userId)
-        val providerUserInfo = mock<ProviderUserInfo> {
-            on { it.userInfo } doReturn providerRawInfo
-        }
+        val providerUserInfo = mockk<ProviderUserInfo>()
 
-        val merger = UserInfoMerger(mock(), mock(), mock())
+        every { providerUserInfo.userInfo } returns providerRawInfo
+
+        val merger = UserInfoMerger(mockk(), mockk(), mockk())
         val rawInfo = merger.apply(
             RawUserInfoBuilder(userId),
             providerUserInfo
@@ -72,7 +77,7 @@ class UserInfoMergerTest {
             info = collectedRawInfo
         )
 
-        val merger = UserInfoMerger(mock(), mock(), mock())
+        val merger = UserInfoMerger(mockk(), mockk(), mockk())
         val rawInfo = merger.apply(
             RawUserInfoBuilder(userId),
             collectedUserInfo
@@ -105,6 +110,7 @@ class UserInfoMergerTest {
         locale = "locale",
 
         phoneNumber = "phoneNumber",
-        phoneNumberVerified = true
+        phoneNumberVerified = true,
+        updatedAt = now()
     )
 }

@@ -31,15 +31,6 @@ fun <C : Any> getUriOrThrow(
     )
 }
 
-inline fun <C : Any, reified T : Enum<T>> getEnumOrThrow(
-    config: C,
-    key: String,
-    noinline value: (C) -> String?
-): T {
-    val serializedValue = getStringOrThrow(config, key, value)
-    return convertToEnum(key, serializedValue)
-}
-
 inline fun <C : Any, reified T : Enum<T>> getEnum(
     config: C,
     key: String,

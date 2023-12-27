@@ -21,9 +21,8 @@ extra.apply {
     set("jsonPathVersion", "2.8.0")
 
     // Test dependencies
-    set("mockitoVersion", "4.8.0")
-    set("mockitoKotlinVersion", "4.0.0")
-    set("junitJupiterVersion", "5.9.1")
+    set("junitJupiterVersion", "5.10.1")
+    set("mockkVersion", "1.13.8")
 }
 
 repositories {
@@ -85,8 +84,9 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic")
 
     // API documentation
-    ksp("io.micronaut.openapi:micronaut-openapi")
-    implementation("io.swagger.core.v3:swagger-annotations")
+    // Must be above 6.3.0 to fix KSP issue: https://github.com/micronaut-projects/micronaut-openapi/issues/1154
+    ksp("io.micronaut.openapi:micronaut-openapi:6.3.0!!")
+    compileOnly("io.micronaut.openapi:micronaut-openapi-annotations:6.3.0!!")
 
     // YAML: for configuration
     runtimeOnly("org.yaml:snakeyaml")
@@ -96,8 +96,7 @@ dependencies {
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:${project.extra["junitJupiterVersion"]}")
-    testImplementation("org.mockito:mockito-junit-jupiter:${project.extra["mockitoVersion"]}")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:${project.extra["mockitoKotlinVersion"]}")
+    testImplementation("io.mockk:mockk:${project.extra["mockkVersion"]}")
 }
 
 application {

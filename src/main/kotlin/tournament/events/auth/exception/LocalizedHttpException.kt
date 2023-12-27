@@ -21,7 +21,7 @@ open class LocalizedHttpException(
     throwable = throwable
 )
 
-fun LocalizedException.toHttpException(httpStatus: HttpStatus) = LocalizedHttpException(
+fun <T: LocalizedException> T.toHttpException(httpStatus: HttpStatus) = LocalizedHttpException(
     status = httpStatus,
     detailsId = detailsId,
     descriptionId = descriptionId,

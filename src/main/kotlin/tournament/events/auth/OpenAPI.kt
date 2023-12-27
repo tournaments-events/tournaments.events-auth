@@ -4,10 +4,17 @@ import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.context.event.StartupEvent
 import io.swagger.v3.oas.annotations.ExternalDocumentation
 import io.swagger.v3.oas.annotations.OpenAPIDefinition
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType.OAUTH2
 import io.swagger.v3.oas.annotations.info.Info
 import io.swagger.v3.oas.annotations.info.License
+import io.swagger.v3.oas.annotations.security.*
+import io.swagger.v3.oas.annotations.servers.Server
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import tournament.events.auth.config.model.UrlsConfig
+import tournament.events.auth.config.model.orThrow
 import tournament.events.auth.util.loggerForClass
 
 @OpenAPIDefinition(
@@ -20,6 +27,12 @@ import tournament.events.auth.util.loggerForClass
             url = "https://www.gnu.org/licenses/gpl-3.0.fr.html#license-text"
         )
     ),
+    servers = [
+        Server(
+            description = "Instance of SympAuthy serving this documentation.",
+            url = "{rootUrl}"
+        )
+    ],
     tags = [
         Tag(
             name = "OAuth 2.0",
@@ -41,12 +54,35 @@ import tournament.events.auth.util.loggerForClass
         )
     ]
 )
+@SecuritySchemes(
+    value = [
+        SecurityScheme(
+            name = "SympAuthy",
+            description = "Authenticated to this authentication server to access its protected resources.",
+            type = OAUTH2,
+            `in` = HEADER,
+            flows = OAuthFlows(
+                authorizationCode = OAuthFlow(
+                    authorizationUrl = "{rootUrl}/api/oauth2/authorize",
+                    tokenUrl = "{rootUrl}/api/oauth2/token",
+                    refreshUrl = "{rootUrl}/api/oauth2/token",
+                    scopes = [
+                        OAuthScope(name = "profile")
+                    ]
+                )
+            )
+        )
+    ]
+)
 @Singleton
-class OpenAPI: ApplicationEventListener<StartupEvent> {
+class OpenAPI(
+    @Inject private val urlsConfig: UrlsConfig
+) : ApplicationEventListener<StartupEvent> {
 
     private val log = loggerForClass()
 
     override fun onApplicationEvent(event: StartupEvent) {
-        OpenAPI::class
+        log.info("OpenAPI documentation available at: ${urlsConfig.orThrow().root}/openapi.yml")
+        log.info("Swagger UI available at: ${urlsConfig.orThrow().root}/swagger-ui")
     }
 }

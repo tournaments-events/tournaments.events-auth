@@ -8,7 +8,8 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactive.publish
 import org.reactivestreams.Publisher
-import tournament.events.auth.business.exception.businessExceptionOf
+import tournament.events.auth.api.exception.OAuth2Exception
+import tournament.events.auth.api.exception.toHttpException
 import tournament.events.auth.business.manager.auth.oauth2.TokenManager
 import tournament.events.auth.business.manager.jwt.JwtManager
 import tournament.events.auth.business.manager.jwt.JwtManager.Companion.PUBLIC_KEY
@@ -44,10 +45,14 @@ class AccessTokenValidator<T>(
         val userId = try {
             UUID.fromString(decodedToken.subject)
         } catch (e: IllegalArgumentException) {
-            throw businessExceptionOf(UNAUTHORIZED, "access.invalid_token")
+            throw httpExceptionOf(UNAUTHORIZED, "access.invalid_token")
         }
 
-        val authenticationToken = getAuthenticationToken(decodedToken)
+        val authenticationToken = try {
+            tokenManager.getAuthenticationToken(decodedToken)
+        } catch (e: OAuth2Exception) {
+            throw e.toHttpException(UNAUTHORIZED)
+        }
         val authentication = UserAuthentication(
             authenticationToken
         )

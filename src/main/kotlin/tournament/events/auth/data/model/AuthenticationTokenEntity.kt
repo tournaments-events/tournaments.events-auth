@@ -14,7 +14,12 @@ class AuthenticationTokenEntity(
     val userId: UUID,
     val clientId: String,
     val scopeTokens: Array<String>,
+    /**
+     * There is no foreign key
+     */
+    val authorizeAttemptId: UUID,
 
+    val revoked: Boolean,
     val issueDate: LocalDateTime,
     val expirationDate: LocalDateTime?
 ) {

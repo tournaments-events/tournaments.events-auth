@@ -3,6 +3,8 @@ package tournament.events.auth.config
 import io.micronaut.core.convert.ConversionService
 import jakarta.inject.Singleton
 import tournament.events.auth.config.exception.configExceptionOf
+import tournament.events.auth.util.toAbsoluteUri
+import java.net.URI
 import java.time.Duration
 
 /**
@@ -46,5 +48,10 @@ class ConfigParser {
         return ConversionService.SHARED.convert(value, Duration::class.java).orElse(null) ?: throw configExceptionOf(
             key, "config.invalid_duration"
         )
+    }
+
+    fun <C : Any> getAbsoluteUriOrThrow(config: C, key: String, value: (C) -> String?): URI {
+        return tournament.events.auth.config.util.getOrThrow(config, key, value).toAbsoluteUri()
+            ?: throw configExceptionOf(key, "config.invalid_url")
     }
 }
