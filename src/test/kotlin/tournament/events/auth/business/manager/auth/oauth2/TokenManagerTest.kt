@@ -78,7 +78,7 @@ class TokenManagerTest {
 
         assertThrows<OAuth2Exception> {
             runBlocking {
-                tokenManager.refreshToken(mock(), "test")
+                tokenManager.refreshToken(mockk(), "test")
             }
         }
     }
