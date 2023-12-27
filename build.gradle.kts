@@ -97,6 +97,7 @@ dependencies {
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:${project.extra["junitJupiterVersion"]}")
     testImplementation("io.mockk:mockk:${project.extra["mockkVersion"]}")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${project.extra["kotlinCoroutinesVersion"]}")
 }
 
 application {

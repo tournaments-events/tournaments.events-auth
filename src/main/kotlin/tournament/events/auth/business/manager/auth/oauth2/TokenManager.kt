@@ -138,11 +138,11 @@ open class TokenManager(
         val token = findById(id)
         return when {
             token == null -> throw oauth2ExceptionOf(INVALID_GRANT, "token.invalid_token_id")
+            token.revoked -> throw oauth2ExceptionOf(INVALID_GRANT, "token.revoked")
             decodedToken.subject != token.userId.toString() -> throw oauth2ExceptionOf(
                 INVALID_GRANT, "token.invalid_token_id"
             )
 
-            token.revoked -> throw oauth2ExceptionOf(INVALID_GRANT, "token.revoked")
             else -> token
         }
     }
