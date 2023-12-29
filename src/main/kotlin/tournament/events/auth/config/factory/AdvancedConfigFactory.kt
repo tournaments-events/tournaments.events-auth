@@ -1,53 +1,65 @@
 package tournament.events.auth.config.factory
 
 import io.micronaut.context.annotation.Factory
-import io.micronaut.http.HttpStatus
+import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import tournament.events.auth.business.exception.BusinessException
-import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.manager.jwt.CryptoKeysGenerationStrategy
 import tournament.events.auth.business.model.jwt.JwtAlgorithm
+import tournament.events.auth.business.model.jwt.JwtAlgorithm.RS256
+import tournament.events.auth.business.model.user.UserMergingStrategy
+import tournament.events.auth.config.ConfigParser
+import tournament.events.auth.config.exception.ConfigurationException
+import tournament.events.auth.config.exception.configExceptionOf
 import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.config.model.DisabledAdvancedConfig
 import tournament.events.auth.config.model.EnabledAdvancedConfig
-import tournament.events.auth.business.model.user.UserMergingStrategy
 import tournament.events.auth.config.properties.AdvancedConfigurationProperties
 import tournament.events.auth.config.properties.AdvancedConfigurationProperties.Companion.ADVANCED_KEY
-import tournament.events.auth.config.util.getEnum
-import tournament.events.auth.config.util.getStringOrThrow
+import tournament.events.auth.config.properties.JwtConfigurationProperties
+import tournament.events.auth.config.properties.JwtConfigurationProperties.Companion.JWT_KEY
 
 @Factory
-class AdvancedConfigFactory {
+class AdvancedConfigFactory(
+    @Inject private val parser: ConfigParser,
+) {
 
     @Singleton
     fun provideConfig(
         properties: AdvancedConfigurationProperties,
+        jwtProperties: JwtConfigurationProperties,
         keyGenerationStategies: Map<String, CryptoKeysGenerationStrategy>,
     ): AdvancedConfig {
-        val errors = mutableListOf<BusinessException>()
+        val errors = mutableListOf<ConfigurationException>()
         val userMergingStrategy = try {
-            getEnum(
-                properties, "$ADVANCED_KEY.user-merging-strategy",
-                UserMergingStrategy.BY_MAIL, AdvancedConfigurationProperties::userMergingStrategy
+            parser.getEnum(
+                properties, "$ADVANCED_KEY.user-merging-strategy", UserMergingStrategy.BY_MAIL,
+                AdvancedConfigurationProperties::userMergingStrategy
             )
-        } catch (e: BusinessException) {
+        } catch (e: ConfigurationException) {
             errors.add(e)
             null
         }
 
         val keysGenerationStrategy = try {
             getKeysGenerationStrategy(properties, keyGenerationStategies)
-        } catch (e: BusinessException) {
+        } catch (e: ConfigurationException) {
             errors.add(e)
             null
         }
 
-        val jwtAlgorithm = try {
-            getEnum(
-                properties, "$ADVANCED_KEY.jwt-algorithm",
-                JwtAlgorithm.RS256, AdvancedConfigurationProperties::jwtAlgorithm
+        val publicJwtAlgorithm = try {
+            getPublicKeyAlgorithm(jwtProperties)
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
+        val privateJwtAlgorithm = try {
+            parser.getEnum(
+                jwtProperties, "$JWT_KEY.private-alg", RS256,
+                JwtConfigurationProperties::privateAlg
             )
-        } catch (e: BusinessException) {
+        } catch (e: ConfigurationException) {
             errors.add(e)
             null
         }
@@ -56,7 +68,8 @@ class AdvancedConfigFactory {
             return EnabledAdvancedConfig(
                 userMergingStrategy = userMergingStrategy!!,
                 keysGenerationStrategy = keysGenerationStrategy!!,
-                jwtAlgorithm = jwtAlgorithm!!
+                publicJwtAlgorithm = publicJwtAlgorithm!!,
+                privateJwtAlgorithm = privateJwtAlgorithm!!
             )
         } else {
             DisabledAdvancedConfig(errors)
@@ -67,14 +80,32 @@ class AdvancedConfigFactory {
         properties: AdvancedConfigurationProperties,
         keyGenerationStategies: Map<String, CryptoKeysGenerationStrategy>
     ): CryptoKeysGenerationStrategy {
-        val strategyId = getStringOrThrow(
-            properties, "sympauthy.keys-generation-strategy"
-        ) { it.keysGenerationStrategy }
-        return keyGenerationStategies[strategyId] ?: throw businessExceptionOf(
-            HttpStatus.INTERNAL_SERVER_ERROR, "config.unsupported_generation_algorithm",
-            "key" to "sympauthy.keys-generation-strategy",
+        val strategyId = parser.getStringOrThrow(
+            properties, "$ADVANCED_KEY.keys-generation-strategy",
+            AdvancedConfigurationProperties::keysGenerationStrategy
+        )
+        return keyGenerationStategies[strategyId] ?: throw configExceptionOf(
+            "$ADVANCED_KEY.keys-generation-strategy",
+            "config.unsupported_generation_algorithm",
             "algorithm" to strategyId,
             "algorithms" to keyGenerationStategies.keys.joinToString(", ")
         )
+    }
+
+    private fun getPublicKeyAlgorithm(
+        properties: JwtConfigurationProperties
+    ): JwtAlgorithm {
+        val publicJwtAlgorithm = parser.getEnum(
+            properties, "$JWT_KEY.public-alg", RS256,
+            JwtConfigurationProperties::publicAlg
+        )
+        if (!publicJwtAlgorithm.keyAlgorithm.supportsPublicKey) {
+            throw configExceptionOf(
+                "$JWT_KEY.public-alg",
+                "config.advanced.jwt.public_alg.unsupported_public_key",
+                "algorithms" to JwtAlgorithm.values().filter { it.keyAlgorithm.supportsPublicKey }.joinToString(", ")
+            )
+        }
+        return publicJwtAlgorithm
     }
 }

@@ -1,8 +1,11 @@
 package tournament.events.auth.business.model.key
 
 import com.auth0.jwt.interfaces.RSAKeyProvider
+import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.RSAKey
 import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import tournament.events.auth.business.exception.businessExceptionOf
+import tournament.events.auth.exception.localizedExceptionOf
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
@@ -12,9 +15,13 @@ import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 
 enum class KeyAlgorithm(
-    val impl: KeyAlgorithmImpl
+    val impl: KeyAlgorithmImpl,
+    /**
+     * True if the algorithm uses asymmetric key.
+     */
+    val supportsPublicKey: Boolean
 ) {
-    RSA(RSAKeyImpl())
+    RSA(RSAKeyImpl(), true)
 }
 
 inline fun <reified T : KeyAlgorithmImpl> KeyAlgorithm.getImpl(): T {
@@ -27,6 +34,15 @@ sealed class KeyAlgorithmImpl {
      * Generate random keys.
      */
     abstract fun generate(name: String): CryptoKeys
+
+    /**
+     * Serialize the public key into a JSON Web key([JWK]).
+     *
+     * Throws a [LocalizedBusinessException] if the algorithm does not support a public key.
+     */
+    open fun serializePublicKey(keys: CryptoKeys): JWK {
+        throw localizedExceptionOf("keyalgorithm.public_key.unsupported")
+    }
 }
 
 class RSAKeyImpl : KeyAlgorithmImpl() {
@@ -46,7 +62,7 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
         )
     }
 
-    fun toKeyProvider(keys: CryptoKeys): RSAKeyProvider {
+    internal fun toKeyProvider(keys: CryptoKeys): RSAKeyProvider {
         val publicKey = toPublicKey(keys)
         val privateKey = toPrivateKey(keys)
         return object : RSAKeyProvider {
@@ -56,7 +72,7 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
         }
     }
 
-    fun toPublicKey(keys: CryptoKeys): RSAPublicKey {
+    internal fun toPublicKey(keys: CryptoKeys): RSAPublicKey {
         if (keys.publicKey == null || keys.publicKeyFormat == null) {
             throw businessExceptionOf(
                 INTERNAL_SERVER_ERROR, "key.missing_public_key",
@@ -72,7 +88,7 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
         return factory.generatePublic(keySpec) as RSAPublicKey
     }
 
-    fun toPrivateKey(keys: CryptoKeys): RSAPrivateKey {
+    internal fun toPrivateKey(keys: CryptoKeys): RSAPrivateKey {
         val keySpec = getKeySpec(
             name = keys.name,
             key = keys.privateKey,
@@ -80,6 +96,10 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
         )
         val factory = KeyFactory.getInstance("RSA")
         return factory.generatePrivate(keySpec) as RSAPrivateKey
+    }
+
+    override fun serializePublicKey(keys: CryptoKeys): JWK {
+        return RSAKey.Builder(toPublicKey(keys)).build()
     }
 }
 

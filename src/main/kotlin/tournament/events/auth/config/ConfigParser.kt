@@ -54,4 +54,29 @@ class ConfigParser {
         return tournament.events.auth.config.util.getOrThrow(config, key, value).toAbsoluteUri()
             ?: throw configExceptionOf(key, "config.invalid_url")
     }
+
+    inline fun <C : Any, reified T : Enum<T>> getEnum(
+        config: C,
+        key: String,
+        defaultValue: T,
+        value: (C) -> String?
+    ): T {
+        val serializedValue = value(config) ?: return defaultValue
+        return convertToEnum(key, serializedValue)
+    }
+
+    inline fun <reified T : Enum<T>> convertToEnum(key: String, value: String): T {
+        val valueMap = enumValues<T>()
+            .map {
+                val configName = it.name.lowercase().replace("_", "-")
+                configName to it
+            }
+            .toMap()
+        return valueMap[value] ?: throw configExceptionOf(
+            key,
+            "config.invalid_enum_value",
+            "value" to value,
+            "supportedValues" to valueMap.keys.joinToString(", ")
+        )
+    }
 }

@@ -35,19 +35,22 @@ import tournament.events.auth.util.loggerForClass
     ],
     tags = [
         Tag(
-            name = "OAuth 2.0",
+            name = "oauth2",
+            description = "OAuth 2.0",
             externalDocs = ExternalDocumentation(
                 url = "https://datatracker.ietf.org/doc/html/rfc6749"
             )
         ),
         Tag(
-            name = "OpenID Connect Core 1.0",
+            name = "openid",
+            description = "OpenID Connect Core 1.0",
             externalDocs = ExternalDocumentation(
                 url = "https://openid.net/specs/openid-connect-core-1_0.html"
             )
         ),
         Tag(
-            name = "OpenID Connect Discovery 1.0",
+            name = "openiddiscovery",
+            description = "OpenID Connect Discovery 1.0",
             externalDocs = ExternalDocumentation(
                 url = "https://openid.net/specs/openid-connect-discovery-1_0.html"
             )

@@ -7,6 +7,7 @@ import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.DecodedJWT
+import com.nimbusds.jose.jwk.JWK
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.manager.key.CryptoKeysManager
@@ -88,13 +89,25 @@ class JwtManager(
     }
 
     /**
+     * Return the public key of the [PUBLIC_KEY] key set used to sign access tokens and id tokens.
+     */
+    suspend fun getPublicKey(): JWK {
+        val algorithm = advancedConfig.orThrow().publicJwtAlgorithm
+        val keys = keyManager.getKey(PUBLIC_KEY, algorithm.keyAlgorithm)
+        return algorithm.keyAlgorithm.impl.serializePublicKey(keys)
+    }
+
+    /**
      * Return the [Algorithm] initialized with the signing key named [name].
      *
      * If the key does not exist in the database or has not been configured in the application.yml,
      * then it will be generated according to the key generation strategy.
      */
     suspend fun getAlgorithm(name: String): Algorithm {
-        val algorithm = advancedConfig.orThrow().jwtAlgorithm
+        val algorithm = when(name) {
+            PUBLIC_KEY -> advancedConfig.orThrow().publicJwtAlgorithm
+            else -> advancedConfig.orThrow().privateJwtAlgorithm
+        }
         val key = keyManager.getKey(name, algorithm.keyAlgorithm)
         return algorithm.impl.initializeWithKeys(key)
     }

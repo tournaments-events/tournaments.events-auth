@@ -127,7 +127,7 @@ class TokenManagerTest {
         every { refreshToken.clientId } returns clientId
         coEvery { accessTokenGenerator.generateAccessToken(refreshToken) } returns accessToken
         every { tokenManager.shouldRefreshToken(refreshToken, accessToken) } returns true
-        coEvery { tokenManager.refreshRefreshToken(refreshToken) } returns refreshedRefreshToken
+        coEvery { refreshTokenGenerator.generateRefreshToken(refreshToken) } returns refreshedRefreshToken
 
         val tokens = tokenManager.refreshToken(client, encodedRefreshToken)
 

@@ -1,21 +1,24 @@
 package tournament.events.auth.config.model
 
-import tournament.events.auth.business.exception.BusinessException
 import tournament.events.auth.business.manager.jwt.CryptoKeysGenerationStrategy
 import tournament.events.auth.business.model.jwt.JwtAlgorithm
 import tournament.events.auth.business.model.user.UserMergingStrategy
+import tournament.events.auth.config.exception.ConfigurationException
 
-sealed class AdvancedConfig : Config()
+sealed class AdvancedConfig(
+    configurationErrors: List<ConfigurationException>? = null
+) : Config(configurationErrors)
 
 class EnabledAdvancedConfig(
     val userMergingStrategy: UserMergingStrategy,
     val keysGenerationStrategy: CryptoKeysGenerationStrategy,
-    val jwtAlgorithm: JwtAlgorithm
+    val publicJwtAlgorithm: JwtAlgorithm,
+    val privateJwtAlgorithm: JwtAlgorithm
 ) : AdvancedConfig()
 
 class DisabledAdvancedConfig(
-    val errors: List<BusinessException>
-) : AdvancedConfig()
+    configurationErrors: List<ConfigurationException>
+) : AdvancedConfig(configurationErrors)
 
 fun AdvancedConfig.orThrow(): EnabledAdvancedConfig {
     return when (this) {

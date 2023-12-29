@@ -5,7 +5,7 @@ package tournament.events.auth.business.model.key
  *
  * Depending on the [algorithm], this object will either contain only a private key or a public key and a private key.
  */
-data class CryptoKeys(
+class CryptoKeys(
     /**
      * Identifier of this key.
      */

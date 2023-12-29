@@ -98,7 +98,7 @@ open class TokenManager(
 
         val accessToken = accessTokenGenerator.generateAccessToken(refreshToken)
         val refreshedRefreshToken = if (shouldRefreshToken(refreshToken, accessToken)) {
-            refreshRefreshToken(refreshToken)
+            refreshTokenGenerator.generateRefreshToken(refreshToken)
         } else null
 
         listOfNotNull(accessToken, refreshedRefreshToken)
@@ -113,12 +113,6 @@ open class TokenManager(
             accessToken.expirationDate == null || refreshToken.expirationDate.isBefore(accessToken.expirationDate) -> true
             else -> false
         }
-    }
-
-    internal suspend fun refreshRefreshToken(
-        refreshToken: AuthenticationToken
-    ): EncodedAuthenticationToken {
-        TODO()
     }
 
     /**
