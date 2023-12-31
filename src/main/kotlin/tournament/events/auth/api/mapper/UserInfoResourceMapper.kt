@@ -6,14 +6,20 @@ import org.mapstruct.Mappings
 import tournament.events.auth.api.mapper.config.ApiMapperConfig
 import tournament.events.auth.api.model.openid.UserInfoResource
 import tournament.events.auth.business.model.user.RawUserInfo
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Mapper(
     config = ApiMapperConfig::class
 )
-interface UserInfoResourceMapper {
+abstract class UserInfoResourceMapper {
 
     @Mappings(
         Mapping(target = "sub", source = "subject")
     )
-    fun toResource(info: RawUserInfo): UserInfoResource
+    abstract fun toResource(info: RawUserInfo): UserInfoResource
+
+    fun toUpdatedAt(updatedAt: LocalDateTime?): Long? {
+        return updatedAt?.toInstant(ZoneOffset.UTC)?.epochSecond
+    }
 }

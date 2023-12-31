@@ -22,6 +22,7 @@ class UserInfoController(
 
     @Operation(
         description = "Retrieves the consented OpenID claims about the logged-in subject.",
+        tags = ["openid"],
         externalDocs = ExternalDocumentation(
             url = "https://openid.net/specs/openid-connect-core-1_0.html#UserInfo"
         )

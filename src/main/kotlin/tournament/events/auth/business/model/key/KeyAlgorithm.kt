@@ -2,6 +2,7 @@ package tournament.events.auth.business.model.key
 
 import com.auth0.jwt.interfaces.RSAKeyProvider
 import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.KeyUse.SIGNATURE
 import com.nimbusds.jose.jwk.RSAKey
 import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import tournament.events.auth.business.exception.businessExceptionOf
@@ -99,7 +100,10 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
     }
 
     override fun serializePublicKey(keys: CryptoKeys): JWK {
-        return RSAKey.Builder(toPublicKey(keys)).build()
+        return RSAKey.Builder(toPublicKey(keys))
+            .keyID(keys.name)
+            .keyUse(SIGNATURE)
+            .build()
     }
 }
 

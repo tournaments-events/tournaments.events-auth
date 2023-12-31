@@ -1,5 +1,6 @@
 package tournament.events.auth.config.model
 
+import io.micronaut.http.uri.UriBuilder
 import tournament.events.auth.config.exception.ConfigurationException
 import java.net.URI
 
@@ -21,3 +22,27 @@ fun UrlsConfig.orThrow(): EnabledUrlsConfig {
         is DisabledUrlsConfig -> throw this.invalidConfig
     }
 }
+
+fun UrlsConfig.buildUponRoot(): UriBuilder {
+    return UriBuilder.of(orThrow().root)
+}
+
+val UrlsConfig.authorizeUri: URI
+    get() = buildUponRoot()
+        .path("/api/oauth2/authorize")
+        .build()
+
+val UrlsConfig.tokenUri: URI
+    get() = buildUponRoot()
+        .path("/api/oauth2/token")
+        .build()
+
+val UrlsConfig.userInfoUri: URI
+    get() = buildUponRoot()
+        .path("/api/openid/userinfo")
+        .build()
+
+val UrlsConfig.jwtUri: URI
+    get() = buildUponRoot()
+        .path(".well-known/public.jwks")
+        .build()

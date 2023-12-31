@@ -7,7 +7,7 @@ sealed class AuthConfig(
 ) : Config(configurationErrors)
 
 class EnabledAuthConfig(
-    val issuer: String?,
+    val issuer: String,
     val audience: String?,
     val token: TokenConfig
 ) : AuthConfig()

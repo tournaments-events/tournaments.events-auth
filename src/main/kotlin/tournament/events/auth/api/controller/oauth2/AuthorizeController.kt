@@ -6,12 +6,15 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
+import io.swagger.v3.oas.annotations.ExternalDocumentation
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
+import io.swagger.v3.oas.annotations.media.Schema
 import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
 import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
 import java.net.URI
-
-// http://localhost:8092/api/oauth2/authorize?response_type=code&client_id=core&state=test
 
 @Controller("/api/oauth2/authorize")
 @Secured(IS_ANONYMOUS)
@@ -19,6 +22,62 @@ open class AuthorizeController(
     private val authorizeManager: AuthorizeManager
 ) {
 
+    @Operation(
+        description = """
+The authorization endpoint is used to interact with the resource owner and obtain an authorization grant.
+""",
+        tags = ["oauth2"],
+        parameters = [
+            Parameter(
+                name = "response_type",
+                `in` = QUERY,
+                description = "",
+                schema = Schema(
+                    type = "string",
+                    allowableValues = ["code"]
+                )
+            ),
+            Parameter(
+                name = "client_id",
+                `in` = QUERY,
+                description = "The identifier of the client that initiated the authentication grant.",
+                schema = Schema(
+                    type = "string"
+                )
+            ),
+            Parameter(
+                name = "scope",
+                `in` = QUERY,
+                description = "The scope of the access request.",
+                schema = Schema(
+                    type = "string"
+                )
+            ),
+            Parameter(
+                name = "state",
+                `in` = QUERY,
+                description = """
+An opaque value used by the client to maintain state between the request and callback. 
+The authorization server includes this value when redirecting the user-agent back to the client.
+                """,
+                schema = Schema(
+                    type = "string"
+                )
+            ),
+            Parameter(
+                name = "redirect_uri",
+                `in` = QUERY,
+                description = "The url where the end-user must be redirected at the end of the authorization code grant flow.",
+                schema = Schema(
+                    type = "string"
+                )
+            )
+        ],
+        externalDocs = ExternalDocumentation(
+            description = "Authorize Endpoint specification",
+            url = "https://datatracker.ietf.org/doc/html/rfc6749#section-3.1"
+        )
+    )
     @Get
     suspend fun authorize(
         @QueryValue("response_type")

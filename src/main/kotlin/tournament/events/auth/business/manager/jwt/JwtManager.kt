@@ -7,7 +7,7 @@ import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.DecodedJWT
-import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.JWKSet
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.manager.key.CryptoKeysManager
@@ -30,13 +30,12 @@ class JwtManager(
 
     suspend fun create(
         name: String,
-        block: JWTCreator.Builder.() -> Unit = { this }
+        block: JWTCreator.Builder.() -> Unit
     ): String {
         val algorithm = getAlgorithm(name)
         return JWT.create().apply {
-            authConfig.orThrow().issuer?.let(this::withIssuer)
+            authConfig.orThrow().issuer.let(this::withIssuer)
             block(this)
-            this
         }.sign(algorithm)
     }
 
@@ -89,12 +88,15 @@ class JwtManager(
     }
 
     /**
-     * Return the public key of the [PUBLIC_KEY] key set used to sign access tokens and id tokens.
+     * Return the [PUBLIC_KEY] key set used to sign access tokens and id tokens.
+     *
+     * The key set only includes the public key as the private key must remain known only by the authorization server.
      */
-    suspend fun getPublicKey(): JWK {
+    suspend fun getPublicKeySet(): JWKSet {
         val algorithm = advancedConfig.orThrow().publicJwtAlgorithm
         val keys = keyManager.getKey(PUBLIC_KEY, algorithm.keyAlgorithm)
-        return algorithm.keyAlgorithm.impl.serializePublicKey(keys)
+        val publicKey = algorithm.keyAlgorithm.impl.serializePublicKey(keys)
+        return JWKSet(publicKey)
     }
 
     /**

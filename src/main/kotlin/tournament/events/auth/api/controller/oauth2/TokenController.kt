@@ -6,6 +6,7 @@ import io.micronaut.http.annotation.Part
 import io.micronaut.http.annotation.Post
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.authentication.Authentication
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
 import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.api.model.oauth2.TokenResource
@@ -25,6 +26,9 @@ class TokenController(
     @Inject private val tokenManager: TokenManager
 ) {
 
+    @Operation(
+        tags = ["oauth2"]
+    )
     @Secured("ROLE_CLIENT")
     @Post(consumes = [APPLICATION_FORM_URLENCODED])
     suspend fun getTokens(
