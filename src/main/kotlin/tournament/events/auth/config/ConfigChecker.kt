@@ -9,6 +9,8 @@ import jakarta.inject.Singleton
 import tournament.events.auth.config.exception.ConfigurationException
 import tournament.events.auth.config.model.AdvancedConfig
 import tournament.events.auth.config.model.AuthConfig
+import tournament.events.auth.config.model.PasswordAuthConfig
+import tournament.events.auth.config.model.UrlsConfig
 import tournament.events.auth.exception.LocalizedException
 import tournament.events.auth.util.loggerForClass
 import java.util.*
@@ -17,14 +19,18 @@ import java.util.*
 open class ConfigChecker(
     @Inject private val messageSource: MessageSource,
     @Inject private val advancedConfig: AdvancedConfig,
-    @Inject private val authConfig: AuthConfig
+    @Inject private val authConfig: AuthConfig,
+    @Inject private val passwordAuthConfig: PasswordAuthConfig,
+    @Inject private val urlsConfig: UrlsConfig
 ) : ApplicationEventListener<ServiceReadyEvent> {
 
     private val logger = loggerForClass()
 
     private val configs = listOf(
         advancedConfig,
-        authConfig
+        authConfig,
+        passwordAuthConfig,
+        urlsConfig
     )
 
     @Async

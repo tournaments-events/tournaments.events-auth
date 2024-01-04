@@ -7,7 +7,6 @@ import tournament.events.auth.business.manager.jwt.JwtManager
 import tournament.events.auth.business.mapper.AuthorizeAttemptMapper
 import tournament.events.auth.business.model.oauth2.AuthorizeAttempt
 import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
-import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.SERVER_ERROR
 import tournament.events.auth.data.model.AuthorizeAttemptEntity
 import tournament.events.auth.data.repository.AuthorizeAttemptRepository
 import tournament.events.auth.util.toAbsoluteUri
@@ -57,7 +56,12 @@ class AuthorizeManager(
     }
 
     internal fun checkRedirectUri(redirectUri: String?): URI {
-        return redirectUri.toAbsoluteUri() ?: throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.invalid_redirect_uri")
+        if (redirectUri.isNullOrBlank()) {
+            throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.redirect_uri.missing")
+        }
+        return redirectUri.toAbsoluteUri() ?: throw oauth2ExceptionOf(
+            INVALID_REQUEST, "authorize.redirect_uri.invalid"
+        )
     }
 
     suspend fun encodeState(authorizeAttempt: AuthorizeAttempt): String {
@@ -84,12 +88,12 @@ class AuthorizeManager(
                 INVALID_REQUEST, "authorize.state.invalid_subject", "description.oauth2.invalid_state"
             )
         }
-        // If the attempt is missing in DB, most likely a cron cleaned it up since it was expired.
         val authorizeAttempt = authorizeAttemptRepository.findById(attemptId)
             ?.let(authorizeAttemptMapper::toAuthorizeAttempt)
         if (authorizeAttempt == null || authorizeAttempt.expired) {
+            // If the attempt is missing in DB, most likely a cron cleaned it.
             throw oauth2ExceptionOf(
-                SERVER_ERROR, "authorize.state.expired", "description.oauth2.expired"
+                INVALID_REQUEST, "authorize.state.expired", "description.oauth2.expired"
             )
         }
         return authorizeAttempt

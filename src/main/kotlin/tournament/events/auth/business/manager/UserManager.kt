@@ -23,6 +23,18 @@ class UserManager(
     @Inject private val userMapper: UserMapper
 ) {
 
+    /**
+     * Create a [User] with a [login] and a [password].
+     *
+     * The content of the [login] depends on the
+     */
+    suspend fun createOrAssociateUserWithPassword(
+        login: String,
+        password: String
+    ): CreateOrAssociateResult {
+        TODO()
+    }
+
     suspend fun createOrAssociateUserWithUserInfo(
         provider: EnabledProvider,
         rawUserInfo: RawUserInfo

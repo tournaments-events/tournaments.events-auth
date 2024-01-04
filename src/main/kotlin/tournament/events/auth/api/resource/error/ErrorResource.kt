@@ -1,4 +1,4 @@
-package tournament.events.auth.api.model.error
+package tournament.events.auth.api.resource.error
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.serde.annotation.Serdeable

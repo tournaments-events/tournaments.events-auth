@@ -9,7 +9,8 @@ sealed class UrlsConfig(
 ) : Config(configurationErrors)
 
 class EnabledUrlsConfig(
-    val root: URI
+    val root: URI,
+    val signIn: URI
 ): UrlsConfig()
 
 class DisabledUrlsConfig(

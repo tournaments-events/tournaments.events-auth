@@ -8,14 +8,15 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactive.publish
 import org.reactivestreams.Publisher
-import reactor.core.publisher.Mono
 import tournament.events.auth.business.manager.ClientManager
+import tournament.events.auth.business.model.client.Client
 
 /**
- * Authentication fetcher designed to authenticate the client for the Oauth2 token endpoint.
+ * [AuthenticationFetcher] that authenticates our OAuth2 [Client].
+ * It the authentication succeed, it creates an [Authentication] with the role [SecurityRule.IS_CLIENT].
  *
  * It supports:
- * - Client id & client secret using Basic Auth.
+ * - Client id & client secret transmitted using Basic Auth.
  */
 @Singleton
 class ClientAuthenticationFetcher(
@@ -23,9 +24,6 @@ class ClientAuthenticationFetcher(
 ) : AuthenticationFetcher<HttpRequest<*>> {
 
     override fun fetchAuthentication(request: HttpRequest<*>): Publisher<Authentication> {
-        if (request.uri.path != "/api/oauth2/token") {
-            return Mono.empty()
-        }
         return publish {
             getClientCredentialsFromRequest(request)
                 ?.let { authenticateClient(it) }

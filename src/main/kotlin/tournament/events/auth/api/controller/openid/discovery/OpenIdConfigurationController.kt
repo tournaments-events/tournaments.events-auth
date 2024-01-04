@@ -6,7 +6,7 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
-import tournament.events.auth.api.model.openid.OpenIdConfigurationResource
+import tournament.events.auth.api.resource.openid.OpenIdConfigurationResource
 import tournament.events.auth.business.model.user.StandardClaim
 import tournament.events.auth.business.model.user.StandardScope
 import tournament.events.auth.config.model.*

@@ -3,15 +3,13 @@ package tournament.events.auth.api.errorhandler
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpResponseFactory
-import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.micronaut.http.annotation.Produces
 import io.micronaut.http.server.exceptions.ExceptionHandler
 import jakarta.inject.Singleton
 import tournament.events.auth.api.mapper.ErrorResourceMapper
-import tournament.events.auth.api.model.error.ErrorResource
+import tournament.events.auth.api.resource.error.ErrorResource
 import tournament.events.auth.exception.LocalizedHttpException
-import tournament.events.auth.exception.httpExceptionOf
 import tournament.events.auth.util.loggerForClass
 import java.util.*
 

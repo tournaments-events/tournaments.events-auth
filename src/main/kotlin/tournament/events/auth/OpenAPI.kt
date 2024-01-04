@@ -54,7 +54,10 @@ import tournament.events.auth.util.loggerForClass
             externalDocs = ExternalDocumentation(
                 url = "https://openid.net/specs/openid-connect-discovery-1_0.html"
             )
-        )
+        ),
+        Tag(
+            name = "flow"
+        ),
     ]
 )
 @SecuritySchemes(

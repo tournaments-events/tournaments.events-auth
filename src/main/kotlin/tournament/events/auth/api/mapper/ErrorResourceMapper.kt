@@ -4,7 +4,7 @@ import io.micronaut.context.MessageSource
 import io.micronaut.http.HttpStatus
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import tournament.events.auth.api.model.error.ErrorResource
+import tournament.events.auth.api.resource.error.ErrorResource
 import tournament.events.auth.exception.LocalizedException
 import tournament.events.auth.exception.LocalizedHttpException
 import tournament.events.auth.server.ErrorMessages

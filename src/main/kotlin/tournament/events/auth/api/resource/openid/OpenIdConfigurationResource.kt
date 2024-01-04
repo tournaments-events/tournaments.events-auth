@@ -1,4 +1,4 @@
-package tournament.events.auth.api.model.openid
+package tournament.events.auth.api.resource.openid
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.serde.annotation.Serdeable

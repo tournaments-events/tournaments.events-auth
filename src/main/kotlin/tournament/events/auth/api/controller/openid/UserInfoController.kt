@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.ExternalDocumentation
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
 import tournament.events.auth.api.mapper.UserInfoResourceMapper
-import tournament.events.auth.api.model.openid.UserInfoResource
+import tournament.events.auth.api.resource.openid.UserInfoResource
 import tournament.events.auth.business.manager.user.UserInfoManager
 import tournament.events.auth.server.security.userId
 

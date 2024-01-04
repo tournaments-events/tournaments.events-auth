@@ -6,6 +6,7 @@ import tournament.events.auth.config.properties.UrlsConfigurationProperties.Comp
 @ConfigurationProperties(URLS_KEY)
 interface UrlsConfigurationProperties {
     val root: String?
+    val signIn: String?
 
     companion object {
         const val URLS_KEY = "urls"

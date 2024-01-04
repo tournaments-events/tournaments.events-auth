@@ -1,6 +1,5 @@
 package tournament.events.auth.server.security
 
-import com.auth0.jwt.interfaces.DecodedJWT
 import io.micronaut.http.HttpStatus.UNAUTHORIZED
 import io.micronaut.security.authentication.Authentication
 import io.micronaut.security.token.validator.TokenValidator
@@ -13,15 +12,15 @@ import tournament.events.auth.api.exception.toHttpException
 import tournament.events.auth.business.manager.auth.oauth2.TokenManager
 import tournament.events.auth.business.manager.jwt.JwtManager
 import tournament.events.auth.business.manager.jwt.JwtManager.Companion.PUBLIC_KEY
-import tournament.events.auth.business.model.oauth2.AuthenticationToken
-import tournament.events.auth.business.model.oauth2.AuthenticationTokenType.ACCESS
 import tournament.events.auth.exception.LocalizedException
 import tournament.events.auth.exception.httpExceptionOf
 import tournament.events.auth.exception.toHttpException
 import java.util.*
 
 /**
- * As we are the authorization server, to authorize the user, we need:
+ * [TokenValidator] that validates token we have issued with this authentication server.
+ *
+ * To authorize the user, we need:
  * - to decode the token.
  * - to validate the token signature against our [PUBLIC_KEY] signature key.
  * - to check the token is not expired.
@@ -57,18 +56,5 @@ class AccessTokenValidator<T>(
             authenticationToken
         )
         send(authentication)
-    }
-
-    private suspend fun getAuthenticationToken(decodedToken: DecodedJWT): AuthenticationToken {
-        val id = try {
-            UUID.fromString(decodedToken.id)
-        } catch (e: IllegalArgumentException) {
-            throw httpExceptionOf(UNAUTHORIZED, "access.invalid_token")
-        }
-        val token = tokenManager.findById(id)
-        if (token?.type != ACCESS || decodedToken.subject != token.userId.toString()) {
-            throw httpExceptionOf(UNAUTHORIZED, "access.invalid_token")
-        }
-        return token
     }
 }

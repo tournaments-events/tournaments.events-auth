@@ -9,8 +9,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.api.exception.OAuth2Exception
 import tournament.events.auth.api.mapper.OAuth2ErrorResourceMapper
-import tournament.events.auth.api.model.error.OAuth2ErrorResource
-import java.util.*
+import tournament.events.auth.api.resource.error.OAuth2ErrorResource
 
 @Produces
 @Singleton

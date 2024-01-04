@@ -20,13 +20,39 @@ class UrlsConfigFactory(
     fun provideUrlsConfig(
         properties: UrlsConfigurationProperties
     ): UrlsConfig {
-        return try {
-            EnabledUrlsConfig(
-                root = parser.getAbsoluteUriOrThrow(properties, "$URLS_KEY.root") { it.root }
+        val errors = mutableListOf<ConfigurationException>()
+
+        val root = try {
+            // TODO: Add method to determine root url
+            parser.getAbsoluteUriOrThrow(
+                properties, "$URLS_KEY.root",
+                UrlsConfigurationProperties::root
             )
-        } catch (exception: ConfigurationException) {
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
+        val signIn = try {
+            // FIXME Allow to be relative to root
+            // FIXME Default value
+            parser.getAbsoluteUriOrThrow(
+                properties, "$URLS_KEY.sign-in",
+                UrlsConfigurationProperties::signIn
+            )
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
+        return if (errors.isEmpty()) {
+            EnabledUrlsConfig(
+                root = root!!,
+                signIn = signIn!!
+            )
+        } else {
             DisabledUrlsConfig(
-                configurationErrors = listOf(exception)
+                configurationErrors = errors
             )
         }
     }

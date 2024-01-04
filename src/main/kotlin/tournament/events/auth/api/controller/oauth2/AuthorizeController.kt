@@ -4,6 +4,7 @@ import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
+import io.micronaut.http.uri.UriBuilder
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.swagger.v3.oas.annotations.ExternalDocumentation
@@ -11,15 +12,20 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.inject.Inject
+import tournament.events.auth.api.exception.OAuth2Exception
 import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
+import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
-import java.net.URI
+import tournament.events.auth.config.model.UrlsConfig
+import tournament.events.auth.config.model.orThrow
 
 @Controller("/api/oauth2/authorize")
 @Secured(IS_ANONYMOUS)
 open class AuthorizeController(
-    private val authorizeManager: AuthorizeManager
+    @Inject private val authorizeManager: AuthorizeManager,
+    @Inject private val urlsConfig: UrlsConfig
 ) {
 
     @Operation(
@@ -83,19 +89,23 @@ The authorization server includes this value when redirecting the user-agent bac
         @QueryValue("response_type")
         responseType: String?,
         @QueryValue("client_id")
-        clientId: String?,
+        uncheckedClientId: String?,
         @QueryValue("redirect_uri")
-        redirectUri: String?,
+        uncheckedRedirectUri: String?,
         @QueryValue("scope")
         scope: String?,
         @QueryValue("state")
         state: String?
     ): HttpResponse<String> {
+        // FIXME Check client is registered
+        val clientId = uncheckedClientId ?: throw OAuth2Exception(
+            INVALID_REQUEST, "authorize.client_id.missing"
+        )
         return when (responseType) {
             "code" -> authorizeWithCodeFlow(
-                clientId = clientId!!,
-                clientState = state!!,
-                redirectUri = redirectUri!!
+                clientId = clientId,
+                clientState = state,
+                uncheckedRedirectUri = uncheckedRedirectUri
             )
 
             else -> throw oauth2ExceptionOf(
@@ -107,17 +117,20 @@ The authorization server includes this value when redirecting the user-agent bac
 
     internal suspend fun authorizeWithCodeFlow(
         clientId: String,
-        clientState: String,
-        redirectUri: String
+        clientState: String?,
+        uncheckedRedirectUri: String?
     ): HttpResponse<String> {
+        val builder = urlsConfig.orThrow().signIn.let(UriBuilder::of)
+
         val state = authorizeManager.newAuthorizeAttempt(
             clientId = clientId,
             clientState = clientState,
-            uncheckedRedirectUri = redirectUri,
+            uncheckedRedirectUri = uncheckedRedirectUri,
         )
         val encodedState = authorizeManager.encodeState(state)
-        return HttpResponse.redirect(
-            URI("/login?state=${encodedState}")
-        )
+
+        return builder.queryParam("state", encodedState)
+            .build()
+            .let { HttpResponse.redirect(it) }
     }
 }
