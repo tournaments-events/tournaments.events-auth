@@ -1,4 +1,4 @@
-package tournament.events.auth.server.security
+package tournament.events.auth.security
 
 import io.micronaut.http.HttpRequest
 import io.micronaut.security.authentication.Authentication

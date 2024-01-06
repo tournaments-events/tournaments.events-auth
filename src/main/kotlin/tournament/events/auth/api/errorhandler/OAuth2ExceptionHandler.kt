@@ -3,7 +3,6 @@ package tournament.events.auth.api.errorhandler
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpResponseFactory
-import io.micronaut.http.annotation.Produces
 import io.micronaut.http.server.exceptions.ExceptionHandler
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -11,7 +10,6 @@ import tournament.events.auth.api.exception.OAuth2Exception
 import tournament.events.auth.api.mapper.OAuth2ErrorResourceMapper
 import tournament.events.auth.api.resource.error.OAuth2ErrorResource
 
-@Produces
 @Singleton
 class OAuth2ExceptionHandler(
     @Inject private val resourceMapper: OAuth2ErrorResourceMapper

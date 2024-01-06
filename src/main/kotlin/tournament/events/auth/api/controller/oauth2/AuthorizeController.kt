@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.inject.Inject
+import tournament.events.auth.api.controller.oauth2.AuthorizeController.Companion.OAUTH2_AUTHORIZE_ENDPOINT
 import tournament.events.auth.api.exception.OAuth2Exception
 import tournament.events.auth.api.exception.oauth2ExceptionOf
 import tournament.events.auth.business.manager.auth.oauth2.AuthorizeManager
@@ -21,7 +22,7 @@ import tournament.events.auth.business.model.oauth2.OAuth2ErrorCode.UNSUPPORTED_
 import tournament.events.auth.config.model.UrlsConfig
 import tournament.events.auth.config.model.orThrow
 
-@Controller("/api/oauth2/authorize")
+@Controller(OAUTH2_AUTHORIZE_ENDPOINT)
 @Secured(IS_ANONYMOUS)
 open class AuthorizeController(
     @Inject private val authorizeManager: AuthorizeManager,
@@ -120,7 +121,7 @@ The authorization server includes this value when redirecting the user-agent bac
         clientState: String?,
         uncheckedRedirectUri: String?
     ): HttpResponse<String> {
-        val builder = urlsConfig.orThrow().signIn.let(UriBuilder::of)
+        val builder = urlsConfig.orThrow().flow.signIn.let(UriBuilder::of)
 
         val state = authorizeManager.newAuthorizeAttempt(
             clientId = clientId,
@@ -132,5 +133,9 @@ The authorization server includes this value when redirecting the user-agent bac
         return builder.queryParam("state", encodedState)
             .build()
             .let { HttpResponse.redirect(it) }
+    }
+
+    companion object {
+        const val OAUTH2_AUTHORIZE_ENDPOINT = "/api/oauth2/authorize"
     }
 }

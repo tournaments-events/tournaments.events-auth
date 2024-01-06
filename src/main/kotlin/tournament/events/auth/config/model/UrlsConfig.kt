@@ -10,8 +10,8 @@ sealed class UrlsConfig(
 
 class EnabledUrlsConfig(
     val root: URI,
-    val signIn: URI
-): UrlsConfig()
+    val flow: FlowUrlConfig
+) : UrlsConfig()
 
 class DisabledUrlsConfig(
     configurationErrors: List<ConfigurationException>
@@ -24,26 +24,49 @@ fun UrlsConfig.orThrow(): EnabledUrlsConfig {
     }
 }
 
+class FlowUrlConfig(
+    val signIn: URI,
+    val error: URI
+)
+
 fun UrlsConfig.buildUponRoot(): UriBuilder {
     return UriBuilder.of(orThrow().root)
 }
 
+/**
+ * Return an [UriBuilder] configured with:
+ * - the root URI
+ * - appended with the provided [path]
+ *
+ * Path variables will be replaced by their values if they are provided in the [pathParams] pairs.
+ */
+fun EnabledUrlsConfig.getUri(path: String, vararg pathParams: Pair<String, String>): URI {
+    val replacedPath = pathParams.fold(path) { acc, (pathParam, value) ->
+        acc.replace("{${pathParam}}", value)
+    }
+    return buildUponRoot()
+        .path(replacedPath)
+        .build()
+}
+
+/*
 val UrlsConfig.authorizeUri: URI
     get() = buildUponRoot()
-        .path("/api/oauth2/authorize")
+        .path(OAUTH2_AUTHORIZE_ENDPOINT)
         .build()
 
 val UrlsConfig.tokenUri: URI
     get() = buildUponRoot()
-        .path("/api/oauth2/token")
+        .path(OAUTH2_TOKEN_ENDPOINT)
         .build()
 
 val UrlsConfig.userInfoUri: URI
     get() = buildUponRoot()
-        .path("/api/openid/userinfo")
+        .path(OPENID_USERINFO_ENDPOINT)
         .build()
 
 val UrlsConfig.jwtUri: URI
     get() = buildUponRoot()
-        .path(".well-known/public.jwks")
+        .path(OPENID_JWKS_ENDPOINT)
         .build()
+*/

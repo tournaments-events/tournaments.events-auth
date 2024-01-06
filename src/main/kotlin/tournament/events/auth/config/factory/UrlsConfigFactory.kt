@@ -7,9 +7,12 @@ import tournament.events.auth.config.ConfigParser
 import tournament.events.auth.config.exception.ConfigurationException
 import tournament.events.auth.config.model.DisabledUrlsConfig
 import tournament.events.auth.config.model.EnabledUrlsConfig
+import tournament.events.auth.config.model.FlowUrlConfig
 import tournament.events.auth.config.model.UrlsConfig
 import tournament.events.auth.config.properties.UrlsConfigurationProperties
 import tournament.events.auth.config.properties.UrlsConfigurationProperties.Companion.URLS_KEY
+import tournament.events.auth.config.properties.UrlsFlowConfigurationProperties
+import tournament.events.auth.config.properties.UrlsFlowConfigurationProperties.Companion.FLOW_KEY
 
 @Factory
 class UrlsConfigFactory(
@@ -18,7 +21,8 @@ class UrlsConfigFactory(
 
     @Singleton
     fun provideUrlsConfig(
-        properties: UrlsConfigurationProperties
+        properties: UrlsConfigurationProperties,
+        flowProperties: UrlsFlowConfigurationProperties
     ): UrlsConfig {
         val errors = mutableListOf<ConfigurationException>()
 
@@ -37,8 +41,20 @@ class UrlsConfigFactory(
             // FIXME Allow to be relative to root
             // FIXME Default value
             parser.getAbsoluteUriOrThrow(
-                properties, "$URLS_KEY.sign-in",
-                UrlsConfigurationProperties::signIn
+                flowProperties, "$FLOW_KEY.sign-in",
+                UrlsFlowConfigurationProperties::signIn
+            )
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
+        val error = try {
+            // FIXME Allow to be relative to root
+            // FIXME Default value
+            parser.getAbsoluteUriOrThrow(
+                flowProperties, "$FLOW_KEY.error",
+                UrlsFlowConfigurationProperties::error
             )
         } catch (e: ConfigurationException) {
             errors.add(e)
@@ -48,7 +64,10 @@ class UrlsConfigFactory(
         return if (errors.isEmpty()) {
             EnabledUrlsConfig(
                 root = root!!,
-                signIn = signIn!!
+                flow = FlowUrlConfig(
+                    signIn = signIn!!,
+                    error = error!!
+                )
             )
         } else {
             DisabledUrlsConfig(

@@ -1,4 +1,4 @@
-package tournament.events.auth.server.security
+package tournament.events.auth.security
 
 object SecurityRule {
 

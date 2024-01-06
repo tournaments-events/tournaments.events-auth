@@ -6,19 +6,19 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
+import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_AUTHORIZE_ENDPOINT
 import tournament.events.auth.api.resource.flow.ConfigurationResource
 import tournament.events.auth.api.resource.flow.FeaturesResource
 import tournament.events.auth.api.resource.flow.ProviderConfigurationResource
 import tournament.events.auth.business.manager.provider.ProviderConfigManager
 import tournament.events.auth.business.model.provider.EnabledProvider
-import tournament.events.auth.config.model.EnabledPasswordAuthConfig
-import tournament.events.auth.config.model.PasswordAuthConfig
-import tournament.events.auth.config.model.orThrow
+import tournament.events.auth.config.model.*
 
 @Secured(IS_ANONYMOUS)
 @Controller("/api/flow/1.0/configuration")
 class ConfigurationController(
     @Inject private val providerManager: ProviderConfigManager,
+    @Inject private val uncheckedUrlsConfig: UrlsConfig,
     @Inject private val uncheckedPasswordAuthConfig: PasswordAuthConfig,
 ) {
 
@@ -34,12 +34,14 @@ The configuration contains:
     )
     @Get
     suspend fun getConfiguration(): ConfigurationResource {
+        val urlsConfig = uncheckedUrlsConfig.orThrow()
         val passwordAuthConfig = uncheckedPasswordAuthConfig.orThrow()
 
         val features = getFeatures(
             passwordAuthConfig = passwordAuthConfig
         )
-        val providers = providerManager.listEnabledProviders().map(this::getProvider)
+        val providers = providerManager.listEnabledProviders()
+            .map { getProvider(it, urlsConfig) }
 
         return ConfigurationResource(
             features = features,
@@ -48,11 +50,18 @@ The configuration contains:
         )
     }
 
-    private fun getProvider(provider: EnabledProvider): ProviderConfigurationResource {
+    private fun getProvider(
+        provider: EnabledProvider,
+        urlsConfig: EnabledUrlsConfig
+    ): ProviderConfigurationResource {
+        val authorizeUrl = urlsConfig.getUri(
+            FLOW_AUTHORIZE_ENDPOINT,
+            "providerId" to provider.id
+        )
         return ProviderConfigurationResource(
             id = provider.id,
             name = provider.name,
-            authorizeUrl = TODO()
+            authorizeUrl = authorizeUrl.toString()
         )
     }
 

@@ -1,11 +1,10 @@
-package tournament.events.auth.server.security
+package tournament.events.auth.security
 
 import io.micronaut.http.HttpStatus.FORBIDDEN
 import io.micronaut.security.authentication.Authentication
-import tournament.events.auth.business.exception.businessExceptionOf
 import tournament.events.auth.business.model.oauth2.AuthenticationToken
 import tournament.events.auth.exception.httpExceptionOf
-import java.util.UUID
+import java.util.*
 
 /**
  * Represent the state of authentication of a user.
@@ -31,7 +30,7 @@ class UserAuthentication(
 val Authentication.userAuthentication: UserAuthentication
     get() = when(this) {
         is UserAuthentication -> this
-        else -> throw httpExceptionOf(FORBIDDEN, "forbidden")
+        else -> throw httpExceptionOf(FORBIDDEN, "authentication.wrong")
     }
 
 val Authentication.scopeTokens: List<String>

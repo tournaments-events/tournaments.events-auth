@@ -1,4 +1,4 @@
-package tournament.events.auth.server.security
+package tournament.events.auth.security
 
 import io.micronaut.security.authentication.Authentication
 import tournament.events.auth.api.exception.oauth2ExceptionOf
@@ -22,7 +22,7 @@ class ClientAuthentication(
 val Authentication.clientAuthentication: ClientAuthentication
     get() = when (this) {
         is ClientAuthentication -> this
-        else -> throw oauth2ExceptionOf(ACCESS_DENIED, "forbidden")
+        else -> throw oauth2ExceptionOf(ACCESS_DENIED, "authentication.wrong")
     }
 
 val Authentication.client: Client

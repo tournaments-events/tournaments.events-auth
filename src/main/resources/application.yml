@@ -9,6 +9,8 @@ micronaut:
   security:
     enabled: true
     authentication: idtoken
+    redirect:
+      enabled: false
     intercept-url-map:
       - pattern: /public/**
         http-method: GET

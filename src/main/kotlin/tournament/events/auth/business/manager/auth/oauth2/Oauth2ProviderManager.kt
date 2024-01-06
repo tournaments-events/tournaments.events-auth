@@ -6,18 +6,18 @@ import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.business.exception.businessExceptionOf
-import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
 import tournament.events.auth.business.manager.UserManager
 import tournament.events.auth.business.manager.auth.AuthManager
+import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
 import tournament.events.auth.business.model.oauth2.AuthorizeAttempt
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.business.model.provider.Provider
-import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
-import tournament.events.auth.business.model.redirect.ProviderOauth2AuthorizationRedirect
-import tournament.events.auth.business.model.provider.oauth2.ProviderOauth2Tokens
-import tournament.events.auth.business.model.provider.oauth2.ProviderOAuth2TokenRequest
 import tournament.events.auth.business.model.provider.ProviderCredentials
+import tournament.events.auth.business.model.provider.config.ProviderOauth2Config
+import tournament.events.auth.business.model.provider.oauth2.ProviderOAuth2TokenRequest
+import tournament.events.auth.business.model.provider.oauth2.ProviderOauth2Tokens
 import tournament.events.auth.business.model.redirect.AuthorizeRedirect
+import tournament.events.auth.business.model.redirect.ProviderOauth2AuthorizationRedirect
 import tournament.events.auth.client.oauth2.TokenEndpointClient
 import java.net.URI
 
@@ -63,7 +63,7 @@ class Oauth2ProviderManager(
             redirectUri = getRedirectUri(provider),
             state = stateManager.encodeState(authorizeAttempt)
         ).build()
-        return HttpResponse.redirect<Any>(redirectUri)
+        return HttpResponse.temporaryRedirect<Any>(redirectUri)
     }
 
     suspend fun handleCallback(

@@ -1,4 +1,4 @@
-package tournament.events.auth.server.security
+package tournament.events.auth.security
 
 import io.micronaut.http.HttpStatus.UNAUTHORIZED
 import io.micronaut.security.authentication.Authentication
