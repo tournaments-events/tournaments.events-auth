@@ -5,37 +5,37 @@ import io.micronaut.data.annotation.MappedEntity
 import io.micronaut.serde.annotation.Serdeable
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 @Serdeable
 @MappedEntity("collected_user_info")
 class CollectedUserInfoEntity(
     @get:Id val userId: UUID,
-    val collectedBits: ByteArray,
+    var collectedBits: ByteArray,
 
-    val name: String? = null,
-    val givenName: String? = null,
-    val familyName: String? = null,
-    val middleName: String? = null,
-    val nickname: String? = null,
+    var name: String? = null,
+    var givenName: String? = null,
+    var familyName: String? = null,
+    var middleName: String? = null,
+    var nickname: String? = null,
 
-    val preferredUsername: String? = null,
-    val profile: String? = null,
-    val picture: String? = null,
-    val website: String? = null,
+    var preferredUsername: String? = null,
+    var profile: String? = null,
+    var picture: String? = null,
+    var website: String? = null,
 
-    val email: String? = null,
-    val emailVerified: Boolean? = null,
+    var email: String? = null,
+    var emailVerified: Boolean? = null,
 
-    val gender: String? = null,
-    val birthDate: LocalDate? = null,
+    var gender: String? = null,
+    var birthDate: LocalDate? = null,
 
-    val zoneInfo: String? = null,
-    val locale: String? = null,
+    var zoneInfo: String? = null,
+    var locale: String? = null,
 
-    val phoneNumber: String? = null,
-    val phoneNumberVerified: Boolean? = null,
+    var phoneNumber: String? = null,
+    var phoneNumberVerified: Boolean? = null,
 
     val creationDate: LocalDateTime,
-    val updateDate: LocalDate,
+    var updateDate: LocalDateTime,
 )

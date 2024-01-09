@@ -19,7 +19,6 @@ data class ProviderOauth2AuthorizationRedirect(
         val builder = UriBuilder.of(oauth2.authorizationUri)
         responseType.let { builder.queryParam("response_type", it) }
         oauth2.clientId.let { builder.queryParam("client_id", it) }
-        oauth2.clientSecret.let { builder.queryParam("client_secret", it) }
         oauth2.scopes?.joinToString(", ")?.let { builder.queryParam("scope", it) }
         state?.let { builder.queryParam("state", it) }
         redirectUri?.toString()?.let { builder.queryParam("redirect_uri", it) }

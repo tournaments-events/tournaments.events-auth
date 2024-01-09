@@ -10,14 +10,10 @@ import java.util.*
 @R2dbcRepository(dialect = POSTGRES)
 interface UserRepository : CoroutineCrudRepository<UserEntity, UUID> {
 
-    suspend fun findByEmail(email: String): UserEntity?
-
-    @Query(
-        """
+    @Query("""
         SELECT u.* FROM users AS u
-        JOIN provider_user_info AS pui ON u.id = pui.user_id
-        WHERE pui.provider_id = :providerId AND pui.subject = :subject
-    """
-    )
-    suspend fun findBySubject(providerId: String, subject: String): UserEntity
+        JOIN collected_user_info AS cui ON u.id = cui.user_id 
+        WHERE cui.email = :email
+    """)
+    suspend fun findByEmail(email: String): UserEntity?
 }

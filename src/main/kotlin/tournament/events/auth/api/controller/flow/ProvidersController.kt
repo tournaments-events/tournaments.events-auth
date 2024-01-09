@@ -94,6 +94,6 @@ Following query parameters will be populated with information about the error:
     }
 
     companion object {
-        const val FLOW_AUTHORIZE_ENDPOINT = "/api/flow/1.0/providers/{providerId}"
+        const val FLOW_AUTHORIZE_ENDPOINT = "/api/v1/flow/providers/{providerId}"
     }
 }

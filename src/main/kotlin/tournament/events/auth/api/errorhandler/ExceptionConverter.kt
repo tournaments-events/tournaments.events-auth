@@ -3,6 +3,8 @@ package tournament.events.auth.api.errorhandler
 import io.micronaut.http.HttpStatus.*
 import io.micronaut.security.authentication.AuthorizationException
 import jakarta.inject.Singleton
+import tournament.events.auth.api.exception.OAuth2Exception
+import tournament.events.auth.api.exception.toHttpException
 import tournament.events.auth.exception.LocalizedException
 import tournament.events.auth.exception.LocalizedHttpException
 import tournament.events.auth.exception.httpExceptionOf
@@ -23,6 +25,7 @@ class ExceptionConverter {
             is AuthorizationException -> toException(throwable)
             is LocalizedHttpException -> throwable
             is LocalizedException -> throwable.toHttpException(INTERNAL_SERVER_ERROR)
+            is OAuth2Exception -> throwable.toHttpException()
             else -> httpExceptionOf(
                 status = INTERNAL_SERVER_ERROR,
                 detailsId = "internal_server_error",

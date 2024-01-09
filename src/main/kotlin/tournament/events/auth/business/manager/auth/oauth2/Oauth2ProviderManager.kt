@@ -90,7 +90,7 @@ class Oauth2ProviderManager(
         )
 
         val userId = if (existingUserInfo == null) {
-            userManager.createOrAssociateUserWithUserInfo(provider, rawUserInfo)
+            userManager.createOrAssociateUserWithProviderUserInfo(provider, rawUserInfo)
                 .user.id
         } else {
             providerUserInfoManager.refreshUserInfo(existingUserInfo, rawUserInfo)

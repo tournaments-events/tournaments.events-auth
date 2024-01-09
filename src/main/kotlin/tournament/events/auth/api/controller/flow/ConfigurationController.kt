@@ -15,7 +15,7 @@ import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.config.model.*
 
 @Secured(IS_ANONYMOUS)
-@Controller("/api/flow/1.0/configuration")
+@Controller("/api/v1/flow/configuration")
 class ConfigurationController(
     @Inject private val providerManager: ProviderConfigManager,
     @Inject private val uncheckedUrlsConfig: UrlsConfig,

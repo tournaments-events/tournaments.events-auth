@@ -20,7 +20,9 @@ class OAuth2Exception(
     }
 }
 
-fun OAuth2Exception.toHttpException(httpStatus: HttpStatus) = LocalizedHttpException(
+fun OAuth2Exception.toHttpException(
+    httpStatus: HttpStatus = status
+) = LocalizedHttpException(
     status = httpStatus,
     detailsId = detailsId,
     descriptionId = descriptionId,

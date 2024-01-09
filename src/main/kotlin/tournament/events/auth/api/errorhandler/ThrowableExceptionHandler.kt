@@ -3,13 +3,12 @@ package tournament.events.auth.api.errorhandler
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.server.exceptions.ExceptionHandler
-import jakarta.inject.Inject
 import tournament.events.auth.api.resource.error.ErrorResource
 import tournament.events.auth.util.loggerForClass
 
 class ThrowableExceptionHandler<T: Throwable>(
-    @Inject private val exceptionConverter: ExceptionConverter,
-    @Inject private val exceptionHandler: LocalizedHttpExceptionHandler
+    private val exceptionConverter: ExceptionConverter,
+    private val exceptionHandler: LocalizedHttpExceptionHandler
 ) : ExceptionHandler<T, HttpResponse<ErrorResource>> {
 
     val logger = loggerForClass()

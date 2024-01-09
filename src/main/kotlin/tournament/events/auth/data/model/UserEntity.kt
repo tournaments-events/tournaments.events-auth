@@ -10,13 +10,14 @@ import java.util.*
 @Serdeable
 @MappedEntity("users")
 data class UserEntity(
-    val email: String? = null,
+    val status: String,
 
     /**
      * Password is only saved for user having created their account without using a third-party provider.
      * The password is stored hashed for security measure.
      */
     val password: String? = null,
+    val passwordStatus: String? = null,
 
     val creationDate: LocalDateTime
 ) {

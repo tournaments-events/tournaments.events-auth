@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
 import tournament.events.auth.api.controller.oauth2.AuthorizeController.Companion.OAUTH2_AUTHORIZE_ENDPOINT
 import tournament.events.auth.api.controller.oauth2.TokenController.Companion.OAUTH2_TOKEN_ENDPOINT
-import tournament.events.auth.api.controller.openid.UserInfoController.Companion.OPENID_USERINFO_ENDPOINT
+import tournament.events.auth.api.controller.openid.OpenIdUserInfoController.Companion.OPENID_USERINFO_ENDPOINT
 import tournament.events.auth.api.controller.openid.discovery.PublicKeySetController.Companion.OPENID_JWKS_ENDPOINT
 import tournament.events.auth.api.resource.openid.OpenIdConfigurationResource
 import tournament.events.auth.business.model.user.StandardClaim

@@ -7,5 +7,6 @@ import io.micronaut.serde.annotation.Serdeable
 data class OAuth2ErrorResource(
     @JsonProperty("error_code")
     val errorCode: String,
+    val details: String? = null,
     val description: String? = null,
 )

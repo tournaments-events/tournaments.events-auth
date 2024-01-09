@@ -9,7 +9,7 @@ import tournament.events.auth.security.SecurityRule.HAS_VALID_STATE
 class StateAuthentication(
     val authorizeAttempt: AuthorizeAttempt
 ) : Authentication {
-    override fun getName(): String = client.id
+    override fun getName(): String = authorizeAttempt.id.toString()
 
     override fun getRoles(): Collection<String> {
         return listOf(HAS_VALID_STATE)

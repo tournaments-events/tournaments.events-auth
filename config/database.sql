@@ -5,11 +5,13 @@
 
 CREATE TABLE users
 (
-    id            uuid      NOT NULL DEFAULT gen_random_uuid(),
-    email         text,
-    password      text,
+    id              uuid      NOT NULL DEFAULT gen_random_uuid(),
+    status          text      NOT NULL,
 
-    creation_date timestamp NOT NULL,
+    password        text,
+    password_status text,
+
+    creation_date   timestamp NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -44,6 +46,10 @@ CREATE TABLE collected_user_info
     phone_number_verified boolean,
     PRIMARY KEY (user_id)
 );
+
+CREATE INDEX collected_user_info__preferred_username ON collected_user_info (preferred_username) WHERE preferred_username IS NOT NULL;
+CREATE INDEX collected_user_info__email ON collected_user_info (email) WHERE email IS NOT NULL;
+CREATE INDEX collected_user_info__phone_number ON collected_user_info (phone_number) WHERE phone_number IS NOT NULL;
 
 -- Provider-related tables
 
