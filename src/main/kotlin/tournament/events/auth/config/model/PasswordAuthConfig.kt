@@ -1,6 +1,6 @@
 package tournament.events.auth.config.model
 
-import tournament.events.auth.business.model.user.StandardClaim
+import tournament.events.auth.business.model.user.claim.OpenIdClaim
 import tournament.events.auth.config.exception.ConfigurationException
 
 sealed class PasswordAuthConfig(
@@ -10,9 +10,9 @@ sealed class PasswordAuthConfig(
 class EnabledPasswordAuthConfig(
     val enabled: Boolean,
     /**
-     * List of [StandardClaim] that the user can use as a login to sign-in.
+     * List of [OpenIdClaim] that the user can use as a login to sign-in.
      */
-    val loginClaims: List<StandardClaim>
+    val loginClaims: List<OpenIdClaim>
 ) : PasswordAuthConfig()
 
 class DisabledPasswordAuthConfig(

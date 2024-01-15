@@ -4,7 +4,7 @@ import org.mapstruct.InheritInverseConfiguration
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
-import tournament.events.auth.business.mapper.config.BusinessMapperConfig
+import tournament.events.auth.business.mapper.config.ToBusinessMapperConfig
 import tournament.events.auth.business.model.provider.ProviderUserInfo
 import tournament.events.auth.business.model.user.RawUserInfo
 import tournament.events.auth.data.model.ProviderUserInfoEntity
@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Mapper(
-    config = BusinessMapperConfig::class
+    config = ToBusinessMapperConfig::class
 )
 interface ProviderUserInfoMapper {
 

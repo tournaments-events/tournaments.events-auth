@@ -3,24 +3,25 @@ package tournament.events.auth.api.resource.openid
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.serde.annotation.Serdeable
 import io.swagger.v3.oas.annotations.media.Schema
-import tournament.events.auth.business.model.user.StandardClaimId.BIRTH_DATE
-import tournament.events.auth.business.model.user.StandardClaimId.EMAIL
-import tournament.events.auth.business.model.user.StandardClaimId.EMAIL_VERIFIED
-import tournament.events.auth.business.model.user.StandardClaimId.FAMILY_NAME
-import tournament.events.auth.business.model.user.StandardClaimId.GENDER
-import tournament.events.auth.business.model.user.StandardClaimId.GIVEN_NAME
-import tournament.events.auth.business.model.user.StandardClaimId.LOCALE
-import tournament.events.auth.business.model.user.StandardClaimId.MIDDLE_NAME
-import tournament.events.auth.business.model.user.StandardClaimId.NICKNAME
-import tournament.events.auth.business.model.user.StandardClaimId.PHONE_NUMBER
-import tournament.events.auth.business.model.user.StandardClaimId.PHONE_NUMBER_VERIFIED
-import tournament.events.auth.business.model.user.StandardClaimId.PICTURE
-import tournament.events.auth.business.model.user.StandardClaimId.PREFERRED_USERNAME
-import tournament.events.auth.business.model.user.StandardClaimId.PROFILE
-import tournament.events.auth.business.model.user.StandardClaimId.SUB
-import tournament.events.auth.business.model.user.StandardClaimId.UPDATED_AT
-import tournament.events.auth.business.model.user.StandardClaimId.WEBSITE
-import tournament.events.auth.business.model.user.StandardClaimId.ZONE_INFO
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.BIRTH_DATE
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.EMAIL
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.EMAIL_VERIFIED
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.FAMILY_NAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.GENDER
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.GIVEN_NAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.LOCALE
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.MIDDLE_NAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.NAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.NICKNAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.PHONE_NUMBER
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.PHONE_NUMBER_VERIFIED
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.PICTURE
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.PREFERRED_USERNAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.PROFILE
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.SUB
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.UPDATED_AT
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.WEBSITE
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.ZONE_INFO
 import java.time.LocalDate
 
 @Serdeable
@@ -33,6 +34,7 @@ data class UserInfoResource(
     @get:Schema(
         description = "End-user's full name."
     )
+    @JsonProperty(NAME)
     val name: String?,
     @get:Schema(
         description = "Given name(s) or first name(s) of the end-user."

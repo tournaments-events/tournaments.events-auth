@@ -13,9 +13,9 @@ This value will be matched against the claims collected by this authentication a
 and configured as login claim (see ```password-auth.login-claims``` configuration).
         """
     )
-    val login: String,
+    val login: String?,
     @get:Schema(
         description = "Password of the end-user."
     )
-    val password: String
+    val password: String?
 )

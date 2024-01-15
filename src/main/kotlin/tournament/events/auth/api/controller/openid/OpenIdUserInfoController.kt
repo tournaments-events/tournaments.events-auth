@@ -12,6 +12,7 @@ import tournament.events.auth.api.controller.openid.OpenIdUserInfoController.Com
 import tournament.events.auth.api.mapper.UserInfoResourceMapper
 import tournament.events.auth.api.resource.openid.UserInfoResource
 import tournament.events.auth.business.manager.user.UserInfoManager
+import tournament.events.auth.business.security.AdminContext
 import tournament.events.auth.security.userId
 
 @Controller(OPENID_USERINFO_ENDPOINT)
@@ -33,6 +34,7 @@ class OpenIdUserInfoController(
         authentication: Authentication
     ): UserInfoResource {
         val userInfo = userInfoManager.aggregateUserInfo(
+            context = AdminContext, // FIXME Generate context from authentication
             userId = authentication.userId
         )
         return userInfoMapper.toResource(userInfo)

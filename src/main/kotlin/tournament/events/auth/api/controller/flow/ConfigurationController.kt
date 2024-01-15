@@ -6,7 +6,8 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
-import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_AUTHORIZE_ENDPOINT
+import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_AUTHORIZE_ENDPOINT
+import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
 import tournament.events.auth.api.resource.flow.ConfigurationResource
 import tournament.events.auth.api.resource.flow.FeaturesResource
 import tournament.events.auth.api.resource.flow.ProviderConfigurationResource
@@ -55,7 +56,7 @@ The configuration contains:
         urlsConfig: EnabledUrlsConfig
     ): ProviderConfigurationResource {
         val authorizeUrl = urlsConfig.getUri(
-            FLOW_AUTHORIZE_ENDPOINT,
+            FLOW_PROVIDER_ENDPOINTS + FLOW_PROVIDER_AUTHORIZE_ENDPOINT,
             "providerId" to provider.id
         )
         return ProviderConfigurationResource(

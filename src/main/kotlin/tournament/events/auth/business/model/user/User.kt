@@ -7,8 +7,8 @@ data class User(
     val id: UUID,
     val status: UserStatus,
 
-    val password: String,
-    val passwordStatus: UserPasswordStatus,
+    val password: String?,
+    val passwordStatus: UserPasswordStatus?,
 
     val creationDate: LocalDateTime
 )

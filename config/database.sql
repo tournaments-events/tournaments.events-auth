@@ -17,39 +17,16 @@ CREATE TABLE users
 
 CREATE TABLE collected_user_info
 (
-    user_id               uuid      NOT NULL,
-    creation_date         timestamp NOT NULL,
-    update_date           timestamp NOT NULL,
-    collected_bits        bytea     NOT NULL,
-
-    name                  text,
-    given_name            text,
-    family_name           text,
-    middle_name           text,
-    nickname              text,
-
-    preferred_username    text,
-    profile               text,
-    picture               text,
-    website               text,
-
-    email                 text,
-    email_verified        boolean,
-
-    gender                text,
-    birth_date            date,
-
-    zone_info             text,
-    locale                text,
-
-    phone_number          text,
-    phone_number_verified boolean,
+    user_id         uuid      NOT NULL,
+    collection_date timestamp NOT NULL,
+    claim           text      NOT NULL,
+    value           text,
+    verified        boolean,
     PRIMARY KEY (user_id)
 );
 
-CREATE INDEX collected_user_info__preferred_username ON collected_user_info (preferred_username) WHERE preferred_username IS NOT NULL;
-CREATE INDEX collected_user_info__email ON collected_user_info (email) WHERE email IS NOT NULL;
-CREATE INDEX collected_user_info__phone_number ON collected_user_info (phone_number) WHERE phone_number IS NOT NULL;
+CREATE INDEX collected_user_info__login_claims ON collected_user_info (claim, value)
+    WHERE claim = 'preferred_username' OR claim = 'email' OR claim = 'phone_number';
 
 -- Provider-related tables
 

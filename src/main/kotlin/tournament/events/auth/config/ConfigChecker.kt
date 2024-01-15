@@ -7,10 +7,7 @@ import io.micronaut.scheduling.annotation.Async
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.config.exception.ConfigurationException
-import tournament.events.auth.config.model.AdvancedConfig
-import tournament.events.auth.config.model.AuthConfig
-import tournament.events.auth.config.model.PasswordAuthConfig
-import tournament.events.auth.config.model.UrlsConfig
+import tournament.events.auth.config.model.*
 import tournament.events.auth.exception.LocalizedException
 import tournament.events.auth.util.loggerForClass
 import java.util.*
@@ -20,6 +17,7 @@ open class ConfigChecker(
     @Inject private val messageSource: MessageSource,
     @Inject private val advancedConfig: AdvancedConfig,
     @Inject private val authConfig: AuthConfig,
+    @Inject private val claimsConfig: ClaimsConfig,
     @Inject private val passwordAuthConfig: PasswordAuthConfig,
     @Inject private val urlsConfig: UrlsConfig
 ) : ApplicationEventListener<ServiceReadyEvent> {
@@ -29,6 +27,7 @@ open class ConfigChecker(
     private val configs = listOf(
         advancedConfig,
         authConfig,
+        claimsConfig,
         passwordAuthConfig,
         urlsConfig
     )

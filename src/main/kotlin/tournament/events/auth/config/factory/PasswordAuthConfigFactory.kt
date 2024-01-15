@@ -3,7 +3,7 @@ package tournament.events.auth.config.factory
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import tournament.events.auth.business.model.user.StandardClaim
+import tournament.events.auth.business.model.user.claim.OpenIdClaim
 import tournament.events.auth.config.ConfigParser
 import tournament.events.auth.config.exception.ConfigurationException
 import tournament.events.auth.config.model.DisabledPasswordAuthConfig
@@ -36,7 +36,7 @@ class PasswordAuthConfigFactory(
         val loginClaims = try {
             properties.loginClaims?.map {
                 parser.convertToEnum("$PASSWORD_AUTH_KEY.login-claims", it)
-            } ?: listOf(StandardClaim.EMAIL)
+            } ?: listOf(OpenIdClaim.EMAIL)
         } catch (e: ConfigurationException) {
             errors.add(e)
             null

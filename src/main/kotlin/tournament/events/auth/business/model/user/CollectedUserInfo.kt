@@ -1,21 +1,24 @@
 package tournament.events.auth.business.model.user
 
-import java.util.UUID
+import tournament.events.auth.business.model.user.claim.Claim
+import java.time.LocalDateTime
+import java.util.*
 
 /**
  * Information that we collected from the user as a first party.
  */
-class CollectedUserInfo(
+data class CollectedUserInfo(
     val userId: UUID,
+    val claim: Claim,
     /**
-     * List of info that we tried to collect.
-     *
-     * We keep a list separated from the information to remember which information we tried to collect
-     * but the user denied to answer.
+     * The value of the claim.
+     * It may be null if the end-user has deliberately deleted the user info.
      */
-    val collectedInfo: List<StandardClaim>,
+    val value: Any?,
     /**
-     * Information that have been collected.
+     * Whether the value of this claim has been verified by this authorization server or by the client.
+     * null if the verification is not relevant for the claim.
      */
-    val info: RawUserInfo,
+    val verified: Boolean?,
+    val collectionDate: LocalDateTime
 )

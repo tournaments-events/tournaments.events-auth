@@ -1,10 +1,15 @@
 package tournament.events.auth.business.manager.user
 
 import tournament.events.auth.business.model.provider.ProviderUserInfo
-import tournament.events.auth.business.model.user.RawUserInfoBuilder
 import tournament.events.auth.business.model.user.CollectedUserInfo
 import tournament.events.auth.business.model.user.RawUserInfo
-import tournament.events.auth.business.model.user.StandardClaim.*
+import tournament.events.auth.business.model.user.RawUserInfoBuilder
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.FAMILY_NAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.GIVEN_NAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.MIDDLE_NAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.NAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.NICKNAME
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.PREFERRED_USERNAME
 import tournament.events.auth.util.nullIfBlank
 import java.time.LocalDateTime
 import java.util.*
@@ -16,14 +21,14 @@ import java.util.*
  *   The chronological order is determined by the [ProviderUserInfo.updatedAt] field.
  *   The [ProviderUserInfo.changeDate] is used if the [ProviderUserInfo.updatedAt] field is null.
  *
- * - Then we apply the info we collected as a first-party that are stored either in [user] or in [collectedUserInfoEntity].
+ * - Then we apply the info we collected as a first-party that are stored in [collectedUserInfoList].
  *
- * - TODO: Finally, we filter the user info that will be returned according to the scope and the claims.
+ * - FIXME: Finally, we filter the user info that will be returned according to the [context].
  */
 internal class UserInfoMerger(
     // private val user: User,
     private val userId: UUID,
-    private val collectedUserInfo: CollectedUserInfo? = null,
+    private val collectedUserInfoList: List<CollectedUserInfo>? = null,
     private val providerUserInfoList: List<ProviderUserInfo> = emptyList()
 ) {
 
@@ -36,7 +41,7 @@ internal class UserInfoMerger(
     internal fun merge(builder: RawUserInfoBuilder) {
         providerUserInfoList.sortedBy(::getUpdatedAt)
             .fold(builder, ::apply)
-        collectedUserInfo?.let { apply(builder, it) }
+        collectedUserInfoList?.let { apply(builder, it) }
     }
 
     internal fun getUpdatedAt(providerUserInfo: ProviderUserInfo): LocalDateTime {
@@ -74,61 +79,58 @@ internal class UserInfoMerger(
         return builder
     }
 
-    internal fun apply(builder: RawUserInfoBuilder, collectedUserInfo: CollectedUserInfo): RawUserInfoBuilder {
-        val info = collectedUserInfo.info
-        val collectedInfo = collectedUserInfo.collectedInfo
-
-        if (collectedInfo.contains(NAME)) {
-            builder.withName(info.name)
+    internal fun apply(
+        builder: RawUserInfoBuilder,
+        collectedUserInfoList: List<CollectedUserInfo>
+    ): RawUserInfoBuilder {
+        var updatedAt: LocalDateTime? = null
+        collectedUserInfoList.forEach { info ->
+            when {
+                info.claim.id == NAME && info.value is String -> builder.withName(info.value)
+                info.claim.id == GIVEN_NAME && info.value is String -> builder.withGivenName(info.value)
+                info.claim.id == FAMILY_NAME && info.value is String -> builder.withFamilyName(info.value)
+                info.claim.id == MIDDLE_NAME && info.value is String -> builder.withMiddleName(info.value)
+                info.claim.id == NICKNAME && info.value is String -> builder.withNickname(info.value)
+                info.claim.id == PREFERRED_USERNAME && info.value is String -> builder.withPreferredUsername(info.value)
+            }
+            if (updatedAt == null || updatedAt?.isBefore(info.collectionDate) == true) {
+                updatedAt = info.collectionDate
+            }
         }
-        if (collectedInfo.contains(GIVEN_NAME)) {
-            builder.withGivenName(info.givenName)
-        }
-        if (collectedInfo.contains(FAMILY_NAME)) {
-            builder.withFamilyName(info.familyName)
-        }
-        if (collectedInfo.contains(MIDDLE_NAME)) {
-            builder.withMiddleName(info.middleName)
-        }
-        if (collectedInfo.contains(NICKNAME)) {
-            builder.withNickname(info.nickname)
-        }
-
-        if (collectedInfo.contains(PREFERRED_USERNAME)) {
-            builder.withPreferredUsername(info.preferredUsername)
-        }
-        if (collectedInfo.contains(PROFILE)) {
+        /* FIXME
+        if (collectedClaims.contains(PROFILE)) {
             builder.withProfile(info.profile)
         }
-        if (collectedInfo.contains(PICTURE)) {
+        if (collectedClaims.contains(PICTURE)) {
             builder.withPicture(info.picture)
         }
-        if (collectedInfo.contains(WEBSITE)) {
+        if (collectedClaims.contains(WEBSITE)) {
             builder.withWebsite(info.website)
         }
 
-        if (collectedInfo.contains(EMAIL)) {
+        if (collectedClaims.contains(EMAIL)) {
             builder.withEmail(info.email, info.emailVerified)
         }
 
-        if (collectedInfo.contains(GENDER)) {
+        if (collectedClaims.contains(GENDER)) {
             builder.withGender(info.gender)
         }
-        if (collectedInfo.contains(BIRTH_DATE)) {
+        if (collectedClaims.contains(BIRTH_DATE)) {
             builder.withBirthDate(info.birthDate)
         }
 
-        if (collectedInfo.contains(ZONE_INFO)) {
+        if (collectedClaims.contains(ZONE_INFO)) {
             builder.withZoneInfo(info.zoneInfo)
         }
-        if (collectedInfo.contains(LOCALE)) {
+        if (collectedClaims.contains(LOCALE)) {
             builder.withLocale(info.locale)
         }
 
-        if (collectedInfo.contains(PHONE_NUMBER)) {
+        if (collectedClaims.contains(PHONE_NUMBER)) {
             builder.withPhoneNumber(info.phoneNumber, info.phoneNumberVerified)
         }
-        info.updatedAt?.let(builder::withUpdateAt)
+
+         */
         return builder
     }
 }

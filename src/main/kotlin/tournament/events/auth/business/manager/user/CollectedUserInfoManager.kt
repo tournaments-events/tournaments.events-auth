@@ -1,53 +1,89 @@
 package tournament.events.auth.business.manager.user
 
+import io.micronaut.transaction.annotation.Transactional
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import tournament.events.auth.business.mapper.CollectedUserInfoMapper
+import tournament.events.auth.business.mapper.CollectedUserInfoUpdateMapper
 import tournament.events.auth.business.model.user.CollectedUserInfo
-import tournament.events.auth.business.model.user.RawUserInfoUpdate
+import tournament.events.auth.business.model.user.CollectedUserInfoUpdate
+import tournament.events.auth.business.model.user.User
+import tournament.events.auth.business.security.Context
 import tournament.events.auth.data.model.CollectedUserInfoEntity
 import tournament.events.auth.data.repository.CollectedUserInfoRepository
-import java.time.LocalDateTime.now
 import java.util.*
 
 @Singleton
-class CollectedUserInfoManager(
+open class CollectedUserInfoManager(
     @Inject private val userInfoRepository: CollectedUserInfoRepository,
-    @Inject private val userInfoMapper: CollectedUserInfoMapper
+    @Inject private val userInfoMapper: CollectedUserInfoMapper,
+    @Inject private val userInfoUpdateMapper: CollectedUserInfoUpdateMapper
 ) {
 
-    suspend fun findByUserId(userId: UUID): CollectedUserInfo? {
-        return userInfoRepository.findById(userId)
-            ?.let(userInfoMapper::toCollectedUserInfo)
+    /**
+     * Return the user info we have collected for the user identified by [userId].
+     * Only return the user info that can be read accorded to the [context].
+     */
+    suspend fun findReadableUserInfoByUserId(
+        context: Context,
+        userId: UUID
+    ): List<CollectedUserInfo> {
+        return userInfoRepository.findByUserId(userId)
+            .mapNotNull(userInfoMapper::toCollectedUserInfo)
+            .filter { context.canRead(it.claim) }
     }
 
-    suspend fun updateOrCreateUserInfo(
-        userId: UUID,
-        collectedUserInfo: RawUserInfoUpdate
-    ): CollectedUserInfo {
-        val now = now()
-        val entity = userInfoRepository.findById(userId)
-            ?: CollectedUserInfoEntity(
-                userId = userId,
-                collectedBits = ByteArray(0),
-                creationDate = now(),
-                updateDate = now()
-            )
-        updateUserInfo(entity, collectedUserInfo)
-        userInfoRepository.save(entity)
-        return userInfoMapper.toCollectedUserInfo(entity)
-    }
+    /**
+     * Update the claims collected for the [user] and return all the claims readable according to the [context].
+     */
+    @Transactional
+    open suspend fun updateUserInfo(
+        context: Context,
+        user: User,
+        updates: List<CollectedUserInfoUpdate>
+    ): List<CollectedUserInfo> = coroutineScope {
+        val applicableUpdates = updates.filter { context.canWrite(it.claim) }
+        val existingEntities = userInfoRepository.findByUserId(user.id)
+            .associateBy(CollectedUserInfoEntity::claim)
+            .toMutableMap()
 
-    internal fun updateUserInfo(
-        entity: CollectedUserInfoEntity,
-        update: RawUserInfoUpdate
-    ) {
-        var updateCount = 0
-        update.name?.let {
-            TODO()
+        val entitiesToDelete = applicableUpdates
+            .filter { it.value == null }
+            .mapNotNull { existingEntities.remove(it.claim.id) }
+        val deferredDelete = async {
+            userInfoRepository.deleteAll(entitiesToDelete)
         }
-        if (updateCount > 0) {
-            entity.updateDate = now()
+
+        val entitiesToUpdate = applicableUpdates
+            .filter { it.value != null }
+            .mapNotNull { update ->
+                val entity = existingEntities[update.claim.id]
+                entity?.let { update to entity }
+            }
+            .map { (update, entity) ->
+                userInfoUpdateMapper.updateEntity(entity, update).also {
+                    existingEntities[update.claim.id] = it
+                }
+            }
+
+        val entitiesToCreate = applicableUpdates
+            .filter { it.value != null }
+            .map {
+                userInfoUpdateMapper.toEntity(user.id, it)
+            }
+        val deferredSave = async {
+            userInfoRepository.saveAll(entitiesToCreate + entitiesToUpdate)
+                .collect()
         }
+
+        awaitAll(deferredSave, deferredDelete)
+
+        (existingEntities.values + entitiesToCreate)
+            .mapNotNull { userInfoMapper.toCollectedUserInfo(it) }
+            .filter { context.canRead(it.claim) }
     }
 }

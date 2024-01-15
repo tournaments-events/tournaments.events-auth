@@ -12,7 +12,6 @@ import tournament.events.auth.business.model.provider.ProviderUserInfo
 import tournament.events.auth.business.model.user.CollectedUserInfo
 import tournament.events.auth.business.model.user.RawUserInfo
 import tournament.events.auth.business.model.user.RawUserInfoBuilder
-import tournament.events.auth.business.model.user.StandardClaim
 import java.time.LocalDate
 import java.time.LocalDateTime.now
 import java.util.*
@@ -25,28 +24,28 @@ class UserInfoMergerTest {
     fun `merge - Providers in chronological order then collected`() {
         val userId = UUID.randomUUID()
         val builder = mockk<RawUserInfoBuilder>()
-        val collectedUserInfo = mockk<CollectedUserInfo>()
+        val collectedUserInfoList = mockk<List<CollectedUserInfo>>()
         val providerUserInfo1 = mockk<ProviderUserInfo>()
         val providerUserInfo2 = mockk<ProviderUserInfo>()
 
         val merger = spyk(
             UserInfoMerger(
                 userId = userId,
-                collectedUserInfo = collectedUserInfo,
+                collectedUserInfoList = collectedUserInfoList,
                 providerUserInfoList = listOf(providerUserInfo1, providerUserInfo2)
             )
         )
         every { merger.getUpdatedAt(providerUserInfo1) } returns now()
         every { merger.getUpdatedAt(providerUserInfo2) } returns now().minusDays(1)
         every { merger.apply(any(), any<ProviderUserInfo>()) } returns builder
-        every { merger.apply(any(), any<CollectedUserInfo>()) } returns builder
+        every { merger.apply(any(), any<List<CollectedUserInfo>>()) } returns builder
 
         merger.merge(builder)
 
         verifyOrder {
             merger.apply(builder, providerUserInfo2)
             merger.apply(builder, providerUserInfo1)
-            merger.apply(builder, collectedUserInfo)
+            merger.apply(builder, collectedUserInfoList)
         }
     }
 
@@ -65,25 +64,6 @@ class UserInfoMergerTest {
         ).build()
 
         assertEquals(providerRawInfo, rawInfo)
-    }
-
-    @Test
-    fun `apply - Copy all fields if everything is collected`() {
-        val userId = UUID.randomUUID()
-        val collectedRawInfo = fullRawInfo(userId)
-        val collectedUserInfo = CollectedUserInfo(
-            userId = userId,
-            collectedInfo = StandardClaim.values().toList(),
-            info = collectedRawInfo
-        )
-
-        val merger = UserInfoMerger(mockk(), mockk(), mockk())
-        val rawInfo = merger.apply(
-            RawUserInfoBuilder(userId),
-            collectedUserInfo
-        ).build()
-
-        assertEquals(collectedRawInfo, rawInfo)
     }
 
     private fun fullRawInfo(userId: UUID) = RawUserInfo(

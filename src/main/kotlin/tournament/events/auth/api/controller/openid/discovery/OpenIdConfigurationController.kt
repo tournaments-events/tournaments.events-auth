@@ -11,8 +11,8 @@ import tournament.events.auth.api.controller.oauth2.TokenController.Companion.OA
 import tournament.events.auth.api.controller.openid.OpenIdUserInfoController.Companion.OPENID_USERINFO_ENDPOINT
 import tournament.events.auth.api.controller.openid.discovery.PublicKeySetController.Companion.OPENID_JWKS_ENDPOINT
 import tournament.events.auth.api.resource.openid.OpenIdConfigurationResource
-import tournament.events.auth.business.model.user.StandardClaim
 import tournament.events.auth.business.model.user.StandardScope
+import tournament.events.auth.business.model.user.claim.OpenIdClaim
 import tournament.events.auth.config.model.AuthConfig
 import tournament.events.auth.config.model.UrlsConfig
 import tournament.events.auth.config.model.getUri
@@ -45,7 +45,7 @@ class OpenIdConfigurationController(
             subjectTypesSupported = listOf("public"),
             idTokenSigningAlgValuesSupported = listOf("RS256"),
             tokenEndpointAuthMethodsSupported = listOf("client_secret_basic"),
-            claimsSupported = StandardClaim.entries.map(StandardClaim::id)
+            claimsSupported = OpenIdClaim.entries.map(OpenIdClaim::id)
         )
     }
 }

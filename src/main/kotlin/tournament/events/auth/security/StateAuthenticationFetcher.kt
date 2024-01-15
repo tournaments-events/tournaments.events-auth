@@ -19,8 +19,12 @@ class StateAuthenticationFetcher(
 
     override fun fetchAuthentication(request: HttpRequest<*>): Publisher<Authentication> {
         return publish {
+            if (!request.path.contains("/flow/")) {
+                return@publish
+            }
+
             val state = request.parameters["state"]
-            if (!request.path.startsWith("/api/flow") || state.isNullOrBlank()) {
+            if (state.isNullOrBlank()) {
                 return@publish
             }
 

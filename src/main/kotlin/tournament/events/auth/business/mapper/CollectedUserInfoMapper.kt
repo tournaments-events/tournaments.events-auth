@@ -1,39 +1,37 @@
 package tournament.events.auth.business.mapper
 
 import org.mapstruct.Mapper
-import org.mapstruct.Mapping
-import org.mapstruct.MappingTarget
-import org.mapstruct.Mappings
-import tournament.events.auth.business.mapper.config.BusinessMapperConfig
+import tournament.events.auth.business.manager.user.ClaimManager
+import tournament.events.auth.business.mapper.config.ToBusinessMapperConfig
 import tournament.events.auth.business.model.user.CollectedUserInfo
-import tournament.events.auth.business.model.user.RawUserInfo
-import tournament.events.auth.business.model.user.RawUserInfoUpdate
-import tournament.events.auth.business.model.user.StandardClaim
 import tournament.events.auth.data.model.CollectedUserInfoEntity
 
 @Mapper(
-    config = BusinessMapperConfig::class
+    config = ToBusinessMapperConfig::class
 )
 abstract class CollectedUserInfoMapper {
 
-    @Mappings(
-        Mapping(target = "collectedInfo", source = "entity"),
-        Mapping(target = "info", source = "entity")
-    )
-    abstract fun toCollectedUserInfo(entity: CollectedUserInfoEntity): CollectedUserInfo
+    lateinit var claimManager: ClaimManager
 
-    @Mappings(
-        Mapping(target = "subject", source = "userId"),
-        Mapping(target = "updatedAt", source = "updateDate"),
-    )
-    abstract fun toRawUserInfo(entity: CollectedUserInfoEntity): RawUserInfo
+    lateinit var claimValueMapper: ClaimValueMapper
 
-    fun toCollectedInfo(entity: CollectedUserInfoEntity): List<StandardClaim> {
-        return TODO()
+    /**
+     * Convert a collected user info entity into a business object.
+     *
+     * Return null if the user info cannot be converted back. For example, if the data type of custom claim
+     * has changed and the data cannot be deserialized anymore.
+     */
+    fun toCollectedUserInfo(entity: CollectedUserInfoEntity): CollectedUserInfo? {
+        val claim = claimManager.findById(entity.claim) ?: return null
+        val value = if (entity.value != null) {
+            claimValueMapper.toBusiness(entity.value, claim.dataType) ?: return null
+        } else null
+        return CollectedUserInfo(
+            userId = entity.userId,
+            claim = claim,
+            value = value,
+            verified = entity.verified,
+            collectionDate = entity.collectionDate
+        )
     }
-
-    abstract fun update(
-        userInfo: RawUserInfoUpdate,
-        @MappingTarget entity: CollectedUserInfoEntity
-    ): CollectedUserInfoEntity
 }

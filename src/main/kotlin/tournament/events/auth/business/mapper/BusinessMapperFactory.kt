@@ -3,6 +3,7 @@ package tournament.events.auth.business.mapper
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton
 import org.mapstruct.factory.Mappers
+import tournament.events.auth.business.manager.user.ClaimManager
 
 @Factory
 class BusinessMapperFactory {
@@ -17,7 +18,24 @@ class BusinessMapperFactory {
     fun authorizeAttemptMapper() = Mappers.getMapper(AuthorizeAttemptMapper::class.java)
 
     @Singleton
-    fun collectedUserInfoMapper() = Mappers.getMapper(CollectedUserInfoMapper::class.java)
+    fun collectedUserInfoMapper(
+        claimManager: ClaimManager,
+        claimValueMapper: ClaimValueMapper
+    ): CollectedUserInfoMapper {
+        return Mappers.getMapper(CollectedUserInfoMapper::class.java).also {
+            it.claimManager = claimManager
+            it.claimValueMapper = claimValueMapper
+        }
+    }
+
+    @Singleton
+    fun collectedUserInfoUpdateMapper(
+        claimValueMapper: ClaimValueMapper
+    ): CollectedUserInfoUpdateMapper {
+        return Mappers.getMapper(CollectedUserInfoUpdateMapper::class.java).also {
+            it.claimValueMapper = claimValueMapper
+        }
+    }
 
     @Singleton
     fun cryptoKeysMapper() = Mappers.getMapper(CryptoKeysMapper::class.java)

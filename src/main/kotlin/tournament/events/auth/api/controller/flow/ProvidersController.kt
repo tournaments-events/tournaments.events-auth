@@ -5,15 +5,18 @@ import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Error
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.uri.UriBuilder
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.authentication.Authentication
+import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.inject.Inject
-import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_AUTHORIZE_ENDPOINT
+import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
 import tournament.events.auth.api.errorhandler.ExceptionConverter
 import tournament.events.auth.api.mapper.ErrorResourceMapper
+import tournament.events.auth.business.manager.auth.oauth2.Oauth2ProviderManager
 import tournament.events.auth.business.manager.provider.ProviderConfigManager
 import tournament.events.auth.business.manager.provider.ProviderManager
 import tournament.events.auth.config.model.UrlsConfig
@@ -24,8 +27,9 @@ import tournament.events.auth.util.loggerForClass
 import tournament.events.auth.util.orDefault
 
 @Secured(HAS_VALID_STATE)
-@Controller(FLOW_AUTHORIZE_ENDPOINT)
+@Controller(FLOW_PROVIDER_ENDPOINTS)
 class ProvidersController(
+    @Inject private val oauth2ProviderManager: Oauth2ProviderManager,
     @Inject private val providerManager: ProviderManager,
     @Inject private val providerConfigManager: ProviderConfigManager,
     @Inject private val exceptionConverter: ExceptionConverter,
@@ -53,7 +57,7 @@ Following query parameters will be populated with information about the error:
         ],
         tags = ["flow"]
     )
-    @Get
+    @Get(FLOW_PROVIDER_AUTHORIZE_ENDPOINT)
     suspend fun authorizeWithProvider(
         authentication: Authentication,
         providerId: String
@@ -62,6 +66,34 @@ Following query parameters will be populated with information about the error:
         val authorizeAttempt = authentication.authorizeAttempt
         val provider = providerConfigManager.findEnabledProviderById(providerId)
         return providerManager.authorizeWithProvider(provider, authorizeAttempt)
+    }
+
+    @Get(FLOW_PROVIDER_CALLBACK_ENDPOINT)
+    @Secured(IS_ANONYMOUS)
+    suspend fun callback(
+        providerId: String,
+        @QueryValue("code") code: String?,
+        @QueryValue("error") error: String?,
+        @QueryValue("error_description") errorDescription: String?,
+        @QueryValue("state") serializedState: String?
+    ): HttpResponse<*> {
+        val redirectUri = if (code != null) {
+            val provider = providerConfigManager.findEnabledProviderById(providerId)
+            val redirect = oauth2ProviderManager.handleCallback(
+                provider = provider,
+                authorizeCode = code,
+                state = serializedState
+            )
+            redirect.build()
+        } else {
+            urlsConfig.orThrow().flow.error.let(UriBuilder::of)
+                .apply {
+                    error?.let { queryParam("error_code", it) }
+                    errorDescription?.let { queryParam("details", it) }
+                }
+                .build()
+        }
+        return HttpResponse.temporaryRedirect<Any>(redirectUri)
     }
 
     /**
@@ -94,6 +126,8 @@ Following query parameters will be populated with information about the error:
     }
 
     companion object {
-        const val FLOW_AUTHORIZE_ENDPOINT = "/api/v1/flow/providers/{providerId}"
+        const val FLOW_PROVIDER_ENDPOINTS = "/api/v1/flow/providers/{providerId}"
+        const val FLOW_PROVIDER_AUTHORIZE_ENDPOINT = "/authorize"
+        const val FLOW_PROVIDER_CALLBACK_ENDPOINT = "/callback"
     }
 }
