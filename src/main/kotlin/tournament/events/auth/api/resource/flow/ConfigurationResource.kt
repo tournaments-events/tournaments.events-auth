@@ -12,6 +12,11 @@ of those urls.
 )
 @Serdeable
 data class ConfigurationResource(
+    @Schema(
+        description = "List of claims that may be collected by the client."
+    )
+    @JsonProperty("claims")
+    val claims: List<ClaimResource>,
     @JsonProperty("features")
     val features: FeaturesResource,
     @JsonProperty("password")
@@ -24,7 +29,32 @@ data class ConfigurationResource(
 )
 
 @Schema(
-    description = "List of boolean flags indicating which features are enabled on this authentication server."
+    description = "Configuration related to a claim that can be collected from the end-user."
+)
+data class ClaimResource(
+    @get:Schema(
+        description = "Identifier of the claim."
+    )
+    val id: String,
+    @get:Schema(
+        description = "Localized name of the claim."
+    )
+    val name: String,
+    @get:Schema(
+        description = """
+Type of the value accepted for the claim. 
+
+Supported values are:
+- ```string```
+- ```number```
+- ```date```
+        """
+    )
+    val type: String
+)
+
+@Schema(
+    description = "List of boolean flags indicating which features are enabled on this authorization server."
 )
 @Serdeable
 data class FeaturesResource(
@@ -66,7 +96,7 @@ URL to redirect the end-user to to initiate a authorization grant flow with the 
 
 @Schema(
     description = """
-If null or not present, the authentication by password is disabled by the authentication server.
+If null or not present, the authentication by password is disabled by the authorization server.
         """
 )
 @Serdeable
@@ -75,5 +105,25 @@ data class PasswordConfigurationResource(
         description = "List of claims that the end-user can use to sign-in."
     )
     @JsonProperty("login-claims")
-    val loginClaims: List<String>
+    val loginClaims: List<String>,
+    @get:Schema(
+        description = """
+List of claims the end-user MUST provide in addition to its password to sign-up.
+
+The list is ordered 
+"""
+    )
+    @JsonProperty("sign-up-claims")
+    val signUpClaims: List<SignUpClaimConfigurationResource>,
+)
+
+@Schema(
+    description = "Configuration of a claim collected during end-user sign-up."
+)
+@Serdeable
+data class SignUpClaimConfigurationResource(
+    @Schema(description = "Identifier of the claim.")
+    val id: String,
+    @Schema(description = "True if a value must be collected for the claim to continue the sign-up.")
+    val required: Boolean
 )

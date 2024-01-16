@@ -18,7 +18,7 @@ import tournament.events.auth.exception.toHttpException
 import java.util.*
 
 /**
- * [TokenValidator] that validates token we have issued with this authentication server.
+ * [TokenValidator] that validates token we have issued with this authorization server.
  *
  * To authorize the user, we need:
  * - to decode the token.

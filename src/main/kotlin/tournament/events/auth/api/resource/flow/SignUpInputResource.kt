@@ -5,10 +5,8 @@ import io.micronaut.serde.annotation.Serdeable
 
 @Serdeable
 data class SignUpInputResource(
-    @JsonProperty("preferred_username")
-    val preferredUsername: String?,
-    @JsonProperty("email")
-    val email: String?,
+    @JsonProperty("claims")
+    val claims: Map<String, Any>,
     @JsonProperty("password")
     val password: String
 )

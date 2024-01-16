@@ -7,7 +7,7 @@ data class SignInConfigurationResource(
     @get:Schema(
         description = """
 Options for password authentication.
-If missing or null, the password authentication has been disabled on this authentication server.
+If missing or null, the password authentication has been disabled on this authorization server.
 """
     )
     val password: PasswordOptionsResource?,

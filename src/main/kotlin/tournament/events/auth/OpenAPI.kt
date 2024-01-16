@@ -64,7 +64,7 @@ import tournament.events.auth.util.loggerForClass
     value = [
         SecurityScheme(
             name = "SympAuthy",
-            description = "Authenticated to this authentication server to access its protected resources.",
+            description = "Authenticated to this authorization server to access its protected resources.",
             type = OAUTH2,
             `in` = HEADER,
             flows = OAuthFlows(

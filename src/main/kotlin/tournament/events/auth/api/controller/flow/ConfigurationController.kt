@@ -6,23 +6,31 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_AUTHORIZE_ENDPOINT
 import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
+import tournament.events.auth.api.resource.flow.ClaimResource
 import tournament.events.auth.api.resource.flow.ConfigurationResource
 import tournament.events.auth.api.resource.flow.FeaturesResource
 import tournament.events.auth.api.resource.flow.ProviderConfigurationResource
 import tournament.events.auth.business.manager.provider.ProviderConfigManager
+import tournament.events.auth.business.manager.user.ClaimManager
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.config.model.*
 
 @Secured(IS_ANONYMOUS)
 @Controller("/api/v1/flow/configuration")
 class ConfigurationController(
+    @Inject private val claimManager: ClaimManager,
     @Inject private val providerManager: ProviderConfigManager,
     @Inject private val uncheckedUrlsConfig: UrlsConfig,
     @Inject private val uncheckedPasswordAuthConfig: PasswordAuthConfig,
 ) {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Operation(
         description = """
 Expose the configuration for end-user authentication flow.
@@ -34,20 +42,45 @@ The configuration contains:
         tags = ["flow"]
     )
     @Get
-    suspend fun getConfiguration(): ConfigurationResource {
+    suspend fun getConfiguration(): ConfigurationResource = coroutineScope {
         val urlsConfig = uncheckedUrlsConfig.orThrow()
         val passwordAuthConfig = uncheckedPasswordAuthConfig.orThrow()
 
-        val features = getFeatures(
-            passwordAuthConfig = passwordAuthConfig
-        )
-        val providers = providerManager.listEnabledProviders()
-            .map { getProvider(it, urlsConfig) }
+        val deferredClaims = async {
+            getClaims()
+        }
+        val features = getFeatures(passwordAuthConfig = passwordAuthConfig)
+        val deferredProviders = async {
+            providerManager.listEnabledProviders()
+                .map { getProvider(it, urlsConfig) }
+        }
 
-        return ConfigurationResource(
+        awaitAll(deferredClaims, deferredProviders)
+
+        ConfigurationResource(
+            claims = deferredClaims.getCompleted(),
             features = features,
             password = null,
-            providers = providers
+            providers = deferredProviders.getCompleted()
+        )
+    }
+
+    private fun getClaims(): List<ClaimResource> {
+        return claimManager.listStandardClaims().map { claim ->
+            ClaimResource(
+                id = claim.id,
+                name = TODO(), // FIXME
+                type = TODO() // FIXME
+            )
+        }
+    }
+
+    private fun getFeatures(
+        passwordAuthConfig: EnabledPasswordAuthConfig
+    ): FeaturesResource {
+        return FeaturesResource(
+            passwordSignIn = passwordAuthConfig.enabled,
+            signUp = false // FIXME
         )
     }
 
@@ -63,15 +96,6 @@ The configuration contains:
             id = provider.id,
             name = provider.name,
             authorizeUrl = authorizeUrl.toString()
-        )
-    }
-
-    private fun getFeatures(
-        passwordAuthConfig: EnabledPasswordAuthConfig
-    ): FeaturesResource {
-        return FeaturesResource(
-            passwordSignIn = passwordAuthConfig.enabled,
-            signUp = false // FIXME
         )
     }
 }

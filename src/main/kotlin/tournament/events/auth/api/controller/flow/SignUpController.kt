@@ -15,7 +15,7 @@ import tournament.events.auth.security.SecurityRule.HAS_VALID_STATE
 // http://localhost:8092/api/oauth2/authorize?response_type=code&client_id=example&redirect_uri=http://example.com&state=whatever
 
 @Secured(HAS_VALID_STATE)
-@Controller("/api/v1/flow/sign-in")
+@Controller("/api/v1/flow/sign-up")
 class SignUpController(
     @Inject private val providerConfigManager: ProviderConfigManager
 ) {
