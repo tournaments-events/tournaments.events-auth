@@ -18,18 +18,19 @@ class ClaimManager(
     }
 
     /**
-     * Return all the [StandardClaim] enabled on this authorization server.
-     */
-    fun listStandardClaims(): List<StandardClaim> {
-        TODO()
-    }
-
-    /**
      * Return the [Claim] identified by [id] or null.
+     *
+     * Note: This operation is optimized to be called inside loops as it is meant to be consumed by the entity to
+     * business mapper.
      */
     fun findById(id: String): Claim? {
         return cachedClaimsMap[id]
     }
 
-
+    /**
+     * Return all the [StandardClaim] enabled on this authorization server.
+     */
+    fun listStandardClaims(): List<StandardClaim> {
+        return cachedClaimsMap.values.filterIsInstance<StandardClaim>()
+    }
 }

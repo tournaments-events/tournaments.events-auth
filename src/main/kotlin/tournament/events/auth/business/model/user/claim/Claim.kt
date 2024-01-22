@@ -1,15 +1,20 @@
 package tournament.events.auth.business.model.user.claim
 
-sealed class Claim {
+sealed class Claim(
     /**
      * Identifier of the claim.
      */
-    abstract val id: String
-
+    val id: String,
     /**
      * Type of the claim.
      */
-    abstract val dataType: ClaimDataType
+    val dataType: ClaimDataType,
+    /**
+     * True if the end-user MUST provide a value for this claim before completing any authentication flow
+     * (either password or third-party providers).
+     */
+    val required: Boolean
+) {
 
     /**
      * List of scope tokens that can be granted by the user to the client to read the claim.

@@ -1,5 +1,7 @@
 package tournament.events.auth.api.controller.flow
 
+import io.micronaut.context.MessageSource
+import io.micronaut.http.HttpRequest
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.security.annotation.Secured
@@ -12,44 +14,51 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_AUTHORIZE_ENDPOINT
 import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
-import tournament.events.auth.api.resource.flow.ClaimResource
-import tournament.events.auth.api.resource.flow.ConfigurationResource
-import tournament.events.auth.api.resource.flow.FeaturesResource
-import tournament.events.auth.api.resource.flow.ProviderConfigurationResource
+import tournament.events.auth.api.resource.flow.*
+import tournament.events.auth.business.manager.password.PasswordFlowManager
 import tournament.events.auth.business.manager.provider.ProviderConfigManager
 import tournament.events.auth.business.manager.user.ClaimManager
 import tournament.events.auth.business.model.provider.EnabledProvider
 import tournament.events.auth.config.model.*
+import tournament.events.auth.server.DisplayMessages
+import tournament.events.auth.util.orDefault
+import java.util.*
 
 @Secured(IS_ANONYMOUS)
 @Controller("/api/v1/flow/configuration")
 class ConfigurationController(
     @Inject private val claimManager: ClaimManager,
+    @Inject private val passwordFlowManager: PasswordFlowManager,
     @Inject private val providerManager: ProviderConfigManager,
     @Inject private val uncheckedUrlsConfig: UrlsConfig,
     @Inject private val uncheckedPasswordAuthConfig: PasswordAuthConfig,
+    @Inject @DisplayMessages private val displayMessageSource: MessageSource
 ) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Operation(
         description = """
-Expose the configuration for end-user authentication flow.
+Expose the server configuration to the end-user authentication flow.
 
-The configuration contains: 
-- which means the user can use to authenticate (with password, which third-party provider).
-- which information are collected during authentication.
+This configuration only contains information that are associated to this authorization server.
+It does not change depending on the client calling the authorization server nor on the end-user signing-in.
+
+It is designed to be cached by the flow to be reused. 
         """,
         tags = ["flow"]
     )
     @Get
-    suspend fun getConfiguration(): ConfigurationResource = coroutineScope {
+    suspend fun getConfiguration(
+        httpRequest: HttpRequest<*>
+    ): ConfigurationResource = coroutineScope {
+        val locale = httpRequest.locale.orDefault()
         val urlsConfig = uncheckedUrlsConfig.orThrow()
         val passwordAuthConfig = uncheckedPasswordAuthConfig.orThrow()
 
         val deferredClaims = async {
-            getClaims()
+            getClaims(locale)
         }
-        val features = getFeatures(passwordAuthConfig = passwordAuthConfig)
+        val features = getFeatures()
         val deferredProviders = async {
             providerManager.listEnabledProviders()
                 .map { getProvider(it, urlsConfig) }
@@ -60,28 +69,44 @@ The configuration contains:
         ConfigurationResource(
             claims = deferredClaims.getCompleted(),
             features = features,
-            password = null,
+            password = getPassword(),
             providers = deferredProviders.getCompleted()
         )
     }
 
-    private fun getClaims(): List<ClaimResource> {
+    private fun getClaims(locale: Locale): List<ClaimResource> {
         return claimManager.listStandardClaims().map { claim ->
             ClaimResource(
                 id = claim.id,
-                name = TODO(), // FIXME
-                type = TODO() // FIXME
+                name = displayMessageSource.getMessage("claim.${claim.id}", claim.id, locale),
+                type = claim.dataType.name
             )
         }
     }
 
-    private fun getFeatures(
-        passwordAuthConfig: EnabledPasswordAuthConfig
-    ): FeaturesResource {
+    private fun getFeatures(): FeaturesResource {
         return FeaturesResource(
-            passwordSignIn = passwordAuthConfig.enabled,
-            signUp = false // FIXME
+            passwordSignIn = passwordFlowManager.signInEnabled,
+            signUp = passwordFlowManager.signUpEnabled
         )
+    }
+
+    private fun getPassword(): PasswordConfigurationResource {
+        return PasswordConfigurationResource(
+            loginClaims = passwordFlowManager.getSignInClaims().map { it.id },
+            signUpClaims = getPasswordSignUpClaims()
+        )
+    }
+
+    private fun getPasswordSignUpClaims(): List<CollectedClaimConfigurationResource> {
+        return passwordFlowManager.getSignUpClaims()
+            .mapIndexed { index, claim ->
+                CollectedClaimConfigurationResource(
+                    id = claim.id,
+                    index = index,
+                    required = claim.required
+                )
+            }
     }
 
     private fun getProvider(

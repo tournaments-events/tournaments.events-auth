@@ -109,21 +109,25 @@ data class PasswordConfigurationResource(
     @get:Schema(
         description = """
 List of claims the end-user MUST provide in addition to its password to sign-up.
-
-The list is ordered 
 """
     )
     @JsonProperty("sign-up-claims")
-    val signUpClaims: List<SignUpClaimConfigurationResource>,
+    val signUpClaims: List<CollectedClaimConfigurationResource>,
 )
 
 @Schema(
-    description = "Configuration of a claim collected during end-user sign-up."
+    description = "Configuration of a claim collected from the end-user at a step of the flow."
 )
 @Serdeable
-data class SignUpClaimConfigurationResource(
+data class CollectedClaimConfigurationResource(
     @Schema(description = "Identifier of the claim.")
     val id: String,
-    @Schema(description = "True if a value must be collected for the claim to continue the sign-up.")
+    @Schema(description =
+    """
+Order in which the claim must be presented to the end-user. Lowest value must be presented first.
+    """)
+    @JsonProperty("index")
+    val index: Int,
+    @Schema(description = "True if a value must be collected before the end-user can continue the flow.")
     val required: Boolean
 )

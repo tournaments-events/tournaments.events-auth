@@ -9,6 +9,7 @@ class ClaimConfigurationProperties(
     @param:Parameter val id: String
 ) {
     var enabled: String? = null
+    var required: String? = null
 
     companion object {
         const val CLAIMS_KEY = "claims"

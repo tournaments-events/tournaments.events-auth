@@ -1,16 +1,16 @@
 package tournament.events.auth.business.manager.auth.oauth2
 
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.BAD_REQUEST
+import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.micronaut.transaction.annotation.Transactional
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_CALLBACK_ENDPOINT
 import tournament.events.auth.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
 import tournament.events.auth.business.exception.businessExceptionOf
-import tournament.events.auth.business.manager.auth.AuthManager
 import tournament.events.auth.business.manager.provider.ProviderUserInfoManager
+import tournament.events.auth.business.manager.user.ClaimManager
 import tournament.events.auth.business.manager.user.CollectedUserInfoManager
 import tournament.events.auth.business.manager.user.CreateOrAssociateResult
 import tournament.events.auth.business.manager.user.UserManager
@@ -27,7 +27,6 @@ import tournament.events.auth.business.model.user.RawUserInfo
 import tournament.events.auth.business.model.user.User
 import tournament.events.auth.business.model.user.UserMergingStrategy
 import tournament.events.auth.business.model.user.claim.OpenIdClaim
-import tournament.events.auth.business.model.user.claim.StandardClaim
 import tournament.events.auth.business.security.AdminContext
 import tournament.events.auth.client.oauth2.TokenEndpointClient
 import tournament.events.auth.config.model.AdvancedConfig
@@ -40,9 +39,9 @@ import java.util.*
 
 @Singleton
 open class Oauth2ProviderManager(
-    @Inject private val authManager: AuthManager,
     @Inject private val authorizationCodeManager: AuthorizationCodeManager,
     @Inject private val authorizeManager: AuthorizeManager,
+    @Inject private val claimManager: ClaimManager,
     @Inject private val collectedUserInfoManager: CollectedUserInfoManager,
     @Inject private val userManager: UserManager,
     @Inject private val providerUserInfoManager: ProviderUserInfoManager,
@@ -153,8 +152,11 @@ open class Oauth2ProviderManager(
         providerUserInfo: RawUserInfo
     ): CreateOrAssociateResult {
         val email = providerUserInfo.email ?: throw httpExceptionOf(
-            HttpStatus.INTERNAL_SERVER_ERROR, "user.create_with_provider.missing_email",
+            INTERNAL_SERVER_ERROR, "user.create_with_provider.missing_email",
             "providerId" to provider.id
+        )
+        val emailClaim = claimManager.findById(OpenIdClaim.Id.EMAIL) ?: throw httpExceptionOf(
+            INTERNAL_SERVER_ERROR, "user.create_with_provider.missing_email_claim"
         )
         val existingUser = userManager.findByEmail(email)
         val user = existingUser
@@ -166,7 +168,7 @@ open class Oauth2ProviderManager(
                     user = this,
                     updates = listOf(
                         CollectedUserInfoUpdate(
-                            claim = StandardClaim(OpenIdClaim.EMAIL),
+                            claim = emailClaim,
                             value = Optional.of(email)
                         )
                     )

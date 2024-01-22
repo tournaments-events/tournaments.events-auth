@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.inject.Inject
 import tournament.events.auth.api.resource.flow.SignInInputResource
 import tournament.events.auth.api.resource.flow.SignInResultResource
-import tournament.events.auth.business.manager.user.UserManager
+import tournament.events.auth.business.manager.password.PasswordFlowManager
 import tournament.events.auth.security.authorizeAttempt
 
 // http://localhost:8092/api/oauth2/authorize?response_type=code&client_id=example&redirect_uri=http://example.com&state=whatever
@@ -19,7 +19,7 @@ import tournament.events.auth.security.authorizeAttempt
 @Controller("/api/v1/flow/sign-in")
 @Secured(io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS)
 class SignInController(
-    @Inject private val userManager: UserManager
+    @Inject private val passwordFlowManager: PasswordFlowManager
 ) {
 
     @Operation(
@@ -40,7 +40,7 @@ class SignInController(
     ): SignInResultResource {
         val authorizeAttempt = authentication.authorizeAttempt
 
-        val user = userManager.signInWithPassword(
+        val user = passwordFlowManager.signInWithPassword(
             login = inputResource.login,
             password = inputResource.password
         )

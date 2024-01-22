@@ -10,6 +10,11 @@ import kotlin.annotation.AnnotationRetention.RUNTIME
 @Qualifier
 @Retention(RUNTIME)
 @MustBeDocumented
+annotation class DisplayMessages
+
+@Qualifier
+@Retention(RUNTIME)
+@MustBeDocumented
 annotation class ErrorMessages
 
 @Factory
@@ -17,7 +22,13 @@ class MessageSourceFactory {
 
     @Singleton
     @ErrorMessages
-    fun provideMessageSource(): MessageSource {
+    fun provideErrorMessageSource(): MessageSource {
         return ResourceBundleMessageSource("error_messages")
+    }
+
+    @Singleton
+    @DisplayMessages
+    fun provideDisplayMessageSource(): MessageSource {
+        return ResourceBundleMessageSource("display_messages")
     }
 }

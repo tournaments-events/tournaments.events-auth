@@ -3,20 +3,22 @@ package tournament.events.auth.config.factory
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import tournament.events.auth.business.model.user.UserMergingStrategy.BY_MAIL
 import tournament.events.auth.business.model.user.claim.Claim
 import tournament.events.auth.business.model.user.claim.OpenIdClaim
+import tournament.events.auth.business.model.user.claim.OpenIdClaim.Id.EMAIL
 import tournament.events.auth.business.model.user.claim.StandardClaim
 import tournament.events.auth.config.ConfigParser
 import tournament.events.auth.config.exception.ConfigurationException
-import tournament.events.auth.config.model.ClaimsConfig
-import tournament.events.auth.config.model.DisabledClaimsConfig
-import tournament.events.auth.config.model.EnabledClaimsConfig
+import tournament.events.auth.config.exception.configExceptionOf
+import tournament.events.auth.config.model.*
 import tournament.events.auth.config.properties.ClaimConfigurationProperties
 import tournament.events.auth.config.properties.ClaimConfigurationProperties.Companion.CLAIMS_KEY
 
 @Factory
 class ClaimFactory(
-    @Inject private val parser: ConfigParser
+    @Inject private val parser: ConfigParser,
+    @Inject private val uncheckedAdvancedConfig: AdvancedConfig
 ) {
 
     @Singleton
@@ -46,6 +48,17 @@ class ClaimFactory(
             }
         }
 
+        // Check if claims are properly configured for by-mail user merging strategy.
+        val emailClaim = standardClaims.firstOrNull { it.id == EMAIL }
+        if (uncheckedAdvancedConfig.orThrow().userMergingStrategy == BY_MAIL && emailClaim == null) {
+            errors.add(
+                configExceptionOf(
+                    "$CLAIMS_KEY.${EMAIL}",
+                    "config.claim.email.disabled"
+                )
+            )
+        }
+
         return if (errors.isEmpty()) {
             EnabledClaimsConfig(standardClaims + customClaims)
         } else {
@@ -63,7 +76,18 @@ class ClaimFactory(
                 ClaimConfigurationProperties::enabled
             )
         } ?: true
-        return if (enabled) StandardClaim(openIdClaim) else null
+        val required = properties?.let {
+            parser.getBoolean(
+                it, "$CLAIMS_KEY.${it.id}.required",
+                ClaimConfigurationProperties::required
+            )
+        } ?: false
+        return if (enabled) {
+            StandardClaim(
+                openIdClaim = openIdClaim,
+                required = required
+            )
+        } else null
     }
 
     private fun provideCustomClaim(properties: ClaimConfigurationProperties): Claim? {
