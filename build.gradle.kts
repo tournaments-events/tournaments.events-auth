@@ -11,7 +11,7 @@ plugins {
 }
 
 version = "0.1"
-group = "events.tournament"
+group = "com.sympauthy"
 
 extra.apply {
     set("kotlinVersion", "1.9.21")
@@ -150,6 +150,6 @@ micronaut {
     testRuntime("junit5")
     processing {
         incremental(true)
-        annotations("tournament.events.*")
+        annotations("com.sympauthy.*")
     }
 }
