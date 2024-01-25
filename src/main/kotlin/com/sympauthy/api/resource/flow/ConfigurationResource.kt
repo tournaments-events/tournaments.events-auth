@@ -31,6 +31,7 @@ data class ConfigurationResource(
 @Schema(
     description = "Configuration related to a claim that can be collected from the end-user."
 )
+@Serdeable
 data class ClaimResource(
     @get:Schema(
         description = "Identifier of the claim."
@@ -61,12 +62,12 @@ data class FeaturesResource(
     @get:Schema(
         description = "Authentication of the end-user using a login and a password couple."
     )
-    @JsonProperty("password-sign-in")
+    @JsonProperty("password_sign_in")
     val passwordSignIn: Boolean,
     @get:Schema(
         description = "End-user account creation."
     )
-    @JsonProperty("sign-up")
+    @JsonProperty("sign_up")
     val signUp: Boolean,
 )
 
@@ -104,15 +105,16 @@ data class PasswordConfigurationResource(
     @get:Schema(
         description = "List of claims that the end-user can use to sign-in."
     )
-    @JsonProperty("login-claims")
+    @JsonProperty("login_claims")
     val loginClaims: List<String>,
     @get:Schema(
         description = """
 List of claims the end-user MUST provide in addition to its password to sign-up.
+Not present if the sign-up by mail is disabled on this authorization server.
 """
     )
-    @JsonProperty("sign-up-claims")
-    val signUpClaims: List<CollectedClaimConfigurationResource>,
+    @JsonProperty("sign_up_claims")
+    val signUpClaims: List<CollectedClaimConfigurationResource>?,
 )
 
 @Schema(

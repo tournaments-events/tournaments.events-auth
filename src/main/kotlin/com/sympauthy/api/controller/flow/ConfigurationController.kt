@@ -3,6 +3,7 @@ package com.sympauthy.api.controller.flow
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_AUTHORIZE_ENDPOINT
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
 import com.sympauthy.api.resource.flow.*
+import com.sympauthy.business.manager.password.PasswordFlowManager
 import com.sympauthy.business.manager.provider.ProviderConfigManager
 import com.sympauthy.business.manager.user.ClaimManager
 import com.sympauthy.business.model.provider.EnabledProvider
@@ -27,7 +28,7 @@ import java.util.*
 @Controller("/api/v1/flow/configuration")
 class ConfigurationController(
     @Inject private val claimManager: ClaimManager,
-    @Inject private val passwordFlowManager: com.sympauthy.business.manager.password.PasswordFlowManager,
+    @Inject private val passwordFlowManager: PasswordFlowManager,
     @Inject private val providerManager: ProviderConfigManager,
     @Inject private val uncheckedUrlsConfig: UrlsConfig,
     @Inject private val uncheckedPasswordAuthConfig: PasswordAuthConfig,
