@@ -4,5 +4,5 @@ enum class UserStatus {
     /**
      *
      */
-    COMPLETE
+    ENABLED
 }

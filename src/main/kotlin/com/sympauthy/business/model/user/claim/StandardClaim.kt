@@ -8,7 +8,8 @@ class StandardClaim(
     required: Boolean
 ) : Claim(
     id = openIdClaim.id,
-    dataType = openIdClaim.dataType,
+    dataType = openIdClaim.type,
+    group = openIdClaim.group,
     required = required
 ) {
     override val readScopeTokens = setOf(openIdClaim.scope.id)

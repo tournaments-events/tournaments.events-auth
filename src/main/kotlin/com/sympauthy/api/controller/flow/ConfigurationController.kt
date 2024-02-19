@@ -3,9 +3,9 @@ package com.sympauthy.api.controller.flow
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_AUTHORIZE_ENDPOINT
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
 import com.sympauthy.api.resource.flow.*
+import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.manager.password.PasswordFlowManager
 import com.sympauthy.business.manager.provider.ProviderConfigManager
-import com.sympauthy.business.manager.user.ClaimManager
 import com.sympauthy.business.model.provider.EnabledProvider
 import com.sympauthy.config.model.*
 import com.sympauthy.server.DisplayMessages
@@ -78,8 +78,9 @@ It is designed to be cached by the flow to be reused.
         return claimManager.listStandardClaims().map { claim ->
             ClaimResource(
                 id = claim.id,
-                name = displayMessageSource.getMessage("claim.${claim.id}", claim.id, locale),
-                type = claim.dataType.name
+                name = displayMessageSource.getMessage("claims.${claim.id}.name", claim.id, locale),
+                group = claim.group?.name?.lowercase(),
+                type = claim.dataType.name.lowercase()
             )
         }
     }

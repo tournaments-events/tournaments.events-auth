@@ -43,6 +43,11 @@ class ConfigParser {
         }
     }
 
+    fun <C : Any> getInt(config: C, key: String, value: (C) -> String?): Int? {
+        val value = value(config) ?: return null
+        return value.toIntOrNull() ?: throw configExceptionOf(key, "config.invalid_int")
+    }
+
     fun <C : Any> getDuration(config: C, key: String, value: (C) -> String?): Duration? {
         val value = value(config) ?: return null
         return ConversionService.SHARED.convert(value, Duration::class.java).orElse(null) ?: throw configExceptionOf(

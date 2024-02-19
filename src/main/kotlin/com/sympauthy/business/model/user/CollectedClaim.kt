@@ -5,9 +5,13 @@ import java.time.LocalDateTime
 import java.util.*
 
 /**
- * Information that we collected from the user as a first party.
+ * An information that this authorization server collected from the user as a first party.
+ *
+ * We consider being first party when:
+ * - the claim is collected during an authentication flow.
+ * - the claim is collected by a client and stored in this authorization server.
  */
-data class CollectedUserInfo(
+data class CollectedClaim(
     val userId: UUID,
     val claim: Claim,
     /**

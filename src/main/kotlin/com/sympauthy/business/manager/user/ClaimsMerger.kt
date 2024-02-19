@@ -1,8 +1,8 @@
 package com.sympauthy.business.manager.user
 
 import com.sympauthy.business.model.provider.ProviderUserInfo
-import com.sympauthy.business.model.user.CollectedUserInfo
-import com.sympauthy.business.model.user.RawUserInfo
+import com.sympauthy.business.model.user.CollectedClaim
+import com.sympauthy.business.model.user.RawProviderClaims
 import com.sympauthy.business.model.user.RawUserInfoBuilder
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.FAMILY_NAME
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.GIVEN_NAME
@@ -21,18 +21,18 @@ import java.util.*
  *   The chronological order is determined by the [ProviderUserInfo.updatedAt] field.
  *   The [ProviderUserInfo.changeDate] is used if the [ProviderUserInfo.updatedAt] field is null.
  *
- * - Then we apply the info we collected as a first-party that are stored in [collectedUserInfoList].
+ * - Then we apply the info we collected as a first-party that are stored in [collectedClaimList].
  *
  * - FIXME: Finally, we filter the user info that will be returned according to the [context].
  */
-internal class UserInfoMerger(
+internal class ClaimsMerger(
     // private val user: User,
     private val userId: UUID,
-    private val collectedUserInfoList: List<CollectedUserInfo>? = null,
+    private val collectedClaimList: List<CollectedClaim>? = null,
     private val providerUserInfoList: List<ProviderUserInfo> = emptyList()
 ) {
 
-    fun merge(): RawUserInfo {
+    fun merge(): RawProviderClaims {
         return RawUserInfoBuilder(userId).apply {
             merge(this)
         }.build()
@@ -41,7 +41,7 @@ internal class UserInfoMerger(
     internal fun merge(builder: RawUserInfoBuilder) {
         providerUserInfoList.sortedBy(::getUpdatedAt)
             .fold(builder, ::apply)
-        collectedUserInfoList?.let { apply(builder, it) }
+        collectedClaimList?.let { apply(builder, it) }
     }
 
     internal fun getUpdatedAt(providerUserInfo: ProviderUserInfo): LocalDateTime {
@@ -81,10 +81,10 @@ internal class UserInfoMerger(
 
     internal fun apply(
         builder: RawUserInfoBuilder,
-        collectedUserInfoList: List<CollectedUserInfo>
+        collectedClaimList: List<CollectedClaim>
     ): RawUserInfoBuilder {
         var updatedAt: LocalDateTime? = null
-        collectedUserInfoList.forEach { info ->
+        collectedClaimList.forEach { info ->
             when {
                 info.claim.id == NAME && info.value is String -> builder.withName(info.value)
                 info.claim.id == GIVEN_NAME && info.value is String -> builder.withGivenName(info.value)

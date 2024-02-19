@@ -1,117 +1,128 @@
 package com.sympauthy.business.model.user.claim
 
 import com.sympauthy.business.model.user.StandardScope
+import com.sympauthy.business.model.user.claim.ClaimDataType.STRING
+import com.sympauthy.business.model.user.claim.ClaimGroup.IDENTITY
 
 /**
  * Enumeration of claims, defined in the OpenID specification, that are supported by this application.
  *
  * TODO: Add standard address claims
- * TODO: Support custom claims
  *
  * @see <a href="https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims">Standard claims</a>
  */
 enum class OpenIdClaim(
     val id: String,
-    val dataType: ClaimDataType,
+    val type: ClaimDataType,
+    /**
+     * Group the claim is part of.
+     * Claims sharing the same [group] are related one to another.
+     * Ex. first name & last name.
+     */
+    val group: ClaimGroup? = null,
     /**
      * Scope that must be requested by the client to disclose the claim through the user endpoint.
      */
     val scope: StandardScope
 ) {
     SUBJECT(
-        Id.SUB,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.SUB,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     NAME(
-        Id.NAME,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.NAME,
+        type = STRING,
+        group = IDENTITY,
+        scope = StandardScope.PROFILE
     ),
     GIVEN_NAME(
-        Id.GIVEN_NAME,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.GIVEN_NAME,
+        type = STRING,
+        group = IDENTITY,
+        scope = StandardScope.PROFILE
     ),
     FAMILY_NAME(
-        Id.FAMILY_NAME,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.FAMILY_NAME,
+        type = STRING,
+        group = IDENTITY,
+        scope = StandardScope.PROFILE
     ),
     MIDDLE_NAME(
-        Id.MIDDLE_NAME,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.MIDDLE_NAME,
+        type = STRING,
+        group = IDENTITY,
+        scope = StandardScope.PROFILE
     ),
     NICKNAME(
-        Id.NICKNAME,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.NICKNAME,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     PREFERRED_USERNAME(
-        Id.PREFERRED_USERNAME,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.PREFERRED_USERNAME,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     PROFILE(
-        Id.PROFILE,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.PROFILE,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     PICTURE(
-        Id.PICTURE,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.PICTURE,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     WEBSITE(
-        Id.WEBSITE,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.WEBSITE,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     EMAIL(
-        Id.EMAIL,
-        ClaimDataType.STRING,
-        StandardScope.EMAIL
+        id = Id.EMAIL,
+        type = ClaimDataType.EMAIL,
+        scope = StandardScope.EMAIL
     ),
     EMAIL_VERIFIED(
         Id.EMAIL_VERIFIED,
-        ClaimDataType.STRING,
-        StandardScope.EMAIL
+        type = STRING,
+        scope = StandardScope.EMAIL
     ),
     GENDER(
-        Id.GENDER,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.GENDER,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     BIRTH_DATE(
-        Id.BIRTH_DATE,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.BIRTH_DATE,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     ZONE_INFO(
-        Id.ZONE_INFO,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.ZONE_INFO,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     LOCALE(
-        Id.LOCALE,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.LOCALE,
+        type = STRING,
+        scope = StandardScope.PROFILE
     ),
     PHONE_NUMBER(
-        Id.PHONE_NUMBER,
-        ClaimDataType.STRING,
-        StandardScope.PHONE
+        id = Id.PHONE_NUMBER,
+        type = STRING,
+        scope = StandardScope.PHONE
     ),
     PHONE_NUMBER_VERIFIED(
-        Id.PHONE_NUMBER_VERIFIED,
-        ClaimDataType.STRING,
-        StandardScope.PHONE
+        id = Id.PHONE_NUMBER_VERIFIED,
+        type = STRING,
+        scope = StandardScope.PHONE
     ),
     UPDATED_AT(
-        Id.UPDATED_AT,
-        ClaimDataType.STRING,
-        StandardScope.PROFILE
+        id = Id.UPDATED_AT,
+        type = STRING,
+        scope = StandardScope.PROFILE
     );
 
     object Id {

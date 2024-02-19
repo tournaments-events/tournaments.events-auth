@@ -5,14 +5,14 @@ import io.micronaut.serde.annotation.Serdeable
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Serdeable
-data class SignInResultResource(
+class SignUpResultResource(
     @get:Schema(
         description = """
 URL where the end-user must be redirected.
 
 The end-user will either:
-- continue the authentication flow. ex. if the end-user email address is not validated.
-- be redirected to the client if the authentication flow is completed.
+- continue the sign-up.
+- be redirected to the client if the account creation is completed.
         """
     )
     @JsonProperty("redirect_url")

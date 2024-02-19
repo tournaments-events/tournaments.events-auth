@@ -1,5 +1,6 @@
 package com.sympauthy.config.properties
 
+import com.sympauthy.config.properties.AdvancedConfigurationProperties.Companion.ADVANCED_KEY
 import com.sympauthy.config.properties.JwtConfigurationProperties.Companion.JWT_KEY
 import io.micronaut.context.annotation.ConfigurationProperties
 
@@ -9,6 +10,6 @@ interface JwtConfigurationProperties {
     val privateAlg: String?
 
     companion object {
-        const val JWT_KEY = "advanced.jwt"
+        const val JWT_KEY = "$ADVANCED_KEY.jwt"
     }
 }

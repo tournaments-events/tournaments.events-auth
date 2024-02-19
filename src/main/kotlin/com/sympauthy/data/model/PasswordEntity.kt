@@ -8,12 +8,17 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Serdeable
-@MappedEntity("users")
-data class UserEntity(
-    val status: String,
-    val creationDate: LocalDateTime
+@MappedEntity("passwords")
+class PasswordEntity(
+    val userId: UUID,
+
+    val salt: ByteArray,
+    val hashedPassword: ByteArray,
+
+    val creationDate: LocalDateTime = LocalDateTime.now(),
+    val expirationDate: LocalDateTime?
 ) {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     var id: UUID? = null
 }
-

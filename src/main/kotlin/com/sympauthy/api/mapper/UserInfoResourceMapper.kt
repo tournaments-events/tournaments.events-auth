@@ -2,7 +2,7 @@ package com.sympauthy.api.mapper
 
 import com.sympauthy.api.mapper.config.OutputResourceMapperConfig
 import com.sympauthy.api.resource.openid.UserInfoResource
-import com.sympauthy.business.model.user.RawUserInfo
+import com.sympauthy.business.model.user.RawProviderClaims
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
@@ -17,7 +17,7 @@ abstract class UserInfoResourceMapper {
     @Mappings(
         Mapping(target = "sub", source = "subject")
     )
-    abstract fun toResource(info: RawUserInfo): UserInfoResource
+    abstract fun toResource(info: RawProviderClaims): UserInfoResource
 
     fun toUpdatedAt(updatedAt: LocalDateTime?): Long? {
         return updatedAt?.toInstant(ZoneOffset.UTC)?.epochSecond

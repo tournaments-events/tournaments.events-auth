@@ -5,7 +5,7 @@ import com.sympauthy.business.mapper.ProviderUserInfoMapper
 import com.sympauthy.business.model.provider.EnabledProvider
 import com.sympauthy.business.model.provider.ProviderCredentials
 import com.sympauthy.business.model.provider.ProviderUserInfo
-import com.sympauthy.business.model.user.RawUserInfo
+import com.sympauthy.business.model.user.RawProviderClaims
 import com.sympauthy.client.UserInfoEndpointClient
 import com.sympauthy.data.repository.ProviderUserInfoRepository
 import jakarta.inject.Inject
@@ -14,7 +14,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Singleton
-class ProviderUserInfoManager(
+class ProviderClaimsManager(
     @Inject private val userInfoRepository: ProviderUserInfoRepository,
     @Inject private val userInfoEndpointClient: UserInfoEndpointClient,
     @Inject private val userInfoMapper: ProviderUserInfoMapper
@@ -38,7 +38,7 @@ class ProviderUserInfoManager(
     suspend fun fetchUserInfo(
         provider: EnabledProvider,
         credentials: ProviderCredentials
-    ): RawUserInfo {
+    ): RawProviderClaims {
         val rawUserInfoMap = userInfoEndpointClient.fetchUserInfo(
             userInfoConfig = provider.userInfo,
             credentials = credentials
@@ -46,7 +46,7 @@ class ProviderUserInfoManager(
 
         val document = JsonPath.parse(rawUserInfoMap)
         return provider.userInfo.paths.entries
-            .fold(RawProviderUserInfoBuilder()) { builder, (pathKey, path) ->
+            .fold(RawProviderClaimsBuilder()) { builder, (pathKey, path) ->
                 builder.withUserInfo(document, pathKey, path)
             }
             .build(provider)
@@ -55,13 +55,13 @@ class ProviderUserInfoManager(
     suspend fun saveUserInfo(
         provider: EnabledProvider,
         userId: UUID,
-        rawUserInfo: RawUserInfo
+        rawProviderClaims: RawProviderClaims
     ): ProviderUserInfo {
         val now = LocalDateTime.now()
         val entity = userInfoMapper.toEntity(
             providerId = provider.id,
             userId = userId,
-            userInfo = rawUserInfo,
+            userInfo = rawProviderClaims,
             fetchDate = now,
             changeDate = now
         )
@@ -71,7 +71,7 @@ class ProviderUserInfoManager(
 
     fun refreshUserInfo(
         existingUserInfo: ProviderUserInfo,
-        newUserInfo: RawUserInfo
+        newUserInfo: RawProviderClaims
     ) {
         if (existingUserInfo.userInfo == newUserInfo) {
             return

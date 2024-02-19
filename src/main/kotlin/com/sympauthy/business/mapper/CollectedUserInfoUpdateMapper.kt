@@ -1,9 +1,9 @@
 package com.sympauthy.business.mapper
 
 import com.sympauthy.business.mapper.config.ToEntityMapperConfig
-import com.sympauthy.business.model.user.CollectedUserInfoUpdate
+import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.claim.Claim
-import com.sympauthy.data.model.CollectedUserInfoEntity
+import com.sympauthy.data.model.CollectedClaimEntity
 import org.mapstruct.*
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -22,8 +22,8 @@ abstract class CollectedUserInfoUpdateMapper {
     @InheritInverseConfiguration
     abstract fun toEntity(
         userId: UUID,
-        update: CollectedUserInfoUpdate
-    ): CollectedUserInfoEntity
+        update: CollectedClaimUpdate
+    ): CollectedClaimEntity
 
     @Mappings(
         Mapping(target = "userId", ignore = true),
@@ -32,9 +32,9 @@ abstract class CollectedUserInfoUpdateMapper {
     )
     @InheritInverseConfiguration
     abstract fun updateEntity(
-        @MappingTarget entity: CollectedUserInfoEntity,
-        update: CollectedUserInfoUpdate
-    ): CollectedUserInfoEntity
+        @MappingTarget entity: CollectedClaimEntity,
+        update: CollectedClaimUpdate
+    ): CollectedClaimEntity
 
     fun toClaim(claim: Claim): String = claim.id
 

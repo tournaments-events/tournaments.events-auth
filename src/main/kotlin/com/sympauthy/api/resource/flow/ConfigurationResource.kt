@@ -51,7 +51,14 @@ Supported values are:
 - ```date```
         """
     )
-    val type: String
+    val type: String,
+    @get:Schema(
+        description = """
+Identifier of the group the claim is part of. Claims sharing the same group are related one to another.
+Ex. first name & last name are related to the identity of the end-user.
+        """
+    )
+    val group: String?
 )
 
 @Schema(

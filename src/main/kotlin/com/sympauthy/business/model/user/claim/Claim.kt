@@ -10,6 +10,10 @@ sealed class Claim(
      */
     val dataType: ClaimDataType,
     /**
+     *
+     */
+    val group: ClaimGroup?,
+    /**
      * True if the end-user MUST provide a value for this claim before completing any authentication flow
      * (either password or third-party providers).
      */

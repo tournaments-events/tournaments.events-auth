@@ -1,4 +1,4 @@
-package com.sympauthy.business.model.redirect
+package com.sympauthy.api.util
 
 import com.sympauthy.business.model.oauth2.AuthorizationCode
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt

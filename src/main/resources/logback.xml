@@ -12,6 +12,9 @@
     <!--
     <logger name="io.micronaut.context.condition" level="TRACE"/>
     -->
+    <!-- Enable the logging of the SQL queries.
+    <logger name="io.micronaut.data.query" level="TRACE"/>
+    -->
 
     <root level="info">
         <appender-ref ref="STDOUT" />

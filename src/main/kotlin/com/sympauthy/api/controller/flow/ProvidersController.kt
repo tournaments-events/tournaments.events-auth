@@ -3,11 +3,10 @@ package com.sympauthy.api.controller.flow
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
 import com.sympauthy.api.errorhandler.ExceptionConverter
 import com.sympauthy.api.mapper.ErrorResourceMapper
+import com.sympauthy.api.util.AuthorizationFlowRedirectBuilder
 import com.sympauthy.business.manager.auth.oauth2.Oauth2ProviderManager
 import com.sympauthy.business.manager.provider.ProviderConfigManager
 import com.sympauthy.business.manager.provider.ProviderManager
-import com.sympauthy.config.model.UrlsConfig
-import com.sympauthy.config.model.orThrow
 import com.sympauthy.security.SecurityRule.HAS_VALID_STATE
 import com.sympauthy.security.authorizeAttempt
 import com.sympauthy.util.loggerForClass
@@ -18,7 +17,6 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Error
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
-import io.micronaut.http.uri.UriBuilder
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.authentication.Authentication
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
@@ -33,7 +31,7 @@ class ProvidersController(
     @Inject private val providerManager: ProviderManager,
     @Inject private val providerConfigManager: ProviderConfigManager,
     @Inject private val exceptionConverter: ExceptionConverter,
-    @Inject private val urlsConfig: UrlsConfig,
+    @Inject private val redirectBuilder: AuthorizationFlowRedirectBuilder,
     @Inject private val errorResourceMapper: ErrorResourceMapper
 ) {
 
@@ -77,23 +75,20 @@ Following query parameters will be populated with information about the error:
         @QueryValue("error_description") errorDescription: String?,
         @QueryValue("state") serializedState: String?
     ): HttpResponse<*> {
-        val redirectUri = if (code != null) {
+        return if (code != null) {
             val provider = providerConfigManager.findEnabledProviderById(providerId)
             val redirect = oauth2ProviderManager.handleCallback(
                 provider = provider,
                 authorizeCode = code,
                 state = serializedState
             )
-            redirect.build()
+            HttpResponse.temporaryRedirect<Any>(redirect.build())
         } else {
-            urlsConfig.orThrow().flow.error.let(UriBuilder::of)
-                .apply {
-                    error?.let { queryParam("error_code", it) }
-                    errorDescription?.let { queryParam("details", it) }
-                }
-                .build()
+            redirectBuilder.redirectToError(
+                errorCode = error,
+                details = errorDescription
+            )
         }
-        return HttpResponse.temporaryRedirect<Any>(redirectUri)
     }
 
     /**
@@ -101,7 +96,7 @@ Following query parameters will be populated with information about the error:
      * we need to redirect it back to flow UI with the details about the error.
      */
     @Error
-    fun redirectToErrorPage(
+    suspend fun redirectToErrorPage(
         request: HttpRequest<*>,
         throwable: Throwable
     ): HttpResponse<*> {
@@ -114,15 +109,11 @@ Following query parameters will be populated with information about the error:
 
         val resource = errorResourceMapper.toResource(exception, locale)
 
-        val redirectUrl = urlsConfig.orThrow().flow.error.let(UriBuilder::of)
-            .apply {
-                queryParam("error_code", resource.errorCode)
-                resource.details?.let { queryParam("details", it) }
-                resource.details?.let { queryParam("description", it) }
-            }
-            .build()
-
-        return HttpResponse.temporaryRedirect<Any>(redirectUrl)
+        return redirectBuilder.redirectToError(
+            errorCode = resource.errorCode,
+            details = resource.details,
+            description = resource.description
+        )
     }
 
     companion object {

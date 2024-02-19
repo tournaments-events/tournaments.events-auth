@@ -2,10 +2,11 @@ package com.sympauthy.business.manager.auth.oauth2
 
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_CALLBACK_ENDPOINT
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
+import com.sympauthy.api.util.AuthorizeRedirect
 import com.sympauthy.business.exception.businessExceptionOf
-import com.sympauthy.business.manager.provider.ProviderUserInfoManager
-import com.sympauthy.business.manager.user.ClaimManager
-import com.sympauthy.business.manager.user.CollectedUserInfoManager
+import com.sympauthy.business.manager.ClaimManager
+import com.sympauthy.business.manager.provider.ProviderClaimsManager
+import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.user.CreateOrAssociateResult
 import com.sympauthy.business.manager.user.UserManager
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
@@ -14,10 +15,9 @@ import com.sympauthy.business.model.provider.Provider
 import com.sympauthy.business.model.provider.config.ProviderOauth2Config
 import com.sympauthy.business.model.provider.oauth2.ProviderOAuth2TokenRequest
 import com.sympauthy.business.model.provider.oauth2.ProviderOauth2Tokens
-import com.sympauthy.business.model.redirect.AuthorizeRedirect
 import com.sympauthy.business.model.redirect.ProviderOauth2AuthorizationRedirect
-import com.sympauthy.business.model.user.CollectedUserInfoUpdate
-import com.sympauthy.business.model.user.RawUserInfo
+import com.sympauthy.business.model.user.CollectedClaimUpdate
+import com.sympauthy.business.model.user.RawProviderClaims
 import com.sympauthy.business.model.user.UserMergingStrategy.BY_MAIL
 import com.sympauthy.business.model.user.UserMergingStrategy.NONE
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.EMAIL
@@ -42,9 +42,9 @@ open class Oauth2ProviderManager(
     @Inject private val authorizationCodeManager: AuthorizationCodeManager,
     @Inject private val authorizeManager: AuthorizeManager,
     @Inject private val claimManager: ClaimManager,
-    @Inject private val collectedUserInfoManager: CollectedUserInfoManager,
+    @Inject private val collectedClaimManager: CollectedClaimManager,
     @Inject private val userManager: UserManager,
-    @Inject private val providerUserInfoManager: ProviderUserInfoManager,
+    @Inject private val providerClaimsManager: ProviderClaimsManager,
     @Inject private val stateManager: AuthorizeManager,
     @Inject private val tokenEndpointClient: TokenEndpointClient,
     @Inject private val uncheckedAdvancedConfig: AdvancedConfig,
@@ -93,9 +93,9 @@ open class Oauth2ProviderManager(
         val oauth2 = getOauth2(provider)
         val authentication = fetchTokens(provider, oauth2, authorizeCode)
 
-        val rawUserInfo = providerUserInfoManager.fetchUserInfo(provider, authentication)
+        val rawUserInfo = providerClaimsManager.fetchUserInfo(provider, authentication)
 
-        val existingUserInfo = providerUserInfoManager.findByProviderAndSubject(
+        val existingUserInfo = providerClaimsManager.findByProviderAndSubject(
             provider = provider,
             subject = rawUserInfo.subject
         )
@@ -103,11 +103,12 @@ open class Oauth2ProviderManager(
         val userId = if (existingUserInfo == null) {
             createOrAssociateUserWithProviderUserInfo(provider, rawUserInfo).user.id
         } else {
-            providerUserInfoManager.refreshUserInfo(existingUserInfo, rawUserInfo)
+            providerClaimsManager.refreshUserInfo(existingUserInfo, rawUserInfo)
             existingUserInfo.userId
         }
         authorizeManager.setAuthenticatedUserId(authorizeAttempt, userId)
 
+        // TODO: call
         // TODO: add redirection to complete user info.
         // TODO: add redirection to verify email.
 
@@ -127,7 +128,7 @@ open class Oauth2ProviderManager(
     @Transactional
     open suspend fun createOrAssociateUserWithProviderUserInfo(
         provider: EnabledProvider,
-        providerUserInfo: RawUserInfo
+        providerUserInfo: RawProviderClaims
     ): CreateOrAssociateResult {
         return when (uncheckedAdvancedConfig.orThrow().userMergingStrategy) {
             BY_MAIL -> createOrAssociateUserByEmailWithProviderUserInfo(provider, providerUserInfo)
@@ -149,7 +150,7 @@ open class Oauth2ProviderManager(
     @Transactional
     internal open suspend fun createOrAssociateUserByEmailWithProviderUserInfo(
         provider: EnabledProvider,
-        providerUserInfo: RawUserInfo
+        providerUserInfo: RawProviderClaims
     ): CreateOrAssociateResult {
         val email = providerUserInfo.email ?: throw httpExceptionOf(
             INTERNAL_SERVER_ERROR, "user.create_with_provider.missing_email",
@@ -161,13 +162,13 @@ open class Oauth2ProviderManager(
         val existingUser = userManager.findByEmail(email)
         val user = existingUser
             ?: userManager.createUser().apply {
-                collectedUserInfoManager.updateUserInfo(
+                collectedClaimManager.updateUserInfo(
                     // We use the admin context as the email may not be part of the claims requested by the client
                     // but is necessary for the merging strategy to work.
                     context = AdminContext,
                     user = this,
                     updates = listOf(
-                        CollectedUserInfoUpdate(
+                        CollectedClaimUpdate(
                             claim = emailClaim,
                             value = Optional.of(email)
                         )
@@ -175,10 +176,10 @@ open class Oauth2ProviderManager(
                 )
             }
 
-        providerUserInfoManager.saveUserInfo(
+        providerClaimsManager.saveUserInfo(
             provider = provider,
             userId = user.id,
-            rawUserInfo = providerUserInfo
+            rawProviderClaims = providerUserInfo
         )
         return CreateOrAssociateResult(
             created = existingUser == null,
@@ -189,7 +190,7 @@ open class Oauth2ProviderManager(
     @Transactional
     internal open suspend fun createUserWithProviderUserInfo(
         provider: EnabledProvider,
-        providerUserInfo: RawUserInfo
+        providerUserInfo: RawProviderClaims
     ): CreateOrAssociateResult {
         TODO("FIXME")
     }

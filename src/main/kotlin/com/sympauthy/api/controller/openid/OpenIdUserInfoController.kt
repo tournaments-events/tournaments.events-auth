@@ -3,7 +3,7 @@ package com.sympauthy.api.controller.openid
 import com.sympauthy.api.controller.openid.OpenIdUserInfoController.Companion.OPENID_USERINFO_ENDPOINT
 import com.sympauthy.api.mapper.UserInfoResourceMapper
 import com.sympauthy.api.resource.openid.UserInfoResource
-import com.sympauthy.business.manager.user.UserInfoManager
+import com.sympauthy.business.manager.user.AggregatedClaimsManager
 import com.sympauthy.business.security.AdminContext
 import com.sympauthy.security.userId
 import io.micronaut.http.annotation.Controller
@@ -18,7 +18,7 @@ import jakarta.inject.Inject
 @Controller(OPENID_USERINFO_ENDPOINT)
 @Secured(IS_AUTHENTICATED)
 class OpenIdUserInfoController(
-    @Inject private val userInfoManager: UserInfoManager,
+    @Inject private val aggregatedClaimsManager: AggregatedClaimsManager,
     @Inject private val userInfoMapper: UserInfoResourceMapper
 ) {
 
@@ -33,7 +33,7 @@ class OpenIdUserInfoController(
     suspend fun getUserInfo(
         authentication: Authentication
     ): UserInfoResource {
-        val userInfo = userInfoManager.aggregateUserInfo(
+        val userInfo = aggregatedClaimsManager.aggregateClaims(
             context = AdminContext, // FIXME Generate context from authentication
             userId = authentication.userId
         )

@@ -1,7 +1,7 @@
 package com.sympauthy.business.manager.auth.oauth2
 
 import com.sympauthy.api.exception.oauth2ExceptionOf
-import com.sympauthy.business.manager.key.RandomKeyGenerator
+import com.sympauthy.business.manager.RandomGenerator
 import com.sympauthy.business.mapper.AuthorizationCodeMapper
 import com.sympauthy.business.model.oauth2.AuthorizationCode
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
@@ -13,11 +13,15 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.time.LocalDateTime
 
+/**
+ * Manager in charge of generating the authorization code that will be exchange by the client against
+ * the access, refresh and id tokens.
+ */
 @Singleton
 class AuthorizationCodeManager(
     @Inject private val authorizeCodeRepository: AuthorizationCodeRepository,
     @Inject private val authorizationCodeMapper: AuthorizationCodeMapper,
-    @Inject private val randomKeyGenerator: RandomKeyGenerator
+    @Inject private val randomGenerator: RandomGenerator
 ) {
 
     suspend fun generateCode(
@@ -25,7 +29,7 @@ class AuthorizationCodeManager(
     ): AuthorizationCode {
         val entity = AuthorizationCodeEntity(
             attemptId = authorizeAttempt.id,
-            code = randomKeyGenerator.generateKey(),
+            code = randomGenerator.generateAndEncodeToBase64(),
             creationDate = LocalDateTime.now(),
             // We copy the expiration to simplify the cleanup code.
             expirationDate = authorizeAttempt.expirationDate

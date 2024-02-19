@@ -1,6 +1,6 @@
 package com.sympauthy.business.mapper
 
-import com.sympauthy.business.manager.user.ClaimManager
+import com.sympauthy.business.manager.ClaimManager
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton
 import org.mapstruct.factory.Mappers
@@ -21,8 +21,8 @@ class BusinessMapperFactory {
     fun collectedUserInfoMapper(
         claimManager: ClaimManager,
         claimValueMapper: ClaimValueMapper
-    ): CollectedUserInfoMapper {
-        return Mappers.getMapper(CollectedUserInfoMapper::class.java).also {
+    ): CollectedClaimMapper {
+        return Mappers.getMapper(CollectedClaimMapper::class.java).also {
             it.claimManager = claimManager
             it.claimValueMapper = claimValueMapper
         }

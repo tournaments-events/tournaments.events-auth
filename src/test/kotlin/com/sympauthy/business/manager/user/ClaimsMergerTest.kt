@@ -1,8 +1,8 @@
 package com.sympauthy.business.manager.user
 
 import com.sympauthy.business.model.provider.ProviderUserInfo
-import com.sympauthy.business.model.user.CollectedUserInfo
-import com.sympauthy.business.model.user.RawUserInfo
+import com.sympauthy.business.model.user.CollectedClaim
+import com.sympauthy.business.model.user.RawProviderClaims
 import com.sympauthy.business.model.user.RawUserInfoBuilder
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
@@ -18,34 +18,34 @@ import java.util.*
 
 @ExtendWith(MockKExtension::class)
 @MockKExtension.CheckUnnecessaryStub
-class UserInfoMergerTest {
+class ClaimsMergerTest {
 
     @Test
     fun `merge - Providers in chronological order then collected`() {
         val userId = UUID.randomUUID()
         val builder = mockk<RawUserInfoBuilder>()
-        val collectedUserInfoList = mockk<List<CollectedUserInfo>>()
+        val collectedClaimList = mockk<List<CollectedClaim>>()
         val providerUserInfo1 = mockk<ProviderUserInfo>()
         val providerUserInfo2 = mockk<ProviderUserInfo>()
 
         val merger = spyk(
-            UserInfoMerger(
+            ClaimsMerger(
                 userId = userId,
-                collectedUserInfoList = collectedUserInfoList,
+                collectedClaimList = collectedClaimList,
                 providerUserInfoList = listOf(providerUserInfo1, providerUserInfo2)
             )
         )
         every { merger.getUpdatedAt(providerUserInfo1) } returns now()
         every { merger.getUpdatedAt(providerUserInfo2) } returns now().minusDays(1)
         every { merger.apply(any(), any<ProviderUserInfo>()) } returns builder
-        every { merger.apply(any(), any<List<CollectedUserInfo>>()) } returns builder
+        every { merger.apply(any(), any<List<CollectedClaim>>()) } returns builder
 
         merger.merge(builder)
 
         verifyOrder {
             merger.apply(builder, providerUserInfo2)
             merger.apply(builder, providerUserInfo1)
-            merger.apply(builder, collectedUserInfoList)
+            merger.apply(builder, collectedClaimList)
         }
     }
 
@@ -57,7 +57,7 @@ class UserInfoMergerTest {
 
         every { providerUserInfo.userInfo } returns providerRawInfo
 
-        val merger = UserInfoMerger(mockk(), mockk(), mockk())
+        val merger = ClaimsMerger(mockk(), mockk(), mockk())
         val rawInfo = merger.apply(
             RawUserInfoBuilder(userId),
             providerUserInfo
@@ -66,7 +66,7 @@ class UserInfoMergerTest {
         assertEquals(providerRawInfo, rawInfo)
     }
 
-    private fun fullRawInfo(userId: UUID) = RawUserInfo(
+    private fun fullRawInfo(userId: UUID) = RawProviderClaims(
         subject = userId.toString(),
 
         name = "name",

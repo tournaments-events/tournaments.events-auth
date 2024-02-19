@@ -7,8 +7,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Serdeable
-@MappedEntity("collected_user_info")
-class CollectedUserInfoEntity(
+@MappedEntity("collected_claims")
+class CollectedClaimEntity(
     @get:Id var userId: UUID,
     var claim: String,
     var value: String?,

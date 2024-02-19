@@ -19,6 +19,7 @@ extra.apply {
     set("mapStructVersion", "1.5.1.Final")
     set("javaJwtVersion", "4.4.0")
     set("jsonPathVersion", "2.8.0")
+    set("bouncyCastleVersion", "1.77")
 
     // Test dependencies
     set("junitJupiterVersion", "5.10.1")
@@ -60,6 +61,7 @@ dependencies {
     implementation("io.micronaut.security:micronaut-security-oauth2")
     implementation("io.micronaut.security:micronaut-security-jwt")
     implementation("com.auth0:java-jwt:${project.extra["javaJwtVersion"]}")
+    implementation("org.bouncycastle:bcprov-jdk18on:${project.extra["bouncyCastleVersion"]}")
 
     // Reactive programming
     implementation("io.micronaut.rxjava3:micronaut-rxjava3")

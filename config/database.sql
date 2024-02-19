@@ -7,26 +7,39 @@ CREATE TABLE users
 (
     id              uuid      NOT NULL DEFAULT gen_random_uuid(),
     status          text      NOT NULL,
-
-    password        text,
-    password_status text,
-
     creation_date   timestamp NOT NULL,
     PRIMARY KEY (id)
 );
 
-CREATE TABLE collected_user_info
+CREATE TABLE collected_claims
 (
     user_id         uuid      NOT NULL,
     collection_date timestamp NOT NULL,
     claim           text      NOT NULL,
     value           text,
     verified        boolean,
-    PRIMARY KEY (user_id)
+    PRIMARY KEY (user_id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE INDEX collected_user_info__login_claims ON collected_user_info (claim, value)
+CREATE INDEX collected_user_info__login_claims ON collected_claims (claim, value)
     WHERE claim = 'preferred_username' OR claim = 'email' OR claim = 'phone_number';
+
+CREATE TABLE passwords
+(
+    id              uuid      NOT NULL DEFAULT gen_random_uuid(),
+    user_id         uuid      NOT NULL,
+
+    salt            bytea     NOT NULL,
+    hashed_password bytea     NOT NULL,
+
+    creation_date   timestamp NOT NULL,
+    expiration_date timestamp,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+CREATE INDEX passwords__user_id ON passwords (user_id);
 
 -- Provider-related tables
 
@@ -63,7 +76,8 @@ CREATE TABLE provider_user_info
     phone_number_verified boolean,
 
     updated_at            timestamp,
-    PRIMARY KEY (provider_id, user_id)
+    PRIMARY KEY (provider_id, user_id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 CREATE INDEX provider_user_info__user_id ON provider_user_info (user_id);
@@ -82,7 +96,8 @@ CREATE TABLE authorize_attempts
 
     attempt_date    timestamp NOT NULL,
     expiration_date timestamp NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 CREATE INDEX authorize_attempts__state ON authorize_attempts (state);
@@ -93,7 +108,8 @@ CREATE TABLE authorization_codes
     code            text      NOT NULL,
     creation_date   timestamp NOT NULL,
     expiration_date timestamp NOT NULL,
-    PRIMARY KEY (attempt_id)
+    PRIMARY KEY (attempt_id),
+    FOREIGN KEY (attempt_id) REFERENCES authorize_attempts (id)
 );
 
 CREATE INDEX authorization_codes__code ON authorization_codes (code);
@@ -110,7 +126,8 @@ CREATE TABLE authentication_tokens
     revoked              boolean   NOT NULL,
     issue_date           timestamp NOT NULL,
     expiration_date      timestamp,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 -- Cryptographic keys table

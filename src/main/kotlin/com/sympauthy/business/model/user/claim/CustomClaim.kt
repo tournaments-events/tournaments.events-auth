@@ -7,6 +7,7 @@ class CustomClaim(
 ): Claim(
     id = id,
     dataType = dataType,
+    group = null,
     required = required
 ) {
     override val readScopeTokens = emptySet<String>()

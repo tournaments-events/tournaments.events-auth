@@ -1,6 +1,6 @@
 package com.sympauthy.business.model.provider
 
-import com.sympauthy.business.model.user.RawUserInfo
+import com.sympauthy.business.model.user.RawProviderClaims
 import java.time.LocalDateTime
 import java.util.*
 
@@ -22,5 +22,5 @@ data class ProviderUserInfo(
      */
     val changeDate: LocalDateTime,
     // FIXME: val idToken: String Store the id token we have used to extract those info.
-    val userInfo: RawUserInfo
+    val userInfo: RawProviderClaims
 )

@@ -2,7 +2,7 @@ package com.sympauthy.business.mapper
 
 import com.sympauthy.business.mapper.config.ToBusinessMapperConfig
 import com.sympauthy.business.model.provider.ProviderUserInfo
-import com.sympauthy.business.model.user.RawUserInfo
+import com.sympauthy.business.model.user.RawProviderClaims
 import com.sympauthy.data.model.ProviderUserInfoEntity
 import com.sympauthy.data.model.ProviderUserInfoEntityId
 import org.mapstruct.InheritInverseConfiguration
@@ -24,7 +24,7 @@ interface ProviderUserInfoMapper {
     )
     fun toProviderUserInfo(entity: ProviderUserInfoEntity): ProviderUserInfo
 
-    fun toRawProviderUserInfo(entity: ProviderUserInfoEntity): RawUserInfo
+    fun toRawProviderUserInfo(entity: ProviderUserInfoEntity): RawProviderClaims
 
     @InheritInverseConfiguration
     @Mappings(
@@ -33,7 +33,7 @@ interface ProviderUserInfoMapper {
     fun toEntity(
         providerId: String,
         userId: UUID,
-        userInfo: RawUserInfo,
+        userInfo: RawProviderClaims,
         fetchDate: LocalDateTime,
         changeDate: LocalDateTime
     ): ProviderUserInfoEntity

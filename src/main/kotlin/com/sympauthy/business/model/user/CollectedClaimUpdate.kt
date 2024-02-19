@@ -6,7 +6,7 @@ import java.util.*
 /**
  * An update for a claim collected from the user by this authorization server as a first-party.
  */
-data class CollectedUserInfoUpdate(
+data class CollectedClaimUpdate(
     /**
      * Claim to update.
      */

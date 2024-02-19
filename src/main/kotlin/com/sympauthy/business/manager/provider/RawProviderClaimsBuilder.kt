@@ -6,7 +6,7 @@ import com.sympauthy.business.exception.businessExceptionOf
 import com.sympauthy.business.model.provider.EnabledProvider
 import com.sympauthy.business.model.provider.ProviderUserInfoPathKey
 import com.sympauthy.business.model.provider.ProviderUserInfoPathKey.*
-import com.sympauthy.business.model.user.RawUserInfo
+import com.sympauthy.business.model.user.RawProviderClaims
 import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import java.time.Instant
 import java.time.LocalDate
@@ -15,7 +15,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
-class RawProviderUserInfoBuilder {
+class RawProviderClaimsBuilder {
     var subject: String? = null
     var name: String? = null
     var givenName: String? = null
@@ -40,7 +40,7 @@ class RawProviderUserInfoBuilder {
         document: DocumentContext,
         pathKey: ProviderUserInfoPathKey,
         path: JsonPath
-    ): RawProviderUserInfoBuilder {
+    ): RawProviderClaimsBuilder {
         when (pathKey) {
             SUB -> subject = readString(document, path)
             NAME -> name = readString(document, path)
@@ -90,8 +90,8 @@ class RawProviderUserInfoBuilder {
             ?.let { LocalDateTime.ofInstant(it, ZoneId.of("UTC")) }
     }
 
-    fun build(provider: EnabledProvider): RawUserInfo {
-        return RawUserInfo(
+    fun build(provider: EnabledProvider): RawProviderClaims {
+        return RawProviderClaims(
             subject = subject ?: throw businessExceptionOf(
                 INTERNAL_SERVER_ERROR, "provider.user_info.missing_subject",
                 "providerId" to provider.id

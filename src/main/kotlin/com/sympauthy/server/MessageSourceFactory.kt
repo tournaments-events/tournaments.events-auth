@@ -1,5 +1,6 @@
 package com.sympauthy.server
 
+import com.sympauthy.util.DEFAULT_LOCALE
 import io.micronaut.context.MessageSource
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.i18n.ResourceBundleMessageSource
@@ -23,12 +24,12 @@ class MessageSourceFactory {
     @Singleton
     @ErrorMessages
     fun provideErrorMessageSource(): MessageSource {
-        return ResourceBundleMessageSource("error_messages")
+        return ResourceBundleMessageSource("error_messages", DEFAULT_LOCALE)
     }
 
     @Singleton
     @DisplayMessages
     fun provideDisplayMessageSource(): MessageSource {
-        return ResourceBundleMessageSource("display_messages")
+        return ResourceBundleMessageSource("display_messages", DEFAULT_LOCALE)
     }
 }

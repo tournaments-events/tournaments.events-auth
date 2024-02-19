@@ -3,16 +3,14 @@ package com.sympauthy.api.controller.oauth2
 import com.sympauthy.api.controller.oauth2.AuthorizeController.Companion.OAUTH2_AUTHORIZE_ENDPOINT
 import com.sympauthy.api.exception.OAuth2Exception
 import com.sympauthy.api.exception.oauth2ExceptionOf
+import com.sympauthy.api.util.AuthorizationFlowRedirectBuilder
 import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
-import com.sympauthy.config.model.UrlsConfig
-import com.sympauthy.config.model.orThrow
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
-import io.micronaut.http.uri.UriBuilder
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.swagger.v3.oas.annotations.ExternalDocumentation
@@ -26,7 +24,7 @@ import jakarta.inject.Inject
 @Secured(IS_ANONYMOUS)
 open class AuthorizeController(
     @Inject private val authorizeManager: AuthorizeManager,
-    @Inject private val urlsConfig: UrlsConfig
+    @Inject private val responseBuilder: AuthorizationFlowRedirectBuilder
 ) {
 
     @Operation(
@@ -97,7 +95,7 @@ The authorization server includes this value when redirecting the user-agent bac
         scope: String?, // FIXME: Use scope
         @QueryValue("state")
         state: String?
-    ): HttpResponse<String> {
+    ): HttpResponse<*> {
         // FIXME Check client is registered
         val clientId = uncheckedClientId ?: throw OAuth2Exception(
             INVALID_REQUEST, "authorize.client_id.missing"
@@ -116,23 +114,17 @@ The authorization server includes this value when redirecting the user-agent bac
         }
     }
 
-    internal suspend fun authorizeWithCodeFlow(
+    private suspend fun authorizeWithCodeFlow(
         clientId: String,
         clientState: String?,
         uncheckedRedirectUri: String?
-    ): HttpResponse<String> {
-        val builder = urlsConfig.orThrow().flow.signIn.let(UriBuilder::of)
-
-        val state = authorizeManager.newAuthorizeAttempt(
+    ): HttpResponse<*> {
+        val authorizeAttempt = authorizeManager.newAuthorizeAttempt(
             clientId = clientId,
             clientState = clientState,
             uncheckedRedirectUri = uncheckedRedirectUri,
         )
-        val encodedState = authorizeManager.encodeState(state)
-
-        return builder.queryParam("state", encodedState)
-            .build()
-            .let { HttpResponse.redirect(it) }
+        return responseBuilder.redirectToSignIn(authorizeAttempt)
     }
 
     companion object {

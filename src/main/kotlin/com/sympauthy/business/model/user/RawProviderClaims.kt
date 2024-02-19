@@ -12,7 +12,7 @@ import java.util.*
  * The list of information we can collect is based on the list of information exposed by the
  * [OpenId user info endpoint](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo).
  */
-data class RawUserInfo(
+data class RawProviderClaims(
     val subject: String,
 
     val name: String? = null,
@@ -129,7 +129,7 @@ class RawUserInfoBuilder(
         this.updatedAt = updatedAt
     }
 
-    fun build() = RawUserInfo(
+    fun build() = RawProviderClaims(
         subject = userId.toString(),
 
         name = name,

@@ -1,15 +1,15 @@
 package com.sympauthy.business.mapper
 
-import com.sympauthy.business.manager.user.ClaimManager
+import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.mapper.config.ToBusinessMapperConfig
-import com.sympauthy.business.model.user.CollectedUserInfo
-import com.sympauthy.data.model.CollectedUserInfoEntity
+import com.sympauthy.business.model.user.CollectedClaim
+import com.sympauthy.data.model.CollectedClaimEntity
 import org.mapstruct.Mapper
 
 @Mapper(
     config = ToBusinessMapperConfig::class
 )
-abstract class CollectedUserInfoMapper {
+abstract class CollectedClaimMapper {
 
     lateinit var claimManager: ClaimManager
 
@@ -21,12 +21,12 @@ abstract class CollectedUserInfoMapper {
      * Return null if the user info cannot be converted back. For example, if the data type of custom claim
      * has changed and the data cannot be deserialized anymore.
      */
-    fun toCollectedUserInfo(entity: CollectedUserInfoEntity): CollectedUserInfo? {
+    fun toCollectedClaim(entity: CollectedClaimEntity): CollectedClaim? {
         val claim = claimManager.findById(entity.claim) ?: return null
         val value = if (entity.value != null) {
             claimValueMapper.toBusiness(entity.value, claim.dataType) ?: return null
         } else null
-        return CollectedUserInfo(
+        return CollectedClaim(
             userId = entity.userId,
             claim = claim,
             value = value,
