@@ -18,7 +18,13 @@ class SignUpFlowManager(
     @Inject private val claimValueMapper: ClaimValueMapper
 ) {
 
-    internal suspend fun checkForConflictingUsers(claims: List<CollectedClaimUpdate>) {
+    /**
+     * Throws a [LocalizedHttpException] if any of the [claims] conflict with another user login.
+     *
+     * As a user can use any of the provided [claims] to login, we must ensure that the values are unique
+     * to a user and across the claims.
+     */
+    suspend fun checkForConflictingUsers(claims: List<CollectedClaimUpdate>) {
         val claimIds = claims.map { it.claim.id }
         val values = claims
             .mapNotNull { it.value?.getOrNull() }
@@ -32,17 +38,25 @@ class SignUpFlowManager(
     suspend fun checkIfSignUpIsComplete(
         user: User,
         collectedClaims: List<CollectedClaim>
-    ): SignUpResult {
+    ): SignInOrSignUpResult {
         // TODO: Check if we have verified the email.
         // TODO: Check if we have collected enough claim to continue.
-        return SignUpResult(
+        return SignInOrSignUpResult(
             user = user,
             complete = true
         )
     }
 }
 
-data class SignUpResult(
+data class SignInResult(
+    val user: User,
+    /**
+     * True if the sign-up is complete and the user can be redirected to the client.
+     */
+    val complete: Boolean
+)
+
+data class SignInOrSignUpResult(
     val user: User,
     /**
      * True if the sign-up is complete and the user can be redirected to the client.

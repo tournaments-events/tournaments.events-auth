@@ -2,8 +2,8 @@ package com.sympauthy.business.manager.password
 
 import com.sympauthy.business.exception.businessExceptionOf
 import com.sympauthy.business.manager.ClaimManager
+import com.sympauthy.business.manager.SignInOrSignUpResult
 import com.sympauthy.business.manager.SignUpFlowManager
-import com.sympauthy.business.manager.SignUpResult
 import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.user.UserManager
 import com.sympauthy.business.mapper.ClaimValueMapper
@@ -75,7 +75,7 @@ open class PasswordFlowManager(
     suspend fun signInWithPassword(
         login: String?,
         password: String?
-    ): User {
+    ): SignInOrSignUpResult {
         if (!signInEnabled) {
             throw httpExceptionOf(BAD_REQUEST, "password.flow.sign_in.disabled")
         }
@@ -90,10 +90,18 @@ open class PasswordFlowManager(
         }
 
         if (!passwordManager.arePasswordMatching(user, password)) {
-
+            throw httpExceptionOf(BAD_REQUEST, "password.flow.sign_in.invalid")
         }
 
-        return user
+        // Check if sign-up is completed
+        val claims = collectedClaimManager.findReadableUserInfoByUserId(
+            context = AdminContext,
+            userId = user.id
+        )
+        return signUpFlowManager.checkIfSignUpIsComplete(
+            user = user,
+            collectedClaims = claims
+        )
     }
 
     /**
@@ -119,7 +127,7 @@ open class PasswordFlowManager(
     open suspend fun signUpWithClaimsAndPassword(
         unfilteredUpdates: List<CollectedClaimUpdate>,
         password: String
-    ): SignUpResult {
+    ): SignInOrSignUpResult {
         val claimUpdateMap = getSignUpClaims().associateWith { claim ->
             unfilteredUpdates.firstOrNull { it.claim == claim }
         }

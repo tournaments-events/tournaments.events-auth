@@ -2,6 +2,7 @@ package com.sympauthy.api.controller.flow
 
 import com.sympauthy.api.resource.flow.SignInInputResource
 import com.sympauthy.api.resource.flow.SignInResultResource
+import com.sympauthy.api.util.AuthorizationFlowRedirectUriBuilder
 import com.sympauthy.business.manager.password.PasswordFlowManager
 import com.sympauthy.security.authorizeAttempt
 import io.micronaut.http.annotation.Body
@@ -20,7 +21,8 @@ import jakarta.inject.Inject
 @Controller("/api/v1/flow/sign-in")
 @Secured(IS_ANONYMOUS)
 class SignInController(
-    @Inject private val passwordFlowManager: PasswordFlowManager
+    @Inject private val passwordFlowManager: PasswordFlowManager,
+    @Inject private val authorizationFlowRedirectUriBuilder: AuthorizationFlowRedirectUriBuilder,
 ) {
 
     @Operation(
@@ -39,14 +41,14 @@ class SignInController(
         authentication: Authentication,
         @Body inputResource: SignInInputResource
     ): SignInResultResource {
-        val authorizeAttempt = authentication.authorizeAttempt
+        val attempt = authentication.authorizeAttempt
 
-        val user = passwordFlowManager.signInWithPassword(
+        val result = passwordFlowManager.signInWithPassword(
             login = inputResource.login,
             password = inputResource.password
         )
-        return SignInResultResource(
-            redirectUrl = authorizeAttempt.redirectUri
-        )
+        return authorizationFlowRedirectUriBuilder.getRedirectUri(attempt, result)
+            .toString()
+            .let(::SignInResultResource)
     }
 }
