@@ -1,0 +1,27 @@
+name: Deploy changes of the develop every night.
+
+env:
+  JAVA_VERSION: 17
+  GRAALVM_DISTRIBUTION: 'mandrel'
+
+on:
+  # Automatically publish at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * *'
+  # Allow manually triggering from the web interface
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build sympauthy native image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Graalvm for JDK ${{ env.JAVA_VERSION }}
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.GRAALVM_DISTRIBUTION }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build docker image
+        run: ./gradlew jibDockerBuild

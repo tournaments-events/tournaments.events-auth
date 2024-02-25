@@ -1,5 +1,11 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
+buildscript {
+    dependencies {
+        classpath("com.google.cloud.tools:jib-native-image-extension-gradle:0.1.0")
+    }
+}
+
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.21"
     id("org.jetbrains.kotlin.kapt") version "1.9.21"
@@ -120,6 +126,30 @@ kotlin {
     }
 }
 
+micronaut {
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("com.sympauthy.*")
+    }
+}
+
+graalvmNative {
+    toolchainDetection.set(true)
+}
+
+jib {
+    pluginExtensions {
+        pluginExtension {
+            implementation = "com.google.cloud.tools.jib.gradle.extension.nativeimage.JibNativeImageExtension"
+            properties = mapOf(
+                "imageName" to "sympauthy"
+            )
+        }
+    }
+}
+
 tasks {
     compileKotlin {
         kotlinOptions {
@@ -138,20 +168,5 @@ tasks {
                 PASSED, SKIPPED, FAILED, STANDARD_ERROR, STANDARD_OUT
             )
         }
-    }
-    jib {
-        to {
-            image = "sympauthy"
-        }
-    }
-}
-
-graalvmNative.toolchainDetection.set(false)
-micronaut {
-    runtime("netty")
-    testRuntime("junit5")
-    processing {
-        incremental(true)
-        annotations("com.sympauthy.*")
     }
 }
