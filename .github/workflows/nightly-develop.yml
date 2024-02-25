@@ -27,7 +27,7 @@ jobs:
       - name: Retrieve native image from cache
         uses: actions/download-artifact@v4
         with:
-          name: sympauhty-binary
+          name: sympauthy-binary
           path: .github/docker/arch
 
       - name: Build & Push SympAuthy docker image
