@@ -11,28 +11,4 @@ on:
 
 jobs:
   build:
-    name: Build SympAuthy native image
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: wrapper
-
-      - name: Setup Graalvm for JDK ${{ env.JAVA_VERSION }}
-        uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.GRAALVM_DISTRIBUTION }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build native image
-        run: gradle nativeCompile
-
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: sympauthy-binary
-          path: build/native/nativeCompile/sympauthy
+    uses: .github/workflows/build-native.yml
