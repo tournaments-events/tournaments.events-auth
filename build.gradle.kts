@@ -1,11 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
-buildscript {
-    dependencies {
-        classpath("com.google.cloud.tools:jib-native-image-extension-gradle:0.1.0")
-    }
-}
-
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.21"
     id("org.jetbrains.kotlin.kapt") version "1.9.21"
@@ -13,7 +7,6 @@ plugins {
     id("com.google.devtools.ksp") version "1.9.21-1.0.15"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.micronaut.application") version "4.2.1"
-    id("com.google.cloud.tools.jib") version "3.4.0"
 }
 
 version = "0.1"
@@ -110,11 +103,11 @@ dependencies {
 }
 
 application {
-    mainClass.set("events.tournaments.code.Application")
+    mainClass.set("com.sympauthy.Application")
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 kotlin {
@@ -139,26 +132,15 @@ graalvmNative {
     toolchainDetection.set(true)
 }
 
-jib {
-    pluginExtensions {
-        pluginExtension {
-            implementation = "com.google.cloud.tools.jib.gradle.extension.nativeimage.JibNativeImageExtension"
-            properties = mapOf(
-                "imageName" to "sympauthy"
-            )
-        }
-    }
-}
-
 tasks {
     compileKotlin {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "21"
         }
     }
     compileTestKotlin {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "21"
         }
     }
     withType<Test> {
@@ -168,5 +150,8 @@ tasks {
                 PASSED, SKIPPED, FAILED, STANDARD_ERROR, STANDARD_OUT
             )
         }
+    }
+    withType<Jar>() {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }

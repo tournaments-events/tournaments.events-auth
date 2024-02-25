@@ -1,7 +1,7 @@
 name: Deploy changes of the develop every night.
 
 env:
-  JAVA_VERSION: 17
+  JAVA_VERSION: 21
   GRAALVM_DISTRIBUTION: 'mandrel'
 
 on:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build sympauthy native image
+    name: Build SympAuthy native image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,8 +28,11 @@ jobs:
           distribution: ${{ env.GRAALVM_DISTRIBUTION }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build native imave
-        run: gradle native-image:native-image
+      - name: Build native image
+        run: gradle nativeCompile
 
-      - name: Build docker image
-        run: gradle jibDockerBuild
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sympauthy-binary
+          path: build/native/nativeCompile/sympauthy
