@@ -1,0 +1,14 @@
+name: Build SympAuthy flow
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build SympAuthy flow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: 'sympauthy/sympauthy-flow'
+          ref: ${{ github.ref_name }}
