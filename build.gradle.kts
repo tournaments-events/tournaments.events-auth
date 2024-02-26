@@ -130,6 +130,9 @@ micronaut {
 
 graalvmNative {
     toolchainDetection.set(true)
+    metadataRepository {
+        enabled = true
+    }
 }
 
 tasks {

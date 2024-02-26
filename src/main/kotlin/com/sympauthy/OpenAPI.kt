@@ -8,7 +8,6 @@ import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.context.event.StartupEvent
 import io.swagger.v3.oas.annotations.ExternalDocumentation
 import io.swagger.v3.oas.annotations.OpenAPIDefinition
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn.HEADER
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType.OAUTH2
 import io.swagger.v3.oas.annotations.info.Info
 import io.swagger.v3.oas.annotations.info.License
@@ -22,7 +21,7 @@ import jakarta.inject.Singleton
     info = Info(
         title = "SympAuthy",
         version = "1.0",
-        description = "An open-source authentication, authorization and identification server.",
+        description = "A self-served, open-source authorization server.",
         license = License(
             name = "GNU General Public License v3.0",
             url = "https://www.gnu.org/licenses/gpl-3.0.fr.html#license-text"
@@ -30,7 +29,7 @@ import jakarta.inject.Singleton
     ),
     servers = [
         Server(
-            description = "Instance of SympAuthy serving this documentation.",
+            description = "The server serving this documentation.",
             url = "{rootUrl}"
         )
     ],
@@ -65,9 +64,8 @@ import jakarta.inject.Singleton
     value = [
         SecurityScheme(
             name = "SympAuthy",
-            description = "Authenticated to this authorization server to access its protected resources.",
+            description = "Authenticate to this authorization server to access its protected resources.",
             type = OAUTH2,
-            `in` = HEADER,
             flows = OAuthFlows(
                 authorizationCode = OAuthFlow(
                     authorizationUrl = "{rootUrl}/api/oauth2/authorize",
