@@ -1,3 +1,3 @@
-FROM gcr.io/distroless/static-debian12:debug
+FROM debian:bookworm
 ADD --chmod=755 sympauthy /
 ENTRYPOINT ["/sympauthy"]
