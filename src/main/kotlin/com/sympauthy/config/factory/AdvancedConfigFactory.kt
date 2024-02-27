@@ -88,10 +88,10 @@ class AdvancedConfigFactory(
         properties: AdvancedConfigurationProperties,
         keyGenerationStategies: Map<String, CryptoKeysGenerationStrategy>
     ): CryptoKeysGenerationStrategy {
-        val strategyId = parser.getStringOrThrow(
+        val strategyId = parser.getString(
             properties, "$ADVANCED_KEY.keys-generation-strategy",
             AdvancedConfigurationProperties::keysGenerationStrategy
-        )
+        ) ?: DEFAULT_KEYS_GENERATION_ALGORITHM
         return keyGenerationStategies[strategyId] ?: throw configExceptionOf(
             "$ADVANCED_KEY.keys-generation-strategy",
             "config.unsupported_generation_algorithm",
@@ -247,6 +247,7 @@ class AdvancedConfigFactory(
     private fun isPowerOf2(var0: Int): Boolean = (var0 and var0 - 1) == 0
 
     companion object {
+        private const val DEFAULT_KEYS_GENERATION_ALGORITHM = "autoincrement"
         private const val DEFAULT_COST_PARAMETER = 16_384
         private const val DEFAULT_BLOCK_SIZE = 8
         private const val DEFAULT_PARALLELIZATION_PARAMETER = 1

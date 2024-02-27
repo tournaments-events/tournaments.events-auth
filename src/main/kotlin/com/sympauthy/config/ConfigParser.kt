@@ -26,6 +26,14 @@ class ConfigParser {
         return value(config) ?: throw configExceptionOf(key, "config.missing")
     }
 
+    fun <C : Any> getString(config: C, key: String, value: (C) -> String?): String? {
+        val value = value(config) ?: return null
+        if (value.isBlank()) {
+            throw configExceptionOf(key, "config.empty")
+        }
+        return value
+    }
+
     fun <C : Any> getStringOrThrow(config: C, key: String, value: (C) -> String?): String {
         val value = getOrThrow(config, key, value)
         if (value.isBlank()) {
