@@ -3,6 +3,7 @@ package com.sympauthy.config
 import com.sympauthy.config.exception.configExceptionOf
 import com.sympauthy.util.toAbsoluteUri
 import io.micronaut.core.convert.ConversionService
+import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Singleton
 import java.net.URI
 import java.time.Duration
@@ -61,6 +62,11 @@ class ConfigParser {
         return ConversionService.SHARED.convert(value, Duration::class.java).orElse(null) ?: throw configExceptionOf(
             key, "config.invalid_duration"
         )
+    }
+
+    fun <C : Any> getUri(config: C, key: String, value: (C) -> String?): URI? {
+        val value = value(config) ?: return null
+        return UriBuilder.of(value).build()
     }
 
     fun <C : Any> getAbsoluteUriOrThrow(config: C, key: String, value: (C) -> String?): URI {

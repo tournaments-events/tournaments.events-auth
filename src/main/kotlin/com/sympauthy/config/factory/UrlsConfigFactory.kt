@@ -10,9 +10,13 @@ import com.sympauthy.config.properties.UrlsConfigurationProperties
 import com.sympauthy.config.properties.UrlsConfigurationProperties.Companion.URLS_KEY
 import com.sympauthy.config.properties.UrlsFlowConfigurationProperties
 import com.sympauthy.config.properties.UrlsFlowConfigurationProperties.Companion.FLOW_KEY
+import com.sympauthy.util.mergeUri
+import com.sympauthy.view.UserFlowController.Companion.USER_FLOW_ENDPOINT
 import io.micronaut.context.annotation.Factory
+import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import java.net.URI
 
 @Factory
 class UrlsConfigFactory(
@@ -37,29 +41,29 @@ class UrlsConfigFactory(
             null
         }
 
-        val signIn = try {
-            // FIXME Allow to be relative to root
-            // FIXME Default value
-            parser.getAbsoluteUriOrThrow(
-                flowProperties, "$FLOW_KEY.sign-in",
-                UrlsFlowConfigurationProperties::signIn
-            )
-        } catch (e: ConfigurationException) {
-            errors.add(e)
-            null
-        }
+        val signIn = if (root != null) {
+            try {
+                getFlowUri(
+                    flowProperties, root, "$FLOW_KEY.sign-in",
+                    UrlsFlowConfigurationProperties::signIn
+                )
+            } catch (e: ConfigurationException) {
+                errors.add(e)
+                null
+            }
+        } else null
 
-        val error = try {
-            // FIXME Allow to be relative to root
-            // FIXME Default value
-            parser.getAbsoluteUriOrThrow(
-                flowProperties, "$FLOW_KEY.error",
-                UrlsFlowConfigurationProperties::error
-            )
-        } catch (e: ConfigurationException) {
-            errors.add(e)
-            null
-        }
+        val error = if (root != null) {
+            try {
+                getFlowUri(
+                    flowProperties, root, "$FLOW_KEY.error",
+                    UrlsFlowConfigurationProperties::signIn
+                )
+            } catch (e: ConfigurationException) {
+                errors.add(e)
+                null
+            }
+        } else null
 
         return if (errors.isEmpty()) {
             EnabledUrlsConfig(
@@ -74,5 +78,28 @@ class UrlsConfigFactory(
                 configurationErrors = errors
             )
         }
+    }
+
+    @Suppress("FoldInitializerAndIfToElvis")
+    private fun getFlowUri(
+        flowProperties: UrlsFlowConfigurationProperties,
+        root: URI,
+        key: String,
+        value: (UrlsFlowConfigurationProperties) -> String?
+    ): URI {
+        val uri = parser.getUri(flowProperties, key, value)
+        if (uri == null) {
+            return getDefaultFlowUri(root, key) ?: throw ConfigurationException(key, "config.missing")
+        }
+        return mergeUri(root, uri)
+    }
+
+    private fun getDefaultFlowUri(root: URI, key: String): URI? {
+        val userFlowUri = UriBuilder.of(root).path(USER_FLOW_ENDPOINT)
+        return when (key) {
+            "$FLOW_KEY.sign-in" -> userFlowUri.path("sign-in")
+            "$FLOW_KEY.error" -> userFlowUri.path("error")
+            else -> null
+        }?.build()
     }
 }

@@ -17,17 +17,27 @@ class DisabledUrlsConfig(
     configurationErrors: List<ConfigurationException>
 ) : UrlsConfig(configurationErrors)
 
-fun UrlsConfig.orThrow(): EnabledUrlsConfig {
+fun UrlsConfig.getOrNull(): EnabledUrlsConfig? {
     return when (this) {
         is EnabledUrlsConfig -> this
-        is DisabledUrlsConfig -> throw this.invalidConfig
+        is DisabledUrlsConfig -> null
     }
+}
+
+fun UrlsConfig.orThrow(): EnabledUrlsConfig {
+    return this.getOrNull() ?: throw this.invalidConfig
 }
 
 class FlowUrlConfig(
     val signIn: URI,
     val error: URI
-)
+) {
+    /**
+     * Return all URIs that are part of the end-user flow.
+     */
+    val all: List<URI>
+        get() = listOf(signIn, error)
+}
 
 fun UrlsConfig.buildUponRoot(): UriBuilder {
     return UriBuilder.of(orThrow().root)
@@ -48,25 +58,3 @@ fun EnabledUrlsConfig.getUri(path: String, vararg pathParams: Pair<String, Strin
         .path(replacedPath)
         .build()
 }
-
-/*
-val UrlsConfig.authorizeUri: URI
-    get() = buildUponRoot()
-        .path(OAUTH2_AUTHORIZE_ENDPOINT)
-        .build()
-
-val UrlsConfig.tokenUri: URI
-    get() = buildUponRoot()
-        .path(OAUTH2_TOKEN_ENDPOINT)
-        .build()
-
-val UrlsConfig.userInfoUri: URI
-    get() = buildUponRoot()
-        .path(OPENID_USERINFO_ENDPOINT)
-        .build()
-
-val UrlsConfig.jwtUri: URI
-    get() = buildUponRoot()
-        .path(OPENID_JWKS_ENDPOINT)
-        .build()
-*/

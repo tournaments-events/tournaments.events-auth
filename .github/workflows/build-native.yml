@@ -14,14 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create public directory into resources
-        run: mkdir -p src/main/resources/public
+      - name: Create sympauthy-flow directory into resources
+        run: mkdir -p src/main/resources/sympauthy-flow
 
       - name: Install sympauthy-flow into resources
         uses: actions/download-artifact@v4
         with:
           name: sympauthy-flow-dist
-          path: src/main/resources/public
+          path: src/main/resources/sympauthy-flow
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3

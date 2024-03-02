@@ -12,7 +12,7 @@ micronaut:
     redirect:
       enabled: false
     intercept-url-map:
-      - pattern: /public/**
+      - pattern: /flow/**
         http-method: GET
         access:
           - isAnonymous()
@@ -23,9 +23,12 @@ micronaut:
 
   router:
     static-resources:
-      default:
-        mapping: /public/**
-        paths: 'classpath:public'
+      flow-non-html:
+        paths: classpath:sympauthy-flow
+        mapping: /flow/*.ico
+      flow-assets:
+        paths: classpath:sympauthy-flow/assets
+        mapping: /flow/assets/**
       swagger-ui:
         paths: classpath:META-INF/swagger/views/swagger-ui
         mapping: /swagger-ui/**

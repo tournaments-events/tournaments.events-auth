@@ -22,8 +22,8 @@ jobs:
       - name: Install node dependencies
         run: npm install
 
-      - name: Build sympauthy-flow
-        run: npm run build
+      - name: Build sympauthy-flow to be served on /flow by the server
+        run: npm run build-only -- --base=/flow/
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4

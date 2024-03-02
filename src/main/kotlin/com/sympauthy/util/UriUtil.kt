@@ -13,3 +13,13 @@ fun String?.toAbsoluteUri(
         else -> uri
     }
 }
+
+fun mergeUri(base: URI, uri: URI): URI {
+    if (uri.isAbsolute) {
+        return uri
+    }
+    val builder = UriBuilder.of(base)
+    uri.path?.let(builder::path)
+    // FIXME handle
+    return builder.build()
+}

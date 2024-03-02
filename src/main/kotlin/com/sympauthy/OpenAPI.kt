@@ -1,8 +1,9 @@
 package com.sympauthy
 
-import com.sympauthy.business.exception.BusinessException
+import com.sympauthy.api.controller.openapi.OpenApiController.Companion.OPENAPI_ENDPOINT
 import com.sympauthy.config.model.UrlsConfig
-import com.sympauthy.config.model.orThrow
+import com.sympauthy.config.model.getOrNull
+import com.sympauthy.config.model.getUri
 import com.sympauthy.util.loggerForClass
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.context.event.StartupEvent
@@ -81,17 +82,14 @@ import jakarta.inject.Singleton
 )
 @Singleton
 class OpenAPI(
-    @Inject private val urlsConfig: UrlsConfig
+    @Inject private val uncheckedUrlsConfig: UrlsConfig
 ) : ApplicationEventListener<StartupEvent> {
 
     private val log = loggerForClass()
 
     override fun onApplicationEvent(event: StartupEvent) {
-        try {
-            log.info("OpenAPI documentation available at: ${urlsConfig.orThrow().root}/openapi.yml")
-            log.info("Swagger UI available at: ${urlsConfig.orThrow().root}/swagger-ui")
-        } catch (e: BusinessException) {
-            log.error("Unable to determine OpenAPI url.", e)
-        }
+        val urlsConfig = uncheckedUrlsConfig.getOrNull() ?: return
+        log.info("OpenAPI documentation available at: ${urlsConfig.getUri(OPENAPI_ENDPOINT)}")
+        log.info("Swagger UI available at: ${urlsConfig.getUri("/swagger-ui")}")
     }
 }

@@ -29,7 +29,7 @@ class AuthConfigFactory(
         val errors = mutableListOf<ConfigurationException>()
 
         val issuer = try {
-            parser.getStringOrThrow(properties, "$AUTH_KEY.issue", AuthConfigurationProperties::issuer)
+            parser.getStringOrThrow(properties, "$AUTH_KEY.issuer", AuthConfigurationProperties::issuer)
         } catch (e: ConfigurationException) {
             errors.add(e)
             null
