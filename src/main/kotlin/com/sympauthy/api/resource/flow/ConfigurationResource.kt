@@ -25,7 +25,7 @@ data class ConfigurationResource(
         description = "List of configuration of third-party providers."
     )
     @JsonProperty("providers")
-    val providers: List<ProviderConfigurationResource>
+    val providers: List<ProviderConfigurationResource>?
 )
 
 @Schema(

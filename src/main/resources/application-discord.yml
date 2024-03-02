@@ -1,0 +1,19 @@
+# Default configuration for Discord as a third-party provider.
+# The missing client-id and client-secret can be obtained on: https://discord.com/developers
+
+providers:
+  discord:
+    name: Discord
+    oauth2:
+      scopes:
+        - email
+      authorization-url: https://discord.com/api/oauth2/authorize
+      token-url: https://discord.com/api/v10/oauth2/token
+      token-auth-method: client-secret-post
+    user-info:
+      url: https://discord.com/api/v10/users/@me
+      paths:
+        sub: $.id
+        preferred_username: $.username
+        email: $.email
+        email_verified: $.verified

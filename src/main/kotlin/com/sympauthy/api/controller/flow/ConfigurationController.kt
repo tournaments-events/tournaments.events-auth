@@ -61,7 +61,8 @@ It is designed to be cached by the flow to be reused.
         val features = getFeatures()
         val deferredProviders = async {
             providerManager.listEnabledProviders()
-                .map { getProvider(it, urlsConfig) }
+                .takeIf(List<EnabledProvider>::isNotEmpty)
+                ?.map { getProvider(it, urlsConfig) }
         }
 
         awaitAll(deferredClaims, deferredProviders)
