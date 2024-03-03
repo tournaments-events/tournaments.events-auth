@@ -19,45 +19,50 @@ jobs:
       - id: set_today
         run: echo today="$(date +'%Y%m%d')" >> "$GITHUB_OUTPUT"
 
-  has_changed:
-    name: Check if sympauthy has changed today.
-    needs: [today]
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.has_changed.outputs.result }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: has_changed
-        uses: ./.github/actions/has_changed
-        with:
-          name: sympauthy
-          today: ${{ needs.today.outputs.today }}
+#  has_changed:
+#    name: Check if sympauthy has changed today.
+#    needs: [today]
+#    runs-on: ubuntu-latest
+#    outputs:
+#      result: ${{ steps.has_changed.outputs.result }}
+#    steps:
+#      - uses: actions/checkout@v4
+#      - id: has_changed
+#        uses: ./.github/actions/has_changed
+#        with:
+#          name: sympauthy
+#          today: ${{ needs.today.outputs.today }}
+#
+#  has_flow_changed:
+#    name: Check if sympauthy-flow has changed today.
+#    needs: [today]
+#    runs-on: ubuntu-latest
+#    outputs:
+#      result: ${{ steps.has_changed.outputs.result }}
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/checkout@v4
+#        with:
+#          repository: 'sympauthy/sympauthy-flow'
+#          ref: ${{ github.ref_name }}
+#          path: sympauthy-flow
+#      - id: has_changed
+#        uses: ./.github/actions/has_changed
+#        with:
+#          name: sympauthy
+#          today: ${{ needs.today.outputs.today }}
+#          path: sympauthy-flow
+#
+#  build_flow:
+#    needs: [has_changed, has_flow_changed]
+#    if: needs.has_changed.outputs.result == '1' || needs.has_flow_changed.outputs.result == '1'
+#    uses: ./.github/workflows/build-flow.yml
 
-  has_flow_changed:
-    name: Check if sympauthy-flow has changed today.
-    needs: [today]
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.has_changed.outputs.result }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: 'sympauthy/sympauthy-flow'
-          ref: ${{ github.ref_name }}
-          path: sympauthy-flow
-      - id: has_changed
-        uses: ./.github/actions/has_changed
-        with:
-          name: sympauthy
-          today: ${{ needs.today.outputs.today }}
-          path: sympauthy-flow
+  publish:
+    needs: [today] # , build_flow
+    uses: ./.github/workflows/publish-arch.yml
+    with:
+      image: ghcr.io/sympauthy/sympauthy-nightly
+      tag: ${{ needs.today.outputs.today }}-amd64
+      arch: amd64
 
-  build_flow:
-    needs: [has_changed, has_flow_changed]
-    if: needs.has_changed.outputs.result == '1' || needs.has_flow_changed.outputs.result == '1'
-    uses: ./.github/workflows/build-flow.yml
-
-  build_native_image:
-    needs: [today, build_flow]
-    uses: ./.github/workflows/publish-multiarch.yml
