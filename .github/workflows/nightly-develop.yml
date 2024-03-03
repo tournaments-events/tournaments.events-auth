@@ -63,6 +63,6 @@ jobs:
     uses: ./.github/workflows/publish-arch.yml
     with:
       image: ghcr.io/sympauthy/sympauthy-nightly
-      tag: ${{ needs.today.outputs.today }}-amd64
+      tag: ${{ needs.today.outputs.today }}
       arch: amd64
 

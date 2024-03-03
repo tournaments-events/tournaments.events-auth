@@ -51,4 +51,5 @@ jobs:
           context: .
           file: ./.github/docker/Dockerfile
           platforms: linux/${{ inputs.arch }}
+          tags: ${{ inputs.image }}:${{ inputs.tag }}-${{ inputs.arch }}
           labels: ${{ steps.meta.outputs.labels }}
