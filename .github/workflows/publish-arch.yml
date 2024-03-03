@@ -57,6 +57,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
+          context: .
           file: ./.github/docker/Dockerfile
           platforms: linux/${{ inputs.arch }}
           tags: ${{ inputs.image }}:${{ inputs.tag }}-${{ inputs.arch }}
