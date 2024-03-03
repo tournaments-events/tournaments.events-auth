@@ -41,14 +41,17 @@ jobs:
       result: ${{ steps.has_changed.outputs.result }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           repository: 'sympauthy/sympauthy-flow'
           ref: ${{ github.ref_name }}
+          path: sympauthy-flow
       - id: has_changed
         uses: ./.github/actions/has_changed
         with:
           name: sympauthy
           today: ${{ steps.today.outputs.today }}
+          path: sympauthy-flow
 
   build_flow:
     needs: [has_changed, has_flow_changed]

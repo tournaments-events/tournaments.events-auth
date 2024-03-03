@@ -7,6 +7,9 @@ inputs:
   today:
     description: Today formatted as YYYYMMDD.
     required: true
+  path:
+    description: Path to the directory where the repository has been checkout.
+    default: '.'
 outputs:
   result:
     description: '1 if the repository has changed today, 0 otherwise.'
@@ -16,6 +19,7 @@ runs:
   steps:
     - id: has_changed
       shell: bash
+      working-directory: ${{ inputs.path }}
       run: |
         export COMMIT_DATE=$(git log -1 --date=format:"%Y%m%d" --format="%ad")
         if [ "$TODAY_DATE" == "$COMMIT_DATE" ]; then
