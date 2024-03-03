@@ -10,7 +10,28 @@ permissions:
   packages: write
 
 jobs:
+  has_changed:
+    name: Check if sympauthy has changed today.
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.has_changed.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: has_changed
+        run: |
+          export TODAY_DATE=$(date +'%Y-%m-%d')
+          export COMMIT_DATE=$(git log -1 --date=format:"%Y-%m-%d" --format="%ad")
+          if [ "$TODAY_DATE" != "$COMMIT_DATE" ]; then
+            echo "sympauthy has changed today."
+            echo "result=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "sympauthy has not changed today. Last commit on $COMMIT_DATE"
+            echo "result=0" >> "$GITHUB_OUTPUT"
+          fi
+
   build_flow:
+    needs: [has_changed]
+    if: needs.has_changed.outputs.result == '1'
     uses: ./.github/workflows/build-flow.yml
 
   build_native_image:
