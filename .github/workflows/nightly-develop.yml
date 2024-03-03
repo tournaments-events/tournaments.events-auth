@@ -10,28 +10,49 @@ permissions:
   packages: write
 
 jobs:
+  today:
+    name: Today
+    runs-on: ubuntu-latest
+    outputs:
+      today: ${{ steps.set_today.outputs.today }}
+    steps:
+      - id: set_today
+        run: echo today="$(date +'%Y%m%d')" >> "$GITHUB_OUTPUT"
+
   has_changed:
     name: Check if sympauthy has changed today.
+    needs: [today]
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.has_changed.outputs.result }}
     steps:
       - uses: actions/checkout@v4
       - id: has_changed
-        run: |
-          export TODAY_DATE=$(date +'%Y-%m-%d')
-          export COMMIT_DATE=$(git log -1 --date=format:"%Y-%m-%d" --format="%ad")
-          if [ "$TODAY_DATE" == "$COMMIT_DATE" ]; then
-            echo "sympauthy has changed today."
-            echo "result=1" >> "$GITHUB_OUTPUT"
-          else
-            echo "sympauthy has not changed today. Last commit on $COMMIT_DATE"
-            echo "result=0" >> "$GITHUB_OUTPUT"
-          fi
+        uses: ./.github/actions/has_changed
+        with:
+          name: sympauthy
+          today: ${{ steps.today.outputs.today }}
+
+  has_flow_changed:
+    name: Check if sympauthy-flow has changed today.
+    needs: [today]
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.has_changed.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: 'sympauthy/sympauthy-flow'
+          ref: ${{ github.ref_name }}
+      - id: has_changed
+        uses: ./.github/actions/has_changed
+        with:
+          name: sympauthy
+          today: ${{ steps.today.outputs.today }}
 
   build_flow:
-    needs: [has_changed]
-    if: needs.has_changed.outputs.result == '1'
+    needs: [has_changed, has_flow_changed]
+    if: needs.has_changed.outputs.result == '1' || needs.has_flow_changed.outputs.result == '1'
     uses: ./.github/workflows/build-flow.yml
 
   build_native_image:
@@ -40,7 +61,7 @@ jobs:
 
   publish:
     name: Build & Push SympAuthy docker image to GitHub Container Registry
-    needs: [build_native_image]
+    needs: [today, build_native_image]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,4 +85,6 @@ jobs:
         with:
           push: true
           context: .github/docker/arch
-          tags: ghcr.io/sympauthy/sympauthy:latest-nightly
+          tags: |
+            ghcr.io/sympauthy/sympauthy-nightly:${{ steps.today.outputs.today }}
+            ghcr.io/sympauthy/sympauthy-nightly:latest

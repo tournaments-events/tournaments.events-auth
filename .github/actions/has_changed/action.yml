@@ -1,0 +1,29 @@
+name: has_changed
+description: Check if repository has changed today.
+inputs:
+  name:
+    description: Name of the repository
+    required: true
+  today:
+    description: Today formatted as YYYYMMDD.
+    required: true
+outputs:
+  result:
+    description: '1 if the repository has changed today, 0 otherwise.'
+    value: ${{ steps.has_changed.outputs.result }}
+runs:
+  using: "composite"
+  steps:
+    - id: has_changed
+      shell: bash
+      run: |
+        export COMMIT_DATE=$(git log -1 --date=format:"%Y%m%d" --format="%ad")
+        if [ "$TODAY_DATE" == "$COMMIT_DATE" ]; then
+          echo "${{ inputs.name }}  has changed today."
+          echo "result=1" >> "$GITHUB_OUTPUT"
+        else
+          echo "${{ inputs.name }} has not changed today. Last commit on $COMMIT_DATE"
+          echo "result=0" >> "$GITHUB_OUTPUT"
+        fi
+      env:
+        TODAY_DATE: ${{ inputs.today }}
