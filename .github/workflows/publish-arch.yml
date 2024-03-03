@@ -43,12 +43,20 @@ jobs:
           images: ${{ inputs.image }}
           tags: type=raw,value=${{ inputs.tag }}-${{ inputs.arch }}
 
+#      - name: Create sympauthy-flow directory into resources
+#        run: mkdir -p src/main/resources/sympauthy-flow
+#
+#      - name: Install sympauthy-flow into resources
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: sympauthy-flow-dist
+#          path: src/main/resources/sympauthy-flow
+
       - id: build
-        name: Build and push by digest
+        name: Build & Push docker image for ${{ inputs.arch }}
         uses: docker/build-push-action@v5
         with:
           push: true
-          context: .
           file: ./.github/docker/Dockerfile
           platforms: linux/${{ inputs.arch }}
           tags: ${{ inputs.image }}:${{ inputs.tag }}-${{ inputs.arch }}

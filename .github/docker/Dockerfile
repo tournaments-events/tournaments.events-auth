@@ -6,6 +6,6 @@ RUN ./gradlew nativeCompile
 
 FROM debian:bookworm
 
-ADD --from=0 --chmod=755 ./build/native/nativeCompile/sympauthy /
+COPY --from=0 --chmod=755 ./build/native/nativeCompile/sympauthy /
 
 ENTRYPOINT ["/sympauthy"]
