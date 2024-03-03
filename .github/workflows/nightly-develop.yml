@@ -58,11 +58,16 @@ jobs:
 #    if: needs.has_changed.outputs.result == '1' || needs.has_flow_changed.outputs.result == '1'
 #    uses: ./.github/workflows/build-flow.yml
 
-  publish:
+  publish_arch:
     needs: [today] # , build_flow
+    strategy:
+      matrix:
+        arch:
+          - amd64
+          - arm64
     uses: ./.github/workflows/publish-arch.yml
     with:
       image: ghcr.io/sympauthy/sympauthy-nightly
       tag: ${{ needs.today.outputs.today }}
-      arch: amd64
+      arch: ${{ matrix.arch }}
 
