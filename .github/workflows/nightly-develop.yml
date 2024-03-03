@@ -21,7 +21,7 @@ jobs:
         run: |
           export TODAY_DATE=$(date +'%Y-%m-%d')
           export COMMIT_DATE=$(git log -1 --date=format:"%Y-%m-%d" --format="%ad")
-          if [ "$TODAY_DATE" != "$COMMIT_DATE" ]; then
+          if [ "$TODAY_DATE" == "$COMMIT_DATE" ]; then
             echo "sympauthy has changed today."
             echo "result=1" >> "$GITHUB_OUTPUT"
           else
