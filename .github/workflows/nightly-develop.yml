@@ -31,7 +31,7 @@ jobs:
         uses: ./.github/actions/has_changed
         with:
           name: sympauthy
-          today: ${{ jobs.today.outputs.today }}
+          today: ${{ needs.today.outputs.today }}
 
   has_flow_changed:
     name: Check if sympauthy-flow has changed today.
@@ -50,7 +50,7 @@ jobs:
         uses: ./.github/actions/has_changed
         with:
           name: sympauthy
-          today: ${{ jobs.today.outputs.today }}
+          today: ${{ needs.today.outputs.today }}
           path: sympauthy-flow
 
   build_flow:
@@ -89,5 +89,5 @@ jobs:
           push: true
           context: .github/docker/arch
           tags: |
-            ghcr.io/sympauthy/sympauthy-nightly:${{ jobs.today.outputs.today }}
+            ghcr.io/sympauthy/sympauthy-nightly:${{ needs.today.outputs.today }}
             ghcr.io/sympauthy/sympauthy-nightly:latest
