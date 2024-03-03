@@ -1,7 +1,9 @@
-FROM gradle:jdk21-graal AS build
+ARG ARCH='amd64'
+
+FROM ${ARCH}/gradle:jdk21-graal AS build
 COPY . .
 RUN gradle nativeCompile
 
-FROM debian:bookworm
+FROM ${ARCH}/debian:bookworm
 COPY --from=build --chmod=755 /home/gradle/build/native/nativeCompile/sympauthy /
 ENTRYPOINT ["/sympauthy"]
