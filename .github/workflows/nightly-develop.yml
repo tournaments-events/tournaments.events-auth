@@ -64,7 +64,7 @@ jobs:
       matrix:
         arch:
           - amd64
-          - arm64
+          - arm64v8
     uses: ./.github/workflows/publish-arch.yml
     with:
       image: ghcr.io/sympauthy/sympauthy-nightly
