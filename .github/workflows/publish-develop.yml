@@ -76,6 +76,7 @@ jobs:
           - amd64
     uses: ./.github/workflows/publish-arch.yml
     with:
+      ref: ${{ inputs.ref }}
       image: ghcr.io/sympauthy/sympauthy-nightly
       tag: latest # ${{ needs.today.outputs.today }}
       arch: ${{ matrix.arch }}
