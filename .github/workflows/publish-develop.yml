@@ -1,7 +1,12 @@
-name: Deploy changes of the develop
+name: Publish changes of ${{ inputs.ref }}
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        description: Git reference of the commit to build and publish
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -25,6 +30,8 @@ jobs:
       result: ${{ steps.has_changed.outputs.result }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - id: has_changed
         uses: ./.github/actions/has_changed
         with:
@@ -39,9 +46,12 @@ jobs:
       result: ${{ steps.has_changed.outputs.result }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: actions/checkout@v4
         with:
           repository: 'sympauthy/sympauthy-flow'
+          ref: ${{ inputs.ref }}
           path: sympauthy-flow
       - id: has_changed
         uses: ./.github/actions/has_changed
@@ -54,6 +64,8 @@ jobs:
     needs: [has_changed, has_flow_changed]
     if: needs.has_changed.outputs.result == '1' || needs.has_flow_changed.outputs.result == '1'
     uses: ./.github/workflows/build-flow.yml
+    with:
+      ref: ${{ inputs.ref }}
 
   # Disable arm64 until gradle:${GRADLE_VERSION}-jdk${JAVA_VERSION}-graal is fixed for ARM architecture.
   publish_arch:

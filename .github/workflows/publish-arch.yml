@@ -6,6 +6,10 @@ env:
 on:
   workflow_call:
     inputs:
+      ref:
+        description: Git reference of the commit to build.
+        type: string
+        required: true
       image:
         description: Name of the produced docker image (including registry).
         type: string
@@ -25,6 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 

@@ -2,6 +2,11 @@ name: Build SympAuthy flow
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        description: Git reference of the commit to build
+        type: string
+        required: true
 
 jobs:
   build:
@@ -11,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: 'sympauthy/sympauthy-flow'
-          ref: ${{ github.ref_name }}
+          ref: ${{ inputs.ref }}
 
       - name: Setup Node version configured in .nvmrc
         uses: actions/setup-node@v4
