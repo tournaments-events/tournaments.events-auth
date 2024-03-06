@@ -1,4 +1,4 @@
-name: Deploy changes of the develop every night.
+name: Deploy changes of the develop
 
 on:
   workflow_call:
