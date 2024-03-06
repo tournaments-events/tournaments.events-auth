@@ -1,10 +1,10 @@
-name: Publish changes of ${{ inputs.ref }}
+name: Publish if branch has changed
 
 on:
   workflow_call:
     inputs:
       ref:
-        description: Git reference of the commit to build and publish
+        description: Git reference of the branch to build and publish
         type: string
         required: true
 
