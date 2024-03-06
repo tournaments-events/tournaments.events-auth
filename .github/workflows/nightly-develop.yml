@@ -7,6 +7,9 @@ on:
   # Allow manually triggering nightly from the web interface
   workflow_dispatch:
 
+env:
+  REF: develop
+
 permissions:
   contents: read
   packages: write
@@ -29,6 +32,8 @@ jobs:
       result: ${{ steps.has_changed.outputs.result }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
       - id: has_changed
         uses: ./.github/actions/has_changed
         with:
@@ -43,10 +48,12 @@ jobs:
       result: ${{ steps.has_changed.outputs.result }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
       - uses: actions/checkout@v4
         with:
           repository: 'sympauthy/sympauthy-flow'
-          ref: ${{ github.ref_name }}
+          ref: ${{ env.REF }}
           path: sympauthy-flow
       - id: has_changed
         uses: ./.github/actions/has_changed
@@ -69,6 +76,7 @@ jobs:
           - amd64
     uses: ./.github/workflows/publish-arch.yml
     with:
+      ref: ${{ env.REF }}
       image: ghcr.io/sympauthy/sympauthy-nightly
       tag: latest # ${{ needs.today.outputs.today }}
       arch: ${{ matrix.arch }}
