@@ -7,6 +7,10 @@ on:
   # Allow manually triggering nightly from the web interface
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   publish_nightly:
     uses: sympauthy/sympauthy/.github/workflows/publish-develop.yml@develop
