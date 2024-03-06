@@ -14,3 +14,5 @@ permissions:
 jobs:
   publish_nightly:
     uses: sympauthy/sympauthy/.github/workflows/publish-develop.yml@develop
+    with:
+      ref: develop
