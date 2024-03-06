@@ -41,16 +41,16 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ inputs.image }}
-          tags: type=raw,value=${{ inputs.tag }}-${{ inputs.arch }}
+          tags: type=raw,value=${{ inputs.tag }}
 
-#      - name: Create sympauthy-flow directory into resources
-#        run: mkdir -p src/main/resources/sympauthy-flow
-#
-#      - name: Install sympauthy-flow into resources
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: sympauthy-flow-dist
-#          path: src/main/resources/sympauthy-flow
+      - name: Create sympauthy-flow directory into resources
+        run: mkdir -p src/main/resources/sympauthy-flow
+
+      - name: Install sympauthy-flow into resources
+        uses: actions/download-artifact@v4
+        with:
+          name: sympauthy-flow-dist
+          path: src/main/resources/sympauthy-flow
 
       - id: build
         name: Build & Push docker image for ${{ inputs.arch }}
@@ -60,7 +60,7 @@ jobs:
           context: .
           file: ./.github/docker/Dockerfile
           platforms: linux/${{ inputs.arch }}
-          tags: ${{ inputs.image }}:${{ inputs.tag }}-${{ inputs.arch }}
+          tags: ${{ inputs.image }}:${{ inputs.tag }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             ARCH=${{ inputs.arch }}
