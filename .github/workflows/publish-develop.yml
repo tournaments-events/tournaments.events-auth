@@ -1,0 +1,69 @@
+name: Deploy changes of the develop every night.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  today:
+    name: Today
+    runs-on: ubuntu-latest
+    outputs:
+      today: ${{ steps.set_today.outputs.today }}
+    steps:
+      - id: set_today
+        run: echo today="$(date +'%Y%m%d')" >> "$GITHUB_OUTPUT"
+
+  has_changed:
+    name: Check if sympauthy has changed today.
+    needs: [today]
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.has_changed.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: has_changed
+        uses: ./.github/actions/has_changed
+        with:
+          name: sympauthy
+          today: ${{ needs.today.outputs.today }}
+
+  has_flow_changed:
+    name: Check if sympauthy-flow has changed today.
+    needs: [today]
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.has_changed.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: 'sympauthy/sympauthy-flow'
+          path: sympauthy-flow
+      - id: has_changed
+        uses: ./.github/actions/has_changed
+        with:
+          name: sympauthy
+          today: ${{ needs.today.outputs.today }}
+          path: sympauthy-flow
+
+  build_flow:
+    needs: [has_changed, has_flow_changed]
+    if: needs.has_changed.outputs.result == '1' || needs.has_flow_changed.outputs.result == '1'
+    uses: ./.github/workflows/build-flow.yml
+
+  # Disable arm64 until gradle:${GRADLE_VERSION}-jdk${JAVA_VERSION}-graal is fixed for ARM architecture.
+  publish_arch:
+    needs: [today, build_flow]
+    strategy:
+      matrix:
+        arch:
+          - amd64
+    uses: ./.github/workflows/publish-arch.yml
+    with:
+      image: ghcr.io/sympauthy/sympauthy-nightly
+      tag: latest # ${{ needs.today.outputs.today }}
+      arch: ${{ matrix.arch }}
