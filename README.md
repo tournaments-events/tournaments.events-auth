@@ -1,14 +1,34 @@
-## Micronaut 3.7.2 Documentation
+# SympAuthy
 
-- [User Guide](https://docs.micronaut.io/3.7.2/guide/index.html)
-- [API Reference](https://docs.micronaut.io/3.7.2/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/3.7.2/guide/configurationreference.html)
-- [Micronaut Guides](https://guides.micronaut.io/index.html)
----
+An open-source, self-hosted authorization server.
 
-- [Shadow Gradle Plugin](https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow)
-## Feature http-client documentation
+## Setting up the application for local development
 
-- [Micronaut HTTP Client documentation](https://docs.micronaut.io/latest/guide/index.html#httpClient)
+### Requirements
 
+- JDK 21
+- [PostgreSQL](https://www.postgresql.org/)
 
+### Create the application configuration
+
+**FIXME**
+
+### Launch the server
+
+This project is a simple Java application built using [Gradle](https://gradle.org/).
+You can launch it with any IDE supporting Gradle or directly using Gradle in the command line.
+
+#### Gradle
+
+```bash
+MICRONAUT_CONFIG_FILES=$(pwd)/config/application.yml ./gradlew :core:run
+```
+
+#### IntelliJ
+
+Add a new **Micronaut** configuration:
+- **Name**: Application
+- **Main class**: com.sympauthy.Application
+- **Working directory**: $ContentRoot$
+- **Environment variables**:
+  - **MICRONAUT_CONFIG_FILES**: config/application.yml

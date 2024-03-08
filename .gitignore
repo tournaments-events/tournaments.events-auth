@@ -3,7 +3,7 @@ config/application.yml
 
 .gradle
 **/build/
-!src/**/build/
+!core/src/**/build/
 
 # Ignore Gradle GUI config
 gradle-app.setting
