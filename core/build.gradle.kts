@@ -10,6 +10,7 @@ plugins {
 
 dependencies {
     implementation(project(":data"))
+    implementation(project(":data-postgresql"))
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect:${project.extra["kotlinVersion"]}")

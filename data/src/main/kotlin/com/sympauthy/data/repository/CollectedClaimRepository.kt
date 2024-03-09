@@ -1,8 +1,6 @@
 package com.sympauthy.data.repository
 
 import com.sympauthy.data.model.CollectedClaimEntity
-import io.micronaut.data.model.query.builder.sql.Dialect
-import io.micronaut.data.r2dbc.annotation.R2dbcRepository
 import io.micronaut.data.repository.jpa.criteria.PredicateSpecification
 import io.micronaut.data.repository.jpa.kotlin.CoroutineJpaSpecificationExecutor
 import io.micronaut.data.repository.kotlin.CoroutineCrudRepository
@@ -11,7 +9,6 @@ import io.micronaut.data.runtime.criteria.where
 import kotlinx.coroutines.flow.toList
 import java.util.*
 
-@R2dbcRepository(dialect = Dialect.POSTGRES)
 interface CollectedClaimRepository : CoroutineCrudRepository<CollectedClaimEntity, UUID>,
     CoroutineJpaSpecificationExecutor<CollectedClaimEntity> {
 
