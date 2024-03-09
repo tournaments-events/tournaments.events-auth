@@ -7,7 +7,6 @@ import io.micronaut.context.annotation.ConfigurationProperties
 interface AdvancedConfigurationProperties {
     val userMergingStrategy: String?
     val keysGenerationStrategy: String?
-    val jwtAlgorithm: String?
 
     companion object {
         const val ADVANCED_KEY = "advanced"

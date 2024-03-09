@@ -49,13 +49,13 @@ jobs:
           tags: type=raw,value=${{ inputs.tag }}
 
       - name: Create sympauthy-flow directory into resources
-        run: mkdir -p src/main/resources/sympauthy-flow
+        run: mkdir -p server/src/main/resources/sympauthy-flow
 
       - name: Install sympauthy-flow into resources
         uses: actions/download-artifact@v4
         with:
           name: sympauthy-flow-dist
-          path: src/main/resources/sympauthy-flow
+          path: server/src/main/resources/sympauthy-flow
 
       - id: build
         name: Build & Push docker image for ${{ inputs.arch }}

@@ -63,7 +63,7 @@ open class ProviderConfigManager(
     }
 
     suspend fun listEnabledProviders(): List<EnabledProvider> {
-        return configuredProviders.await()
+        return listProviders()
             .filterIsInstance<EnabledProvider>()
     }
 

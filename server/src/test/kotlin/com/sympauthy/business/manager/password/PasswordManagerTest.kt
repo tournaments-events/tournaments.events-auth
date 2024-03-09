@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
+@Suppress("unused")
 @ExtendWith(MockKExtension::class)
 class PasswordManagerTest {
 
