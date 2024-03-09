@@ -11,7 +11,6 @@ import com.sympauthy.business.model.user.claim.Claim
 import com.sympauthy.business.security.Context
 import com.sympauthy.data.model.CollectedClaimEntity
 import com.sympauthy.data.repository.CollectedClaimRepository
-import com.sympauthy.data.repository.findAnyClaimMatching
 import com.sympauthy.exception.localizedExceptionOf
 import com.sympauthy.util.nullIfBlank
 import io.micronaut.transaction.annotation.Transactional
@@ -31,33 +30,6 @@ open class CollectedClaimManager(
     @Inject private val collectedClaimMapper: CollectedClaimMapper,
     @Inject private val collectedClaimUpdateMapper: CollectedUserInfoUpdateMapper
 ) {
-
-    /**
-     * Find users that are conflicting with the [claims] and on which claim they are conflicting.
-     *
-     * We check the value against all the claims since the login is a single field.
-     * Ex. with ```email``` and ```preferred_username``` as login claims,  We can have theoretically the ```email``` claim
-     * of an existing end-user conflicting with the ```preferred_username``` of the new end-user.
-     */
-    internal suspend fun findConflictingUsers(
-        claims: List<Claim>,
-        values: List<Pair<Claim, Any>>
-    ): List<ConflictingCollectedUserClaims> {
-        val entityValues = values.mapNotNull { claimValueMapper.toEntity(it.second) }
-        val existingClaimEntities = collectedClaimRepository.findAnyClaimMatching(
-            claimIds = claims.map(Claim::id),
-            claimValues = entityValues
-        )
-        val userIds = existingClaimEntities.map(CollectedClaimEntity::userId).distinct()
-        return userIds.map { userId ->
-            ConflictingCollectedUserClaims(
-                userId = userId,
-                claims = existingClaimEntities.filter { it.userId == userId }
-                    .filter { entityValues.contains(it.value) }
-                    .mapNotNull { claimManager.findById(it.claim) }
-            )
-        }
-    }
 
     /**
      * Return the user info we have collected for the user identified by [userId].

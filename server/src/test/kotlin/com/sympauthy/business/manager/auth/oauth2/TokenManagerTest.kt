@@ -26,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import java.time.LocalDateTime.now
 import java.util.*
 
+@Suppress("unused")
 @ExtendWith(MockKExtension::class)
 @MockKExtension.CheckUnnecessaryStub
 class TokenManagerTest {

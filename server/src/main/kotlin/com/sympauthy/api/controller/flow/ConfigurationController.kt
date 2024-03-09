@@ -53,7 +53,6 @@ It is designed to be cached by the flow to be reused.
     ): ConfigurationResource = coroutineScope {
         val locale = httpRequest.locale.orDefault()
         val urlsConfig = uncheckedUrlsConfig.orThrow()
-        val passwordAuthConfig = uncheckedPasswordAuthConfig.orThrow()
 
         val deferredClaims = async {
             getClaims(locale)

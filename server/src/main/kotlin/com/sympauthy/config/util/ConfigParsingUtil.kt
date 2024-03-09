@@ -31,16 +31,6 @@ fun <C : Any> getUriOrThrow(
     )
 }
 
-inline fun <C : Any, reified T : Enum<T>> getEnum(
-    config: C,
-    key: String,
-    defaultValue: T,
-    value: (C) -> String?
-): T {
-    val serializedValue = value(config) ?: return defaultValue
-    return convertToEnum(key, serializedValue)
-}
-
 inline fun <reified T : Enum<T>> convertToEnum(key: String, value: String): T {
     val valueMap = enumValues<T>()
         .map {
