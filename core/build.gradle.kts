@@ -1,35 +1,15 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.21"
-    id("org.jetbrains.kotlin.kapt") version "1.9.21"
-    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.21"
-    id("com.google.devtools.ksp") version "1.9.21-1.0.15"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("io.micronaut.application") version "4.2.1"
-}
-
-version = "0.1"
-group = "com.sympauthy"
-
-extra.apply {
-    set("kotlinVersion", "1.9.21")
-    set("kotlinCoroutinesVersion", "1.7.3")
-    set("mapStructVersion", "1.5.1.Final")
-    set("javaJwtVersion", "4.4.0")
-    set("jsonPathVersion", "2.8.0")
-    set("bouncyCastleVersion", "1.77")
-
-    // Test dependencies
-    set("junitJupiterVersion", "5.10.1")
-    set("mockkVersion", "1.13.8")
-}
-
-repositories {
-    mavenCentral()
+    id("org.jetbrains.kotlin.jvm")
+    id("org.jetbrains.kotlin.kapt")
+    id("org.jetbrains.kotlin.plugin.allopen")
+    id("com.google.devtools.ksp")
+    id("io.micronaut.application")
 }
 
 dependencies {
+    implementation(project(":data"))
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect:${project.extra["kotlinVersion"]}")

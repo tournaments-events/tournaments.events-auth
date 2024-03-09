@@ -29,6 +29,7 @@ MICRONAUT_CONFIG_FILES=$(pwd)/config/application.yml ./gradlew :core:run
 Add a new **Micronaut** configuration:
 - **Name**: Application
 - **Main class**: com.sympauthy.Application
-- **Working directory**: $ContentRoot$
+- **Classpath**: sympauthy.core.main
+- **Working directory**: $ProjectFileDir$
 - **Environment variables**:
   - **MICRONAUT_CONFIG_FILES**: config/application.yml
