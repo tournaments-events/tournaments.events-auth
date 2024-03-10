@@ -8,6 +8,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":common"))
     api(project(":data"))
 
     // Kotlin
@@ -19,7 +20,8 @@ dependencies {
     implementation("io.micronaut:micronaut-runtime")
 
     // Database
-    api("org.postgresql:r2dbc-postgresql")
+    api("io.micronaut.data:micronaut-data-r2dbc")
+    api("io.r2dbc:r2dbc-h2")
 
     // Serialization/Deserialization
     ksp("io.micronaut.serde:micronaut-serde-processor")

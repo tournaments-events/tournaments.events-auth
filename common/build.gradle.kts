@@ -2,13 +2,11 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
-    id("org.jetbrains.kotlin.kapt")
     id("com.google.devtools.ksp")
     id("io.micronaut.library")
 }
 
 dependencies {
-    api(project(":data"))
 
     // Kotlin
     api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.extra["kotlinVersion"]}")
@@ -16,14 +14,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:${project.extra["kotlinVersion"]}")
 
     // Micronaut
-    implementation("io.micronaut:micronaut-runtime")
-
-    // Database
-    api("org.postgresql:r2dbc-postgresql")
-
-    // Serialization/Deserialization
-    ksp("io.micronaut.serde:micronaut-serde-processor")
-    api("io.micronaut.serde:micronaut-serde-jackson")
+    api("io.micronaut:micronaut-runtime")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:${project.extra["junitJupiterVersion"]}")

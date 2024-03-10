@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/sympauthy.common.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/sympauthy.common.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/data-h2/sympauthy.data-h2.main.iml" filepath="$PROJECT_DIR$/.idea/modules/data-h2/sympauthy.data-h2.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/data-postgresql/sympauthy.data-postgresql.main.iml" filepath="$PROJECT_DIR$/.idea/modules/data-postgresql/sympauthy.data-postgresql.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/data/sympauthy.data.main.iml" filepath="$PROJECT_DIR$/.idea/modules/data/sympauthy.data.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/server/sympauthy.server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/server/sympauthy.server.main.iml" />
