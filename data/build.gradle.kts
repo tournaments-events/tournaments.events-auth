@@ -7,17 +7,21 @@ plugins {
 }
 
 dependencies {
+    api(project(":common"))
 
     // Kotlin
     api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.extra["kotlinVersion"]}")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.extra["kotlinCoroutinesVersion"]}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${project.extra["kotlinVersion"]}")
+    implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
+    implementation("io.micronaut.kotlin:micronaut-kotlin-extension-functions")
 
     // Micronaut
     implementation("io.micronaut:micronaut-runtime")
 
     // Database
     api("io.micronaut.data:micronaut-data-r2dbc")
+    api("io.micronaut.flyway:micronaut-flyway")
     api("jakarta.persistence:jakarta.persistence-api:3.0.0")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
 

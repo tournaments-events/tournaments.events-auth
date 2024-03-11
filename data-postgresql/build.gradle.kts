@@ -9,17 +9,21 @@ plugins {
 
 dependencies {
     api(project(":data"))
+    api(project(":common"))
 
     // Kotlin
     api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.extra["kotlinVersion"]}")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.extra["kotlinCoroutinesVersion"]}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:${project.extra["kotlinCoroutinesVersion"]}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${project.extra["kotlinVersion"]}")
 
     // Micronaut
     implementation("io.micronaut:micronaut-runtime")
 
     // Database
+    api("org.flywaydb:flyway-database-postgresql")
     api("org.postgresql:r2dbc-postgresql")
+    api("org.postgresql:postgresql")
 
     // Serialization/Deserialization
     ksp("io.micronaut.serde:micronaut-serde-processor")
