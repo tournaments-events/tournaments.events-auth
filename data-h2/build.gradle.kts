@@ -2,7 +2,6 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
-    id("org.jetbrains.kotlin.kapt")
     id("com.google.devtools.ksp")
     id("io.micronaut.library")
 }
@@ -20,12 +19,11 @@ dependencies {
     implementation("io.micronaut:micronaut-runtime")
 
     // Database
-    api("io.micronaut.data:micronaut-data-r2dbc")
     api("io.r2dbc:r2dbc-h2")
+    ksp("io.micronaut.data:micronaut-data-processor")
 
-    // Serialization/Deserialization
-    ksp("io.micronaut.serde:micronaut-serde-processor")
-    api("io.micronaut.serde:micronaut-serde-jackson")
+    // Database migration
+    api("io.micronaut.flyway:micronaut-flyway")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:${project.extra["junitJupiterVersion"]}")

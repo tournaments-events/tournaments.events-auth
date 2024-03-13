@@ -21,9 +21,8 @@ dependencies {
 
     // Database
     api("io.micronaut.data:micronaut-data-r2dbc")
-    api("io.micronaut.flyway:micronaut-flyway")
     api("jakarta.persistence:jakarta.persistence-api:3.0.0")
-    runtimeOnly("org.postgresql:r2dbc-postgresql")
+    ksp("io.micronaut.data:micronaut-data-processor")
 
     // Serialization/Deserialization
     ksp("io.micronaut.serde:micronaut-serde-processor")

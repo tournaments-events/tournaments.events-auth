@@ -6,5 +6,9 @@
         "name": "configuration"
       }
     ]
+  },
+  {
+    "name": "io.r2dbc.postgresql.PostgresqlConnectionConfiguration",
+    "allDeclaredFields" : true
   }
 ]

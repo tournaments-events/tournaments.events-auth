@@ -1,7 +1,6 @@
-package com.sympauthy.data.postgresql.server
+package com.sympauthy.data.postgresql
 
 import com.sympauthy.common.loggerForClass
-import com.sympauthy.data.postgresql.DefaultDatasourceIsPostgreSQL
 import com.sympauthy.data.postgresql.util.PostgresqlConnectionConfigurationProxy
 import com.sympauthy.data.postgresql.util.configurationProxy
 import io.micronaut.context.annotation.Factory
@@ -24,7 +23,7 @@ import javax.sql.DataSource
  * Otherwise, the whole application relies exclusively on the R2DBC connection.
  */
 @Factory
-@Requires(condition = DefaultDatasourceIsPostgreSQL::class)
+@Requires(condition = DefaultDataSourceIsPostgreSQL::class)
 class PostgreSQLDefaultDataSourceFactory(
     @Inject private val connectionFactory: ConnectionFactory
 ) {

@@ -8,7 +8,7 @@ import io.r2dbc.spi.ConnectionFactory
 /**
  * Condition checking if the default datasource is an H2 database.
  */
-class DefaultDatasourceIsH2 : Condition {
+class DefaultDataSourceIsH2 : Condition {
 
     override fun matches(context: ConditionContext<*>): Boolean {
         val connectionFactory = context.getBean(ConnectionFactory::class.java)

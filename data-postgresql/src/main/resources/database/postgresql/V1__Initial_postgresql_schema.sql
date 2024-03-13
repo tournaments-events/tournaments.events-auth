@@ -1,6 +1,3 @@
--- To create the database on your local PostgreSQL server
--- CREATE DATABASE tournaments_auth WITH OWNER = DEFAULT;
-
 -- User-related tables
 
 CREATE TABLE users
@@ -150,7 +147,7 @@ CREATE TABLE crypto_keys
 CREATE TABLE indexed_crypto_keys
 (
     name               text      NOT NULL,
-    index              SERIAL    NOT NULL,
+    index              serial    NOT NULL,
     algorithm          text      NOT NULL,
 
     public_key         bytea,
