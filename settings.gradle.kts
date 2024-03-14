@@ -2,5 +2,3 @@
 rootProject.name = "sympauthy"
 
 include("server", "data", "common")
-include("data-postgresql")
-include("data-h2")

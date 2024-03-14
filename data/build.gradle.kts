@@ -12,6 +12,7 @@ dependencies {
     // Kotlin
     api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.extra["kotlinVersion"]}")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.extra["kotlinCoroutinesVersion"]}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:${project.extra["kotlinCoroutinesVersion"]}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${project.extra["kotlinVersion"]}")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut.kotlin:micronaut-kotlin-extension-functions")
@@ -19,10 +20,21 @@ dependencies {
     // Micronaut
     implementation("io.micronaut:micronaut-runtime")
 
-    // Database
+    // R2DBC Database
     api("io.micronaut.data:micronaut-data-r2dbc")
     api("jakarta.persistence:jakarta.persistence-api:3.0.0")
     ksp("io.micronaut.data:micronaut-data-processor")
+
+    // Database migration
+    api("io.micronaut.flyway:micronaut-flyway")
+
+    // H2: R2DBC + JDBC for migration
+    api("io.r2dbc:r2dbc-h2")
+
+    // PostgreSQL: R2DBC + JDBC for migration
+    api("org.postgresql:r2dbc-postgresql")
+    api("org.flywaydb:flyway-database-postgresql")
+    api("org.postgresql:postgresql")
 
     // Serialization/Deserialization
     ksp("io.micronaut.serde:micronaut-serde-processor")

@@ -5,8 +5,7 @@ import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Requires
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions
-import io.r2dbc.spi.ConnectionFactoryOptions.DATABASE
-import io.r2dbc.spi.ConnectionFactoryOptions.PROTOCOL
+import io.r2dbc.spi.ConnectionFactoryOptions.*
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.h2.jdbcx.JdbcDataSource
@@ -38,6 +37,7 @@ class H2DefaultDataSourceFactory(
         return buildString {
             append("jdbc:h2:")
             options.getValue(PROTOCOL)?.let { append("$it:") }
+            options.getValue(HOST)?.let { append("$it/") }
             options.getValue(DATABASE)?.let { append("$it") }
         }
     }
