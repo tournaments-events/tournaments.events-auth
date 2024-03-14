@@ -82,16 +82,16 @@ CREATE INDEX provider_user_info__user_id ON provider_user_info (user_id);
 
 CREATE TABLE authorize_attempts
 (
-    id              uuid       NOT NULL DEFAULT random_uuid(),
-    client_id       text       NOT NULL,
-    redirect_uri    text       NOT NULL,
+    id              uuid      NOT NULL DEFAULT random_uuid(),
+    client_id       text      NOT NULL,
+    redirect_uri    text      NOT NULL,
     scope_tokens    text array NOT NULL,
     state           text,
 
     user_id         uuid,
 
-    attempt_date    timestamp  NOT NULL,
-    expiration_date timestamp  NOT NULL,
+    attempt_date    timestamp NOT NULL,
+    expiration_date timestamp NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
@@ -112,15 +112,15 @@ CREATE INDEX authorization_codes__code ON authorization_codes (code);
 
 CREATE TABLE authentication_tokens
 (
-    id                   uuid       NOT NULL DEFAULT random_uuid(),
-    type                 text       NOT NULL,
-    user_id              uuid       NOT NULL,
-    client_id            text       NOT NULL,
+    id                   uuid      NOT NULL DEFAULT random_uuid(),
+    type                 text      NOT NULL,
+    user_id              uuid      NOT NULL,
+    client_id            text      NOT NULL,
     scope_tokens         text array NOT NULL,
-    authorize_attempt_id uuid       NOT NULL,
+    authorize_attempt_id uuid      NOT NULL,
 
-    revoked              boolean    NOT NULL,
-    issue_date           timestamp  NOT NULL,
+    revoked              boolean   NOT NULL,
+    issue_date           timestamp NOT NULL,
     expiration_date      timestamp,
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
@@ -146,7 +146,7 @@ CREATE TABLE crypto_keys
 CREATE TABLE indexed_crypto_keys
 (
     name               text      NOT NULL,
-    index              int       NOT NULL,
+    index              int       NOT NULL AUTO_INCREMENT,
     algorithm          text      NOT NULL,
 
     public_key         bytea,

@@ -1,6 +1,10 @@
 # Local configuration file
 config/application.yml
 
+# Local H2 database
+*.mv.db
+*.trace.db
+
 .gradle
 **/build/
 !core/src/**/build/

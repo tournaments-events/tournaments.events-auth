@@ -7,11 +7,37 @@ An open-source, self-hosted authorization server.
 ### Requirements
 
 - JDK 21
-- [PostgreSQL](https://www.postgresql.org/)
 
 ### Create the application configuration
 
 **FIXME**
+
+#### Configure a database
+
+- [PostgreSQL](https://www.postgresql.org)
+- [H2](https://www.h2database.com)
+
+##### PostgreSQL
+
+**FIXME**
+
+##### H2
+
+- Stored in a local **sympauthy.mv.db** file:
+```yaml
+r2dbc:
+  datasources:
+    default:
+      url: r2dbc:h2:file://localhost/./sympauthy
+```
+
+- In memory:
+```yaml
+r2dbc:
+  datasources:
+    default:
+      url: r2dbc:h2:mem://localhost/sympauthy
+```
 
 ### Launch the server
 
