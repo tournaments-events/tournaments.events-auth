@@ -1,8 +1,8 @@
 package com.sympauthy.data.postgresql
 
-import com.sympauthy.common.loggerForClass
 import com.sympauthy.data.postgresql.util.PostgresqlConnectionConfigurationProxy
 import com.sympauthy.data.postgresql.util.configurationProxy
+import com.sympauthy.util.loggerForClass
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Requires
 import io.r2dbc.postgresql.PostgresqlConnectionFactory

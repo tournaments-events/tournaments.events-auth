@@ -9,8 +9,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":data"))
-
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect:${project.extra["kotlinVersion"]}")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.extra["kotlinVersion"]}")
@@ -22,6 +20,22 @@ dependencies {
     // Micronaut
     implementation("io.micronaut:micronaut-runtime")
     ksp("io.micronaut:micronaut-inject-java")
+
+    // R2DBC Database
+    api("io.micronaut.data:micronaut-data-r2dbc")
+    api("jakarta.persistence:jakarta.persistence-api:3.0.0")
+    ksp("io.micronaut.data:micronaut-data-processor")
+
+    // Database migration
+    api("io.micronaut.flyway:micronaut-flyway")
+
+    // H2: R2DBC + JDBC for migration
+    api("io.r2dbc:r2dbc-h2")
+
+    // PostgreSQL: R2DBC + JDBC for migration
+    api("org.postgresql:r2dbc-postgresql")
+    api("org.flywaydb:flyway-database-postgresql")
+    api("org.postgresql:postgresql")
 
     // HTTP server
     ksp("io.micronaut.jaxrs:micronaut-jaxrs-processor")

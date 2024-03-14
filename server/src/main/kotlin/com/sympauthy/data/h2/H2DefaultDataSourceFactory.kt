@@ -1,6 +1,6 @@
 package com.sympauthy.data.h2
 
-import com.sympauthy.common.loggerForClass
+import com.sympauthy.util.loggerForClass
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Requires
 import io.r2dbc.h2.H2ConnectionConfiguration
