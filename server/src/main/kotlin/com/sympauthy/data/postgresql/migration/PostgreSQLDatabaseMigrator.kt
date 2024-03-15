@@ -4,7 +4,6 @@ import com.sympauthy.data.migration.AbstractFlywayDatabaseMigrator
 import com.sympauthy.data.postgresql.DefaultDataSourceIsPostgreSQL
 import io.micronaut.context.annotation.Requires
 import io.micronaut.flyway.FlywayConfigurationProperties
-import io.micronaut.flyway.FlywayMigrator
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import javax.sql.DataSource
@@ -13,11 +12,9 @@ import javax.sql.DataSource
 @Requires(condition = DefaultDataSourceIsPostgreSQL::class)
 class PostgreSQLDatabaseMigrator(
     @Inject private val dataSource: DataSource,
-    @Inject private val configuration: FlywayConfigurationProperties,
-    @Inject private val migrator: FlywayMigrator
+    @Inject private val configuration: FlywayConfigurationProperties
 ) : AbstractFlywayDatabaseMigrator(
     driver = "postgresql",
     dataSource = dataSource,
-    configuration = configuration,
-    migrator = migrator
+    configuration = configuration
 )

@@ -2,7 +2,6 @@ package com.sympauthy.data.migration
 
 import com.sympauthy.util.loggerForClass
 import io.micronaut.flyway.FlywayConfigurationProperties
-import io.micronaut.flyway.FlywayMigrator
 import org.flywaydb.core.api.Location
 import java.nio.file.Files
 import java.nio.file.Path
@@ -20,8 +19,7 @@ import javax.sql.DataSource
 abstract class AbstractFlywayDatabaseMigrator(
     private val driver: String,
     private val dataSource: DataSource,
-    private val configuration: FlywayConfigurationProperties,
-    private val migrator: FlywayMigrator
+    private val configuration: FlywayConfigurationProperties
 ) : DatabaseMigrator {
 
     private val logger = loggerForClass()
@@ -29,18 +27,35 @@ abstract class AbstractFlywayDatabaseMigrator(
     override val enabled: Boolean
         get() = configuration.isEnabled
 
+    /**
+     * Run the database migrations.
+     *
+     * /!\ We do not use the AbstractFlywayMigration provided by micronaut-flyway to avoid it loading
+     * the feature for graalvm. The Feature will cause flyway to ignore all other locations.
+     */
     override fun migrate() {
         if (!configuration.isEnabled) {
             return
         }
 
         val locations = getLocations() ?: return
-        locations.joinToString(", ") { it.descriptor }.let {
-            logger.info("Running migrations from following locations: $it")
+        val fluentConfiguration = configuration.fluentConfiguration.also {
+            it.dataSource(dataSource)
+            it.cleanDisabled(!configuration.isCleanSchema)
+            it.configuration(configuration.properties)
+            it.locations(*locations.toTypedArray())
         }
-        configuration.fluentConfiguration.locations(*locations.toTypedArray())
 
-        migrator.run(configuration, dataSource)
+        val flyway = fluentConfiguration.load()
+        if (configuration.isCleanSchema) {
+            logger.info("Cleaning schema for ${configuration.nameQualifier} database.")
+            flyway.clean()
+        }
+
+        fluentConfiguration.locations.joinToString(", ") { it.descriptor }.let {
+            logger.info("Running migrations for ${configuration.nameQualifier} database and found at following locations: $it")
+        }
+        flyway.migrate()
     }
 
     private fun getLocations(): List<Location>? {
