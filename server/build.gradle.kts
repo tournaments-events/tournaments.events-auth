@@ -127,6 +127,22 @@ graalvmNative {
     metadataRepository {
         enabled = true
     }
+    binaries {
+        named("main") {
+            verbose.set(true)
+            /**
+             * The location of all Flyway migrations must be enumerated for each database.
+             * This configures the io.micronaut.flyway.StaticResourceFeature to embed all the migrations into
+             * the binary.
+             */
+            /*
+            systemProperty(
+                "flyway.locations",
+                "classpath:db/migration,classpath:database/postgresql"
+            ) // classpath:database/h2,classpath:database/postgresql
+             */
+        }
+    }
 }
 
 tasks {
@@ -148,7 +164,7 @@ tasks {
             )
         }
     }
-    withType<Jar>() {
+    withType<Jar> {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }

@@ -97,17 +97,5 @@
         "parameterTypes": []
       }
     ]
-  },
-  {
-    "name": "io.r2dbc.postgresql.PostgresqlConnectionFactory",
-    "fields": [
-      {
-        "name": "configuration"
-      }
-    ]
-  },
-  {
-    "name": "io.r2dbc.postgresql.PostgresqlConnectionConfiguration",
-    "allDeclaredFields" : true
   }
 ]

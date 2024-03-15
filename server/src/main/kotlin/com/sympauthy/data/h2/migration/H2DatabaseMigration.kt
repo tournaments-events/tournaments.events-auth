@@ -1,7 +1,7 @@
 package com.sympauthy.data.h2.migration
 
 import com.sympauthy.data.h2.DefaultDataSourceIsH2
-import com.sympauthy.data.migration.DatabaseMigrator
+import com.sympauthy.data.migration.AbstractFlywayDatabaseMigrator
 import io.micronaut.context.annotation.Requires
 import io.micronaut.flyway.FlywayConfigurationProperties
 import io.micronaut.flyway.FlywayMigrator
@@ -15,13 +15,9 @@ class H2DatabaseMigration(
     @Inject private val dataSource: DataSource,
     @Inject private val configuration: FlywayConfigurationProperties,
     @Inject private val migrator: FlywayMigrator
-): DatabaseMigrator {
-
-    override fun migrate() {
-        // Change location of migration scripts to match the one designed for PostgreSQL.
-        val config = configuration.apply {
-            fluentConfiguration.locations("classpath:database/h2")
-        }
-        migrator.run(config, dataSource)
-    }
-}
+): AbstractFlywayDatabaseMigrator(
+    driver = "h2",
+    dataSource = dataSource,
+    configuration = configuration,
+    migrator = migrator
+)
