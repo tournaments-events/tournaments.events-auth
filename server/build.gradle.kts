@@ -90,6 +90,9 @@ dependencies {
     // JsonPath: for user info extraction
     implementation("com.jayway.jsonpath:json-path:${project.extra["jsonPathVersion"]}")
 
+    // Health & Liveness endpoints
+    implementation("io.micronaut:micronaut-management")
+
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:${project.extra["junitJupiterVersion"]}")
     testImplementation("io.mockk:mockk:${project.extra["mockkVersion"]}")

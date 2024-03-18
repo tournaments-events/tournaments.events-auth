@@ -1,6 +1,6 @@
 micronaut:
   application:
-    name: auth
+    name: sympauthy
 
   server:
     cors:
@@ -37,6 +37,16 @@ netty:
   default:
     allocator:
       max-order: 3
+
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: anonymous
+    disk-space:
+      enabled: false
+    jdbc:
+      enabled: false
 
 flyway:
   datasources:
