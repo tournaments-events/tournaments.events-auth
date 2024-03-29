@@ -43,8 +43,16 @@ class ConfigParser {
         return value
     }
 
-    fun <C : Any> getBoolean(config: C, key: String, value: (C) -> String?): Boolean? {
+    fun <C : Any> getBoolean(config: C, key: String, value: (C) -> Any?): Boolean? {
         val value = value(config) ?: return null
+        return when (value) {
+            is String -> booleanFromString(key, value)
+            is Boolean -> value
+            else -> throw configExceptionOf(key, "config.invalid_boolean")
+        }
+    }
+
+    private fun booleanFromString(key: String, value: String): Boolean {
         return when (value.uppercase()) {
             "TRUE", "T", "YES", "Y" -> true
             "FALSE", "F", "NO", "N" -> false

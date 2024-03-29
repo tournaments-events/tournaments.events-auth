@@ -10,7 +10,7 @@ class CustomClaim(
     group = null,
     required = required
 ) {
-    override val readScopeTokens = emptySet<String>()
+    override val readScopes = emptySet<String>()
 
-    override val writeScopeTokens = emptySet<String>()
+    override val writeScopes = emptySet<String>()
 }

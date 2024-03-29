@@ -47,7 +47,7 @@ class ClientAuthenticationFetcher(
         )
     }
 
-    private fun authenticateClient(credentials: ClientCredentials?): Authentication? {
+    private suspend fun authenticateClient(credentials: ClientCredentials?): Authentication? {
         if (credentials == null) {
             return null
         }

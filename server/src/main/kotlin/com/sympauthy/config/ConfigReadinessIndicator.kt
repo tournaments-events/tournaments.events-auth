@@ -16,8 +16,12 @@ import io.micronaut.management.health.indicator.annotation.Readiness
 import io.micronaut.scheduling.annotation.Async
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.reactive.asPublisher
+import kotlinx.coroutines.runBlocking
 import org.reactivestreams.Publisher
-import reactor.core.publisher.Mono
 import java.util.*
 
 @Singleton
@@ -27,7 +31,9 @@ open class ConfigReadinessIndicator(
     @Inject private val advancedConfig: AdvancedConfig,
     @Inject private val authConfig: AuthConfig,
     @Inject private val claimsConfig: ClaimsConfig,
+    @Inject private val clientsConfig: Flow<ClientsConfig>,
     @Inject private val passwordAuthConfig: PasswordAuthConfig,
+    @Inject private val scopesConfig: ScopesConfig,
     @Inject private val urlsConfig: UrlsConfig
 ) : HealthIndicator, ApplicationEventListener<ServiceReadyEvent> {
 
@@ -38,25 +44,42 @@ open class ConfigReadinessIndicator(
         authConfig,
         claimsConfig,
         passwordAuthConfig,
+        scopesConfig,
         urlsConfig
     )
 
-    override fun getResult(): Publisher<HealthResult> {
-        val configurationErrors = configs.flatMap { it.configurationErrors ?: emptyList() }
+    private val flowConfigs = listOf(
+        clientsConfig
+    )
 
-        val builder = HealthResult.builder(HEALTH_INDICATOR_NAME)
-        if (configurationErrors.isEmpty()) {
-            builder.status(UP)
-        } else {
-            builder.status(DOWN)
-            builder.details(configurationErrors.associate(::getKeyAndLocalizedMessage))
+    private suspend fun getConfigurationErrors(): List<Exception> {
+        val asyncConfigs = flowConfigs.mapNotNull {
+            try {
+                it.firstOrNull()
+            } catch (e: Throwable) {
+                null
+            }
         }
-        return Mono.just(builder.build())
+        return (asyncConfigs + configs).flatMap { it.configurationErrors ?: emptyList() }
+    }
+
+    override fun getResult(): Publisher<HealthResult> {
+        return flow {
+            val configurationErrors = getConfigurationErrors()
+            val builder = HealthResult.builder(HEALTH_INDICATOR_NAME)
+            if (configurationErrors.isEmpty()) {
+                builder.status(UP)
+            } else {
+                builder.status(DOWN)
+                builder.details(configurationErrors.associate(::getKeyAndLocalizedMessage))
+            }
+            emit(builder.build())
+        }.asPublisher()
     }
 
     @Async
-    override fun onApplicationEvent(event: ServiceReadyEvent) {
-        val configurationErrors = configs.flatMap { it.configurationErrors ?: emptyList() }
+    override fun onApplicationEvent(event: ServiceReadyEvent) = runBlocking {
+        val configurationErrors = getConfigurationErrors()
         if (configurationErrors.isEmpty()) {
             logger.info("No error detected in the configuration.")
         } else {

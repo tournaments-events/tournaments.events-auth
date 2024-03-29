@@ -12,7 +12,7 @@ class StandardClaim(
     group = openIdClaim.group,
     required = required
 ) {
-    override val readScopeTokens = setOf(openIdClaim.scope.id)
+    override val readScopes = setOf(openIdClaim.scope.scope)
 
-    override val writeScopeTokens = emptySet<String>()
+    override val writeScopes = emptySet<String>()
 }

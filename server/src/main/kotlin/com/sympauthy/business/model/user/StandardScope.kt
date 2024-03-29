@@ -9,7 +9,7 @@ package com.sympauthy.business.model.user
  * @see <a href="https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims">Scope</a>
  */
 enum class StandardScope(
-    val id: String
+    val scope: String
 ) {
     OPENID(StandardScopeId.OPENID),
     PROFILE(StandardScopeId.PROFILE),
@@ -17,6 +17,11 @@ enum class StandardScope(
     ADDRESS(StandardScopeId.ADDRESS),
     PHONE(StandardScopeId.PHONE);
 }
+
+/**
+ * Return true if the scope id belongs to the [StandardScope] defined in the OpenID specification.
+ */
+fun String.isStandardScope(): Boolean = StandardScope.entries.any { it.scope == this }
 
 object StandardScopeId {
     const val OPENID = "openid"

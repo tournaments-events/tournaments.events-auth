@@ -39,7 +39,7 @@ class OpenIdConfigurationController(
             tokenEndpoint = urlsConfig.getUri(OAUTH2_TOKEN_ENDPOINT).toString(),
             userInfoEndpoint = urlsConfig.getUri(OPENID_USERINFO_ENDPOINT).toString(),
             jwksUri = urlsConfig.getUri(OPENID_JWKS_ENDPOINT).toString(),
-            scopesSupported = StandardScope.entries.map(StandardScope::id),
+            scopesSupported = StandardScope.entries.map(StandardScope::scope),
             responseTypesSupported = listOf("code", "id_token", "token id_token"),
             grantTypesSupported = listOf("authorization_code", "refresh_token"),
             subjectTypesSupported = listOf("public"),

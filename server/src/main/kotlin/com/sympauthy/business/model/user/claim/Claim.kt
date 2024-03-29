@@ -21,26 +21,26 @@ sealed class Claim(
 ) {
 
     /**
-     * List of scope tokens that can be granted by the user to the client to read the claim.
+     * List of scopes that can read the claim.
      */
-    abstract val readScopeTokens: Set<String>
+    abstract val readScopes: Set<String>
 
     /**
-     * List of scope tokens that can be granted by the user to the client to edit the claim.
+     * List of scopes that can edit the claim.
      */
-    abstract val writeScopeTokens: Set<String>
+    abstract val writeScopes: Set<String>
 
     /**
-     * Return true if one of the [scopeTokens] allow to read the claim.
+     * Return true if one of the [scopes] allows to read the claim.
      */
-    fun canBeRead(scopeTokens: List<String>): Boolean {
-        return scopeTokens.any { readScopeTokens.contains(it) }
+    fun canBeRead(scopes: List<String>): Boolean {
+        return scopes.any { readScopes.contains(it) }
     }
 
     /**
-     * Return true if one of the [scopeTokens] allow to write the claim.
+     * Return true if one of the [scopeTokens] allows to edit the claim.
      */
     fun canBeWritten(scopeTokens: List<String>): Boolean {
-        return scopeTokens.any { writeScopeTokens.contains(it) }
+        return scopeTokens.any { writeScopes.contains(it) }
     }
 }
