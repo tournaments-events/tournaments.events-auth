@@ -85,7 +85,7 @@ CREATE TABLE authorize_attempts
     id              uuid      NOT NULL DEFAULT random_uuid(),
     client_id       text      NOT NULL,
     redirect_uri    text      NOT NULL,
-    scope_tokens    text array NOT NULL,
+    scopes          text array NOT NULL,
     state           text,
 
     user_id         uuid,
@@ -116,7 +116,7 @@ CREATE TABLE authentication_tokens
     type                 text      NOT NULL,
     user_id              uuid      NOT NULL,
     client_id            text      NOT NULL,
-    scope_tokens         text array NOT NULL,
+    scopes               text array NOT NULL,
     authorize_attempt_id uuid      NOT NULL,
 
     revoked              boolean   NOT NULL,

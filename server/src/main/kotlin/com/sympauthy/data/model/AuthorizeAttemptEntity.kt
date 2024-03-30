@@ -12,7 +12,7 @@ import java.util.*
 class AuthorizeAttemptEntity(
     val clientId: String,
     val redirectUri: String,
-    val scopeTokens: Array<String> = emptyArray(),
+    val scopes: Array<String> = emptyArray(),
     val state: String? = null,
     val userId: UUID? = null,
     val attemptDate: LocalDateTime,

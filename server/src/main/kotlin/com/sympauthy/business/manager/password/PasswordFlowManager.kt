@@ -4,10 +4,12 @@ import com.sympauthy.business.exception.businessExceptionOf
 import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.manager.SignInOrSignUpResult
 import com.sympauthy.business.manager.SignUpFlowManager
+import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
 import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.user.UserManager
 import com.sympauthy.business.mapper.ClaimValueMapper
 import com.sympauthy.business.mapper.UserMapper
+import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.UserStatus
@@ -30,6 +32,7 @@ import jakarta.inject.Singleton
  */
 @Singleton
 open class PasswordFlowManager(
+    @Inject private val authorizeManager: AuthorizeManager,
     @Inject private val claimManager: ClaimManager,
     @Inject private val collectedClaimManager: CollectedClaimManager,
     @Inject private val collectedClaimRepository: CollectedClaimRepository,
@@ -73,6 +76,7 @@ open class PasswordFlowManager(
      * Sign-in the end-user using a [login] and its [password].
      */
     suspend fun signInWithPassword(
+        authorizeAttempt: AuthorizeAttempt,
         login: String?,
         password: String?
     ): SignInOrSignUpResult {
@@ -92,6 +96,9 @@ open class PasswordFlowManager(
         if (!passwordManager.arePasswordMatching(user, password)) {
             throw httpExceptionOf(BAD_REQUEST, "password.flow.sign_in.invalid")
         }
+
+        // Update the authorize attempt with the id of the user so they can retrieve their access token.
+        authorizeManager.setAuthenticatedUserId(authorizeAttempt, user.id)
 
         // Check if sign-up is completed
         val claims = collectedClaimManager.findReadableUserInfoByUserId(

@@ -32,7 +32,7 @@ class AccessTokenGenerator(
     ) = generateAccessToken(
         userId = userId,
         clientId = authorizeAttempt.clientId,
-        scopeTokens = authorizeAttempt.scopeTokens,
+        scopeTokens = authorizeAttempt.scopes,
         authorizeAttemptId = authorizeAttempt.id
     )
 
@@ -44,7 +44,7 @@ class AccessTokenGenerator(
     ) = generateAccessToken(
         userId = refreshToken.userId,
         clientId = refreshToken.clientId,
-        scopeTokens = refreshToken.scopeTokens,
+        scopeTokens = refreshToken.scopes,
         authorizeAttemptId = refreshToken.authorizeAttemptId
     )
 
@@ -62,7 +62,7 @@ class AccessTokenGenerator(
             userId = userId,
             type = ACCESS.name,
             clientId = clientId,
-            scopeTokens = scopeTokens.toTypedArray(),
+            scopes = scopeTokens.toTypedArray(),
             authorizeAttemptId = authorizeAttemptId,
             revoked = false,
             issueDate = issueDate,

@@ -2,9 +2,9 @@
 
 CREATE TABLE users
 (
-    id              uuid      NOT NULL DEFAULT gen_random_uuid(),
-    status          text      NOT NULL,
-    creation_date   timestamp NOT NULL,
+    id            uuid      NOT NULL DEFAULT gen_random_uuid(),
+    status        text      NOT NULL,
+    creation_date timestamp NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -19,8 +19,7 @@ CREATE TABLE collected_claims
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE INDEX collected_user_info__login_claims ON collected_claims (claim, value)
-    WHERE claim = 'preferred_username' OR claim = 'email' OR claim = 'phone_number';
+CREATE INDEX collected_user_info__login_claims ON collected_claims (claim, value) WHERE claim = 'preferred_username' OR claim = 'email' OR claim = 'phone_number';
 
 CREATE TABLE passwords
 (
@@ -86,7 +85,7 @@ CREATE TABLE authorize_attempts
     id              uuid      NOT NULL DEFAULT gen_random_uuid(),
     client_id       text      NOT NULL,
     redirect_uri    text      NOT NULL,
-    scope_tokens    text[]    NOT NULL,
+    scopes          text[] NOT NULL,
     state           text,
 
     user_id         uuid,
@@ -117,7 +116,7 @@ CREATE TABLE authentication_tokens
     type                 text      NOT NULL,
     user_id              uuid      NOT NULL,
     client_id            text      NOT NULL,
-    scope_tokens         text[]    NOT NULL,
+    scopes               text[] NOT NULL,
     authorize_attempt_id uuid      NOT NULL,
 
     revoked              boolean   NOT NULL,

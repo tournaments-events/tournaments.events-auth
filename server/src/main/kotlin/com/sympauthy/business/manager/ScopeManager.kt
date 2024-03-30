@@ -2,38 +2,68 @@ package com.sympauthy.business.manager
 
 import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.business.model.user.StandardScope
+import com.sympauthy.config.model.AuthConfig
 import com.sympauthy.config.model.ScopesConfig
 import com.sympauthy.config.model.StandardScopeConfig
 import com.sympauthy.config.model.orThrow
-import io.reactivex.rxjava3.core.Observable
+import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import kotlinx.coroutines.rx3.await
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 
 @Singleton
 class ScopeManager(
+    @Inject private val uncheckedAuthConfig: AuthConfig,
     @Inject private val uncheckedScopesConfig: ScopesConfig
 ) {
     /**
      * List of scopes defined in the OAuth 2 & OpenId specifications.
-     *
-     * They can be enabled or disabled by the configuration.
      */
-    private val enabledStandardScopes: Observable<Scope> = Observable.fromIterable(StandardScope.entries)
-        .flatMap { standardScope ->
+    private val enabledStandardScopes: Flow<Scope> = flow {
+        StandardScope.entries.forEach { standardScope ->
             val config = uncheckedScopesConfig.orThrow().scopes.asSequence()
                 .filterIsInstance<StandardScopeConfig>()
                 .firstOrNull { it.scope == standardScope.scope }
-            if (config == null || config.enabled) {
-                val scope = Scope(
-                    scope = standardScope.scope
-                )
-                Observable.just(scope)
-            } else {
-                Observable.empty()
-            }
+            val scope = toScope(config = config, standardScope = standardScope)
+            scope?.let { emit(it) }
         }
-        .cache()
+    }.buffer()
+
+    /**
+     * Custom scope allowing the user to access the administration APIs of this authorization server.
+     */
+    val adminScope: Scope
+        get() {
+            val adminScope = UriBuilder.of(uncheckedAuthConfig.orThrow().issuer)
+                .path("admin")
+                .build()
+            return Scope(
+                scope = adminScope.toASCIIString(),
+                admin = true,
+                discoverable = false
+            )
+        }
+
+    /**
+     * Convert a [standardScope] into a [Scope].
+     * Return null if the scope has been disabled by the [config].
+     */
+    private fun toScope(
+        config: StandardScopeConfig?,
+        standardScope: StandardScope
+    ): Scope? {
+        if (config != null && !config.enabled) {
+            return null
+        }
+        return Scope(
+            scope = standardScope.scope,
+            admin = false,
+            discoverable = true
+        )
+    }
 
     /**
      * List of [Scope] enabled on this authorization server.
@@ -42,7 +72,7 @@ class ScopeManager(
      * the operator of this authorization server.
      */
     suspend fun listScopes(): List<Scope> {
-        return enabledStandardScopes.toList().await()
+        return listOf(adminScope) + enabledStandardScopes.toList()
     }
 
     /**

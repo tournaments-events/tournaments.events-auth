@@ -2,6 +2,7 @@ package com.sympauthy.security
 
 import com.sympauthy.api.exception.OAuth2Exception
 import com.sympauthy.api.exception.toHttpException
+import com.sympauthy.business.manager.ScopeManager
 import com.sympauthy.business.manager.auth.oauth2.TokenManager
 import com.sympauthy.business.manager.jwt.JwtManager
 import com.sympauthy.business.manager.jwt.JwtManager.Companion.PUBLIC_KEY
@@ -30,6 +31,7 @@ import java.util.*
  */
 @Singleton
 class AccessTokenValidator<T>(
+    @Inject private val scopeManager: ScopeManager,
     @Inject private val tokenManager: TokenManager,
     @Inject private val jwtManager: JwtManager
 ) : TokenValidator<T> {
@@ -52,8 +54,14 @@ class AccessTokenValidator<T>(
         } catch (e: OAuth2Exception) {
             throw e.toHttpException(UNAUTHORIZED)
         }
+
+        val scopes = authenticationToken.scopes.mapNotNull {
+            scopeManager.find(it)
+        }
+
         val authentication = UserAuthentication(
-            authenticationToken
+            authenticationToken = authenticationToken,
+            scopes = scopes
         )
         send(authentication)
     }

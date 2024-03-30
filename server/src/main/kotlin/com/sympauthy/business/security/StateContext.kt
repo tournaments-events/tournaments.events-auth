@@ -8,10 +8,10 @@ class StateContext(
 ): Context() {
 
     override fun canRead(claim: Claim): Boolean {
-        return claim.canBeRead(authorizeAttempt.scopeTokens)
+        return claim.canBeRead(authorizeAttempt.scopes)
     }
 
     override fun canWrite(claim: Claim): Boolean {
-        return claim.canBeWritten(authorizeAttempt.scopeTokens)
+        return claim.canBeWritten(authorizeAttempt.scopes)
     }
 }

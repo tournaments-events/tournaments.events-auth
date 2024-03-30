@@ -44,6 +44,7 @@ class SignInController(
         val attempt = authentication.authorizeAttempt
 
         val result = passwordFlowManager.signInWithPassword(
+            authorizeAttempt = attempt,
             login = inputResource.login,
             password = inputResource.password
         )

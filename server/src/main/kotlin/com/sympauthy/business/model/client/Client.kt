@@ -1,5 +1,6 @@
 package com.sympauthy.business.model.client
 
+import com.sympauthy.business.model.oauth2.Scope
 import java.net.URI
 
 data class Client(
@@ -15,6 +16,13 @@ data class Client(
      */
     val allowedRedirectUris: List<URI>? = null,
 
-    val allowedScopes: List<String>? = null,
-    val defaultScopes: List<String>? = null
+    /**
+     * List of [Scope] that can be issued to a token request by this [Client].
+     */
+    val allowedScopes: Set<Scope>? = null,
+    /**
+     * List of [Scope] that are issued by default to a token request by this [Client] if the [Client] did not provide
+     * them explicitly to the authorization endpoint.
+     */
+    val defaultScopes: List<Scope>? = null
 )

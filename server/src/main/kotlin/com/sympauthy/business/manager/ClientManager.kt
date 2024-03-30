@@ -18,6 +18,13 @@ class ClientManager(
     }
 
     /**
+     * Return the [Client] identified by [id]. Otherwise, return null if no client matches.
+     */
+    suspend fun findClientById(id: String): Client? {
+        return listClients().firstOrNull { it.id == id }
+    }
+
+    /**
      * Return the [Client] identified by [clientId] if the [clientSecret] matches the one configured.
      * Otherwise, return null whether no client matches or the secret does not match.
      */

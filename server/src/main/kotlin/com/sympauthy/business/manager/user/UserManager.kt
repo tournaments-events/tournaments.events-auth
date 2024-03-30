@@ -12,6 +12,7 @@ import io.micronaut.transaction.annotation.Transactional
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.time.LocalDateTime.now
+import java.util.*
 
 @Singleton
 open class UserManager(
@@ -20,10 +21,15 @@ open class UserManager(
     @Inject private val userMapper: UserMapper
 ) {
 
+    suspend fun findById(id: UUID): User? {
+        return userRepository.findById(id)
+            ?.let(userMapper::toUser)
+    }
+
     /**
      * Find the end-user with a collected email claim matching the [email].
      */
-    internal suspend fun findByEmail(email: String): User? {
+    suspend fun findByEmail(email: String): User? {
         val userInfo = collectedClaimRepository.findAnyClaimMatching(listOf(EMAIL.id), email)
         return userInfo?.userId
             ?.let { userRepository.findById(it) }

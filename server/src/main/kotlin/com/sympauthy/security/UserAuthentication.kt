@@ -1,7 +1,10 @@
 package com.sympauthy.security
 
 import com.sympauthy.business.model.oauth2.AuthenticationToken
+import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.exception.httpExceptionOf
+import com.sympauthy.security.SecurityRule.IS_ADMIN
+import com.sympauthy.security.SecurityRule.IS_USER
 import io.micronaut.http.HttpStatus.FORBIDDEN
 import io.micronaut.security.authentication.Authentication
 import java.util.*
@@ -13,14 +16,24 @@ class UserAuthentication(
     /**
      * The token used by the end-user to authorize its request.
      */
-    val authorizationToken: AuthenticationToken
+    val authenticationToken: AuthenticationToken,
+    /**
+     * List of scopes granted to the user during the authorization.
+     */
+    val scopes: List<Scope>
 ): Authentication {
 
-    override fun getName(): String = authorizationToken.userId.toString()
+    override fun getName(): String = authenticationToken.userId.toString()
 
     override fun getAttributes(): Map<String, Any> = emptyMap()
 
-    override fun getRoles(): Collection<String> = listOf("ROLE_USER")
+    override fun getRoles(): Collection<String> {
+        val roles = mutableListOf(IS_USER)
+        if (scopes.any { it.admin }) {
+            roles.add(IS_ADMIN)
+        }
+        return roles
+    }
 }
 
 /**
@@ -33,9 +46,9 @@ val Authentication.userAuthentication: UserAuthentication
         else -> throw httpExceptionOf(FORBIDDEN, "authentication.wrong")
     }
 
-val Authentication.scopeTokens: List<String>
-    get() = this.userAuthentication.authorizationToken.scopeTokens
+val Authentication.scopes: List<Scope>
+    get() = this.userAuthentication.scopes
 
 val Authentication.userId: UUID
-    get() = this.userAuthentication.authorizationToken.userId
+    get() = this.userAuthentication.authenticationToken.userId
 

@@ -1,12 +1,16 @@
 package com.sympauthy.api.controller.oauth2
 
 import com.sympauthy.api.controller.oauth2.AuthorizeController.Companion.OAUTH2_AUTHORIZE_ENDPOINT
-import com.sympauthy.api.exception.OAuth2Exception
 import com.sympauthy.api.exception.oauth2ExceptionOf
 import com.sympauthy.api.util.AuthorizationFlowRedirectBuilder
+import com.sympauthy.business.manager.ClientManager
+import com.sympauthy.business.manager.ScopeManager
 import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
+import com.sympauthy.business.model.client.Client
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
+import com.sympauthy.business.model.oauth2.Scope
+import com.sympauthy.util.toAbsoluteUri
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
@@ -19,11 +23,14 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.inject.Inject
+import java.net.URI
 
 @Controller(OAUTH2_AUTHORIZE_ENDPOINT)
 @Secured(IS_ANONYMOUS)
 open class AuthorizeController(
     @Inject private val authorizeManager: AuthorizeManager,
+    @Inject private val clientManager: ClientManager,
+    @Inject private val scopeManager: ScopeManager,
     @Inject private val responseBuilder: AuthorizationFlowRedirectBuilder
 ) {
 
@@ -92,19 +99,19 @@ The authorization server includes this value when redirecting the user-agent bac
         @QueryValue("redirect_uri")
         uncheckedRedirectUri: String?,
         @QueryValue("scope")
-        scope: String?, // FIXME: Use scope
+        uncheckedScope: String?,
         @QueryValue("state")
         state: String?
     ): HttpResponse<*> {
-        // FIXME Check client is registered
-        val clientId = uncheckedClientId ?: throw OAuth2Exception(
-            INVALID_REQUEST, "authorize.client_id.missing"
-        )
+        val client = getClient(uncheckedClientId)
+        val scopes = getScopes(uncheckedScope)
+        val redirectUri = getRedirectUri(uncheckedRedirectUri)
         return when (responseType) {
             "code" -> authorizeWithCodeFlow(
-                clientId = clientId,
+                client = client,
                 clientState = state,
-                uncheckedRedirectUri = uncheckedRedirectUri
+                scopes = scopes,
+                redirectUri = redirectUri
             )
 
             else -> throw oauth2ExceptionOf(
@@ -114,15 +121,50 @@ The authorization server includes this value when redirecting the user-agent bac
         }
     }
 
+    private suspend fun getClient(clientId: String?): Client {
+        if (clientId.isNullOrBlank()) {
+            throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.client_id.missing")
+        }
+        return clientManager.findClientById(clientId) ?: throw oauth2ExceptionOf(
+            INVALID_REQUEST, "authorize.client_id.invalid", "description.oauth2.invalid",
+            "clientId" to clientId
+        )
+    }
+
+    private suspend fun getScopes(uncheckedScope: String?): List<Scope> {
+        if (uncheckedScope.isNullOrBlank()) {
+            return emptyList()
+        }
+        return uncheckedScope.split(" ")
+            .filter { it.isNotBlank() }
+            .map { scope ->
+                scopeManager.find(scope) ?: throw oauth2ExceptionOf(
+                    INVALID_REQUEST, "authorize.scope.invalid", "description.oauth2.invalid",
+                    "scope" to scope
+                )
+            }
+    }
+
+    private fun getRedirectUri(redirectUri: String?): URI {
+        if (redirectUri.isNullOrBlank()) {
+            throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.redirect_uri.missing")
+        }
+        return redirectUri.toAbsoluteUri() ?: throw oauth2ExceptionOf(
+            INVALID_REQUEST, "authorize.redirect_uri.invalid", "description.oauth2.invalid"
+        )
+    }
+
     private suspend fun authorizeWithCodeFlow(
-        clientId: String,
+        client: Client,
         clientState: String?,
-        uncheckedRedirectUri: String?
+        scopes: List<Scope>?,
+        redirectUri: URI
     ): HttpResponse<*> {
         val authorizeAttempt = authorizeManager.newAuthorizeAttempt(
-            clientId = clientId,
+            client = client,
             clientState = clientState,
-            uncheckedRedirectUri = uncheckedRedirectUri,
+            uncheckedScopes = scopes,
+            uncheckedRedirectUri = redirectUri,
         )
         return responseBuilder.redirectToSignIn(authorizeAttempt)
     }

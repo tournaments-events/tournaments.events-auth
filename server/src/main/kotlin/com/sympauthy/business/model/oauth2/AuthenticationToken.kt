@@ -8,7 +8,7 @@ data class AuthenticationToken(
     val type: AuthenticationTokenType,
     val userId: UUID,
     val clientId: String,
-    val scopeTokens: List<String>,
+    val scopes: List<String>,
     /**
      * Identifies all the tokens generated during a "session" of the end-user:
      * - the "session" starts when the end-user attempts authorization flow.

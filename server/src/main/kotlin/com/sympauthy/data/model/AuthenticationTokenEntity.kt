@@ -13,7 +13,7 @@ class AuthenticationTokenEntity(
     val type: String,
     val userId: UUID,
     val clientId: String,
-    val scopeTokens: Array<String>,
+    val scopes: Array<String>,
     /**
      * There is no foreign key
      */

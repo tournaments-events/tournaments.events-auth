@@ -4,7 +4,6 @@ package com.sympauthy.business.model.user
  * Enumeration of scope, defined in the OpenID specification, that are supported by this application.
  *
  * TODO: Add support for custom scope
- * TODO: Allow to disable standard scopes from config
  *
  * @see <a href="https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims">Scope</a>
  */

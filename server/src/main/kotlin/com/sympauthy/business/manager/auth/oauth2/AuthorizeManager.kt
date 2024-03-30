@@ -3,11 +3,12 @@ package com.sympauthy.business.manager.auth.oauth2
 import com.sympauthy.api.exception.oauth2ExceptionOf
 import com.sympauthy.business.manager.jwt.JwtManager
 import com.sympauthy.business.mapper.AuthorizeAttemptMapper
+import com.sympauthy.business.model.client.Client
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
+import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.data.model.AuthorizeAttemptEntity
 import com.sympauthy.data.repository.AuthorizeAttemptRepository
-import com.sympauthy.util.toAbsoluteUri
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.net.URI
@@ -22,26 +23,47 @@ class AuthorizeManager(
 ) {
 
     suspend fun newAuthorizeAttempt(
-        clientId: String,
-        uncheckedRedirectUri: String?,
+        client: Client,
         clientState: String? = null,
+        uncheckedScopes: List<Scope>? = null,
+        uncheckedRedirectUri: URI? = null,
     ): AuthorizeAttempt {
-        val redirectUri = checkRedirectUri(uncheckedRedirectUri)
+        val scopes = checkScopes(client, uncheckedScopes)
+        val redirectUri = checkRedirectUri(client, uncheckedRedirectUri)
         checkIsExistingAttemptWithState(clientState)
 
-        // TODO: check client and redirect uri
-
         val entity = AuthorizeAttemptEntity(
-            clientId = clientId,
+            clientId = client.id,
             redirectUri = redirectUri.toString(),
+            scopes = scopes.map(Scope::scope).toTypedArray(),
             state = clientState,
 
             attemptDate = LocalDateTime.now(),
-            expirationDate = LocalDateTime.now().plusMinutes(15) // TODO:
+            expirationDate = LocalDateTime.now().plusMinutes(15) // TODO: Add to advanced config
         )
         authorizeAttemptRepository.save(entity)
 
         return authorizeAttemptMapper.toAuthorizeAttempt(entity)
+    }
+
+    internal fun checkScopes(
+        client: Client,
+        uncheckedScopes: List<Scope>?
+    ): List<Scope> {
+        val scopes = uncheckedScopes ?: client.defaultScopes
+        return if (scopes == null) {
+            throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.scope.missing", "description.oauth2.invalid")
+        } else if (client.allowedScopes != null) {
+            scopes.filter { client.allowedScopes.contains(it) }
+        } else scopes
+    }
+
+    internal fun checkRedirectUri(
+        client: Client,
+        uncheckedRedirectUri: URI?
+    ): URI {
+        // TODO: check redirect uri is valid for client.
+        return uncheckedRedirectUri!!
     }
 
     internal suspend fun checkIsExistingAttemptWithState(
@@ -51,17 +73,8 @@ class AuthorizeManager(
             authorizeAttemptRepository.findByState(it)
         }
         if (existingAttempt != null) {
-            throw oauth2ExceptionOf(INVALID_REQUEST, "description.oauth2.replay", "authorize.existing_state")
+            throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.existing_state", "description.oauth2.replay")
         }
-    }
-
-    internal fun checkRedirectUri(redirectUri: String?): URI {
-        if (redirectUri.isNullOrBlank()) {
-            throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.redirect_uri.missing")
-        }
-        return redirectUri.toAbsoluteUri() ?: throw oauth2ExceptionOf(
-            INVALID_REQUEST, "authorize.redirect_uri.invalid"
-        )
     }
 
     suspend fun encodeState(authorizeAttempt: AuthorizeAttempt): String {

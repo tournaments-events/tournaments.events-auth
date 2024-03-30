@@ -34,7 +34,7 @@ class RefreshTokenGenerator(
     ) = generateRefreshToken(
         userId = userId,
         clientId = authorizeAttempt.clientId,
-        scopeTokens = authorizeAttempt.scopeTokens,
+        scopeTokens = authorizeAttempt.scopes,
         authorizeAttemptId = authorizeAttempt.id
     )
 
@@ -46,7 +46,7 @@ class RefreshTokenGenerator(
     ) = generateRefreshToken(
         userId = refreshToken.userId,
         clientId = refreshToken.clientId,
-        scopeTokens = refreshToken.scopeTokens,
+        scopeTokens = refreshToken.scopes,
         authorizeAttemptId = refreshToken.authorizeAttemptId
     )
 
@@ -67,7 +67,7 @@ class RefreshTokenGenerator(
             userId = userId,
             type = REFRESH.name,
             clientId = clientId,
-            scopeTokens = scopeTokens.toTypedArray(),
+            scopes = scopeTokens.toTypedArray(),
             authorizeAttemptId = authorizeAttemptId,
             revoked = false,
             issueDate = issueDate,

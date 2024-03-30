@@ -2,6 +2,7 @@ package com.sympauthy.config.factory
 
 import com.sympauthy.business.manager.ScopeManager
 import com.sympauthy.business.model.client.Client
+import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.config.ConfigParser
 import com.sympauthy.config.exception.ConfigurationException
 import com.sympauthy.config.exception.configExceptionOf
@@ -63,7 +64,7 @@ class ClientFactory(
             key = "$CLIENTS_KEY.${config.id}.allowed-scopes",
             scopes = config.allowedScopes,
             errors = errors
-        )
+        )?.toSet()
 
         val defaultScopes = getScopes(
             key = "$CLIENTS_KEY.${config.id}.default-scopes",
@@ -111,21 +112,20 @@ class ClientFactory(
         key: String,
         scopes: List<String>?,
         errors: MutableList<ConfigurationException>
-    ): List<String>? {
+    ): List<Scope>? {
         val scopeErrors = mutableListOf<ConfigurationException>()
 
         val verifiedScopes = scopes?.mapIndexedNotNull { index, scope ->
             try {
-                if (scopeManager.find(scope) != null) {
-                    scope
-                } else {
+                val verifiedScope = scopeManager.find(scope)
+                if (verifiedScope == null) {
                     val error = configExceptionOf(
                         "$key[${index}]", "config.client.claim.invalid",
                         "scope" to scope
                     )
                     scopeErrors.add(error)
-                    null
                 }
+                verifiedScope
             } catch (t: Throwable) {
                 // We do not had the error to the list since it is most likely already caused by another configuration error
                 null
