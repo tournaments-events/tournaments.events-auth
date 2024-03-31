@@ -4,9 +4,8 @@ import com.auth0.jwt.interfaces.RSAKeyProvider
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.KeyUse.SIGNATURE
 import com.nimbusds.jose.jwk.RSAKey
-import com.sympauthy.business.exception.businessExceptionOf
+import com.sympauthy.exception.LocalizedException
 import com.sympauthy.exception.localizedExceptionOf
-import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
@@ -39,7 +38,7 @@ sealed class KeyAlgorithmImpl {
     /**
      * Serialize the public key into a JSON Web key([JWK]).
      *
-     * Throws a [LocalizedBusinessException] if the algorithm does not support a public key.
+     * Throws a [LocalizedException] if the algorithm does not support a public key.
      */
     open fun serializePublicKey(keys: CryptoKeys): JWK {
         throw localizedExceptionOf("keyalgorithm.public_key.unsupported")
@@ -75,8 +74,8 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
 
     internal fun toPublicKey(keys: CryptoKeys): RSAPublicKey {
         if (keys.publicKey == null || keys.publicKeyFormat == null) {
-            throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "key.missing_public_key",
+            throw localizedExceptionOf(
+                "key.missing_public_key",
                 "name" to keys.name
             )
         }
@@ -115,8 +114,8 @@ fun getKeySpec(
     return when (format) {
         "PKCS#8" -> PKCS8EncodedKeySpec(key)
         "X.509" -> X509EncodedKeySpec(key)
-        else -> throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "key.unsupported_key_spec",
+        else -> throw localizedExceptionOf(
+            "key.unsupported_key_spec",
             "name" to name,
             "keySpec" to format
         )

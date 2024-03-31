@@ -1,6 +1,6 @@
 package com.sympauthy.api.util
 
-import com.sympauthy.exception.httpExceptionOf
+import com.sympauthy.api.exception.httpExceptionOf
 import io.micronaut.http.HttpStatus.NOT_FOUND
 
 fun <T : Any> T?.orNotFound(): T {

@@ -1,8 +1,8 @@
 package com.sympauthy.api.errorhandler
 
+import com.sympauthy.api.exception.LocalizedHttpException
 import com.sympauthy.api.mapper.ErrorResourceMapper
 import com.sympauthy.api.resource.error.ErrorResource
-import com.sympauthy.exception.LocalizedHttpException
 import com.sympauthy.util.orDefault
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse

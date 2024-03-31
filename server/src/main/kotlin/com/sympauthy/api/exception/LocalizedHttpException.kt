@@ -1,5 +1,7 @@
-package com.sympauthy.exception
+package com.sympauthy.api.exception
 
+import com.sympauthy.exception.AdditionalLocalizedMessage
+import com.sympauthy.exception.LocalizedException
 import io.micronaut.http.HttpStatus
 
 /**

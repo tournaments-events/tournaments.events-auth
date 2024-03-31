@@ -1,8 +1,7 @@
 package com.sympauthy.config.model
 
-import com.sympauthy.business.exception.BusinessException
-import com.sympauthy.business.exception.businessExceptionOf
-import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
+import com.sympauthy.exception.LocalizedException
+import com.sympauthy.exception.localizedExceptionOf
 
 /**
  * Base class of all configuration model that will be injected in the app.
@@ -32,5 +31,5 @@ open class Config(
     val configurationErrors: List<Exception>? = null
 )
 
-val Config.invalidConfig: BusinessException
-    get() = businessExceptionOf(INTERNAL_SERVER_ERROR, "config.invalid")
+val Config.invalidConfig: LocalizedException
+    get() = localizedExceptionOf("config.invalid")

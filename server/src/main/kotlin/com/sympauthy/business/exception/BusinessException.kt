@@ -1,7 +1,7 @@
 package com.sympauthy.business.exception
 
 import com.sympauthy.exception.AdditionalLocalizedMessage
-import com.sympauthy.exception.LocalizedHttpException
+import com.sympauthy.exception.LocalizedException
 import io.micronaut.http.HttpStatus
 
 /**
@@ -11,32 +11,22 @@ import io.micronaut.http.HttpStatus
  * The description must be localized and comprehensible by the user to allow him to solve the issue.
  */
 class BusinessException(
-    status: HttpStatus,
     detailsId: String,
     descriptionId: String? = null,
     values: Map<String, Any?> = emptyMap(),
+    val recommendedStatus: HttpStatus? = null,
     additionalMessages: List<AdditionalLocalizedMessage> = emptyList(),
     throwable: Throwable? = null
-) : LocalizedHttpException(status, detailsId, descriptionId, values, additionalMessages, throwable)
+) : LocalizedException(detailsId, descriptionId, values, additionalMessages, throwable)
 
 fun businessExceptionOf(
-    status: HttpStatus,
     detailsId: String,
+    descriptionId: String? = null,
+    recommendedStatus: HttpStatus? = null,
     vararg values: Pair<String, Any?>
 ): BusinessException = BusinessException(
-    status = status,
-    detailsId = detailsId,
-    values = mapOf(*values)
-)
-
-fun businessExceptionOf(
-    status: HttpStatus,
-    detailsId: String,
-    descriptionId: String?,
-    vararg values: Pair<String, Any?>
-): BusinessException = BusinessException(
-    status = status,
     detailsId = detailsId,
     descriptionId = descriptionId,
+    recommendedStatus = recommendedStatus,
     values = mapOf(*values)
 )

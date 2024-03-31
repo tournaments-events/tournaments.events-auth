@@ -2,9 +2,9 @@ package com.sympauthy.api.controller.openapi
 
 import com.sympauthy.OpenAPI
 import com.sympauthy.api.controller.openapi.OpenApiController.Companion.OPENAPI_ENDPOINT
+import com.sympauthy.api.exception.httpExceptionOf
 import com.sympauthy.config.model.UrlsConfig
 import com.sympauthy.config.model.orThrow
-import com.sympauthy.exception.httpExceptionOf
 import io.micronaut.http.HttpStatus.NOT_FOUND
 import io.micronaut.http.MediaType.APPLICATION_YAML
 import io.micronaut.http.annotation.Controller

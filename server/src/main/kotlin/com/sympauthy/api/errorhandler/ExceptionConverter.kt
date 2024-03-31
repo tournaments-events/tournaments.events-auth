@@ -1,11 +1,11 @@
 package com.sympauthy.api.errorhandler
 
+import com.sympauthy.api.exception.LocalizedHttpException
 import com.sympauthy.api.exception.OAuth2Exception
+import com.sympauthy.api.exception.httpExceptionOf
 import com.sympauthy.api.exception.toHttpException
+import com.sympauthy.business.exception.BusinessException
 import com.sympauthy.exception.LocalizedException
-import com.sympauthy.exception.LocalizedHttpException
-import com.sympauthy.exception.httpExceptionOf
-import com.sympauthy.exception.toHttpException
 import io.micronaut.http.HttpStatus.*
 import io.micronaut.security.authentication.AuthorizationException
 import jakarta.inject.Singleton
@@ -24,6 +24,7 @@ class ExceptionConverter {
         return when (throwable) {
             is AuthorizationException -> toException(throwable)
             is LocalizedHttpException -> throwable
+            is BusinessException -> throwable.toHttpException(throwable.recommendedStatus ?: INTERNAL_SERVER_ERROR)
             is LocalizedException -> throwable.toHttpException(INTERNAL_SERVER_ERROR)
             is OAuth2Exception -> throwable.toHttpException()
             else -> httpExceptionOf(

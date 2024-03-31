@@ -1,7 +1,7 @@
 package com.sympauthy.api.exception
 
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode
-import com.sympauthy.exception.LocalizedHttpException
+import com.sympauthy.exception.LocalizedException
 import io.micronaut.http.HttpStatus
 
 class OAuth2Exception(
@@ -26,6 +26,16 @@ fun OAuth2Exception.toHttpException(
     status = httpStatus,
     detailsId = detailsId,
     descriptionId = descriptionId,
+    values = values
+)
+
+fun LocalizedException.toOauth2Exception(
+    errorCode: OAuth2ErrorCode,
+    descriptionId: String? = null
+) = OAuth2Exception(
+    errorCode = errorCode,
+    detailsId = detailsId,
+    descriptionId = descriptionId ?: this.descriptionId,
     values = values
 )
 

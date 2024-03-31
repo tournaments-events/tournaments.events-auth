@@ -27,10 +27,7 @@ import com.sympauthy.config.model.AdvancedConfig
 import com.sympauthy.config.model.UrlsConfig
 import com.sympauthy.config.model.getUri
 import com.sympauthy.config.model.orThrow
-import com.sympauthy.exception.httpExceptionOf
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus.BAD_REQUEST
-import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.micronaut.transaction.annotation.Transactional
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -53,7 +50,7 @@ open class Oauth2ProviderManager(
 
     fun getOauth2(provider: EnabledProvider): ProviderOauth2Config {
         if (provider.auth !is ProviderOauth2Config) {
-            throw businessExceptionOf(BAD_REQUEST, "provider.oauth2.unsupported")
+            throw businessExceptionOf("provider.oauth2.unsupported")
         }
         return provider.auth
     }
@@ -152,12 +149,12 @@ open class Oauth2ProviderManager(
         provider: EnabledProvider,
         providerUserInfo: RawProviderClaims
     ): CreateOrAssociateResult {
-        val email = providerUserInfo.email ?: throw httpExceptionOf(
-            INTERNAL_SERVER_ERROR, "user.create_with_provider.missing_email",
-            "providerId" to provider.id
+        val email = providerUserInfo.email ?: throw businessExceptionOf(
+            "user.create_with_provider.missing_email",
+            values = arrayOf("providerId" to provider.id)
         )
-        val emailClaim = claimManager.findById(EMAIL) ?: throw httpExceptionOf(
-            INTERNAL_SERVER_ERROR, "user.create_with_provider.missing_email_claim"
+        val emailClaim = claimManager.findById(EMAIL) ?: throw businessExceptionOf(
+            "user.create_with_provider.missing_email_claim"
         )
         val existingUser = userManager.findByEmail(email)
         val user = existingUser

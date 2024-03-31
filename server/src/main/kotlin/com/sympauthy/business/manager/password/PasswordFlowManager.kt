@@ -21,7 +21,6 @@ import com.sympauthy.config.model.orThrow
 import com.sympauthy.data.repository.CollectedClaimRepository
 import com.sympauthy.data.repository.UserRepository
 import com.sympauthy.data.repository.findAnyClaimMatching
-import com.sympauthy.exception.httpExceptionOf
 import io.micronaut.http.HttpStatus.BAD_REQUEST
 import io.micronaut.transaction.annotation.Transactional
 import jakarta.inject.Inject
@@ -81,20 +80,20 @@ open class PasswordFlowManager(
         password: String?
     ): SignInOrSignUpResult {
         if (!signInEnabled) {
-            throw httpExceptionOf(BAD_REQUEST, "password.flow.sign_in.disabled")
+            throw businessExceptionOf("password.flow.sign_in.disabled", recommendedStatus = BAD_REQUEST)
         }
         if (login.isNullOrBlank() || password.isNullOrBlank()) {
-            throw httpExceptionOf(BAD_REQUEST, "password.flow.sign_in.invalid")
+            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = BAD_REQUEST)
         }
 
         val user = findByLogin(login)
         // The user does not exist or has been created using a third-party provider.
         if (user == null || user.status != UserStatus.ENABLED) {
-            throw httpExceptionOf(BAD_REQUEST, "password.flow.sign_in.invalid")
+            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = BAD_REQUEST)
         }
 
         if (!passwordManager.arePasswordMatching(user, password)) {
-            throw httpExceptionOf(BAD_REQUEST, "password.flow.sign_in.invalid")
+            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = BAD_REQUEST)
         }
 
         // Update the authorize attempt with the id of the user so they can retrieve their access token.
@@ -164,7 +163,9 @@ open class PasswordFlowManager(
             .firstOrNull()
         if (missingClaim != null) {
             throw businessExceptionOf(
-                BAD_REQUEST, "password.flow.sign_up.missing_claim", "password.flow.sign_up.missing_claim",
+                detailsId = "password.flow.sign_up.missing_claim",
+                descriptionId = "password.flow.sign_up.missing_claim",
+                recommendedStatus = BAD_REQUEST,
                 "claim" to missingClaim.id
             )
         }

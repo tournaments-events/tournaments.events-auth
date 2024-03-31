@@ -6,7 +6,6 @@ import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.provider.EnabledProvider
 import com.sympauthy.business.model.provider.config.ProviderOauth2Config
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
@@ -25,9 +24,7 @@ class ProviderManager(
                 authorizeAttempt
             )
 
-            else -> throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "exception.client.unsupported"
-            )
+            else -> throw businessExceptionOf("exception.client.unsupported")
         }
     }
 }

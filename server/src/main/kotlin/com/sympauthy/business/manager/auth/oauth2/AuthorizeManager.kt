@@ -9,6 +9,7 @@ import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.data.model.AuthorizeAttemptEntity
 import com.sympauthy.data.repository.AuthorizeAttemptRepository
+import com.sympauthy.exception.localizedExceptionOf
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.net.URI
@@ -28,7 +29,7 @@ class AuthorizeManager(
         uncheckedScopes: List<Scope>? = null,
         uncheckedRedirectUri: URI? = null,
     ): AuthorizeAttempt {
-        val scopes = checkScopes(client, uncheckedScopes)
+        val scopes = getAllowedScopesForClient(client, uncheckedScopes)
         val redirectUri = checkRedirectUri(client, uncheckedRedirectUri)
         checkIsExistingAttemptWithState(clientState)
 
@@ -46,16 +47,27 @@ class AuthorizeManager(
         return authorizeAttemptMapper.toAuthorizeAttempt(entity)
     }
 
-    internal fun checkScopes(
+    /**
+     * Return a list containing only the scope allowed by the [client].
+     * If no scope are provided, then it returns the list of default scopes for the client.
+     * If all scopes are filtered or if default scope are empty, then throws an [OAuth2Exception].
+     */
+    internal fun getAllowedScopesForClient(
         client: Client,
         uncheckedScopes: List<Scope>?
     ): List<Scope> {
-        val scopes = uncheckedScopes ?: client.defaultScopes
-        return if (scopes == null) {
-            throw oauth2ExceptionOf(INVALID_REQUEST, "authorize.scope.missing", "description.oauth2.invalid")
-        } else if (client.allowedScopes != null) {
-            scopes.filter { client.allowedScopes.contains(it) }
-        } else scopes
+        val scopes = when {
+            uncheckedScopes.isNullOrEmpty() -> client.defaultScopes
+            client.allowedScopes != null -> {
+                val allowedScopes = client.allowedScopes.map(Scope::scope)
+                uncheckedScopes.filter { allowedScopes.contains(it.scope) }
+            }
+            else -> uncheckedScopes
+        }
+        if (scopes.isNullOrEmpty()) {
+            throw localizedExceptionOf("authorize.scope.missing")
+        }
+        return scopes
     }
 
     internal fun checkRedirectUri(

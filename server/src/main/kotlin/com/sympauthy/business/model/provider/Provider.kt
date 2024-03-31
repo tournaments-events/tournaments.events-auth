@@ -1,8 +1,8 @@
 package com.sympauthy.business.model.provider
 
-import com.sympauthy.business.exception.BusinessException
 import com.sympauthy.business.model.provider.config.ProviderAuthConfig
 import com.sympauthy.business.model.provider.config.ProviderUserInfoConfig
+import com.sympauthy.exception.LocalizedException
 
 /**
  * A third-party authentication provider.
@@ -20,7 +20,7 @@ class EnabledProvider(
     val name: String,
     val userInfo: ProviderUserInfoConfig,
     val auth: ProviderAuthConfig
-): Provider(id, true)
+) : Provider(id, true)
 
 /**
  * A [Provider] that have an evident defect in its configuration.
@@ -28,5 +28,5 @@ class EnabledProvider(
  */
 class DisabledProvider(
     id: String,
-    val cause: BusinessException
-): Provider(id, false)
+    val cause: LocalizedException
+) : Provider(id, false)

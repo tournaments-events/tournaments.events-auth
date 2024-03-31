@@ -7,7 +7,6 @@ import com.sympauthy.business.model.key.KeyAlgorithm
 import com.sympauthy.business.model.key.KeyAlgorithm.RSA
 import com.sympauthy.business.model.key.RSAKeyImpl
 import com.sympauthy.business.model.key.getImpl
-import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 
 /**
  * Enumeration of all JWT signing algorithm supported by the project.
@@ -37,7 +36,6 @@ sealed class JwtAlgorithmImpl {
             throw e
         } catch (t: Throwable) {
             throw BusinessException(
-                status = INTERNAL_SERVER_ERROR,
                 detailsId = "jwt.invalid_key",
                 values = mapOf(
                     "name" to cryptoKeys.name

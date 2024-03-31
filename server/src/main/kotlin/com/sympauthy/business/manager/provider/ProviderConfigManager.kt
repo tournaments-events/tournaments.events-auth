@@ -1,7 +1,6 @@
 package com.sympauthy.business.manager.provider
 
 import com.jayway.jsonpath.JsonPath
-import com.sympauthy.business.exception.BusinessException
 import com.sympauthy.business.exception.businessExceptionOf
 import com.sympauthy.business.model.provider.DisabledProvider
 import com.sympauthy.business.model.provider.EnabledProvider
@@ -20,13 +19,14 @@ import com.sympauthy.config.properties.ProviderConfigurationProperties.Companion
 import com.sympauthy.config.util.convertToEnum
 import com.sympauthy.config.util.getStringOrThrow
 import com.sympauthy.config.util.getUriOrThrow
+import com.sympauthy.exception.LocalizedException
+import com.sympauthy.exception.localizedExceptionOf
 import com.sympauthy.server.ErrorMessages
 import com.sympauthy.util.loggerForClass
 import io.micronaut.context.MessageSource
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.discovery.event.ServiceReadyEvent
-import io.micronaut.http.HttpStatus
-import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.micronaut.http.HttpStatus.BAD_REQUEST
 import io.micronaut.scheduling.annotation.Async
 import io.reactivex.rxjava3.core.Single
 import jakarta.inject.Inject
@@ -68,9 +68,8 @@ open class ProviderConfigManager(
     }
 
     suspend fun findEnabledProviderById(id: String): EnabledProvider {
-        return listEnabledProviders()
-            .filter { it.id == id }
-            .firstOrNull() ?: throw businessExceptionOf(HttpStatus.BAD_REQUEST, "provider.missing")
+        return listEnabledProviders().firstOrNull { it.id == id }
+            ?: throw businessExceptionOf(detailsId = "provider.missing", recommendedStatus = BAD_REQUEST)
     }
 
     private fun configureProviders(): List<Provider> {
@@ -78,10 +77,10 @@ open class ProviderConfigManager(
         val configuredProviders = providers.map {
             try {
                 configureProvider(it)
-            } catch (e: BusinessException) {
+            } catch (e: LocalizedException) {
                 val localizedErrorMessage = messageSource.getMessage(e.detailsId, Locale.US, e.values)
                     .orElse(e.detailsId)
-                logger.error("Failed to configure ${it.id}: ${localizedErrorMessage}")
+                logger.error("Failed to configure ${it.id}: $localizedErrorMessage")
                 DisabledProvider(it.id, e)
             }
         }
@@ -104,8 +103,8 @@ open class ProviderConfigManager(
     }
 
     private fun configureProviderUserInfo(config: ProviderConfigurationProperties): ProviderUserInfoConfig {
-        val userInfo = config.userInfo ?: throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "config.provider.user_info.missing"
+        val userInfo = config.userInfo ?: throw localizedExceptionOf(
+            "config.provider.user_info.missing"
         )
 
         return ProviderUserInfoConfig(
@@ -122,8 +121,8 @@ open class ProviderConfigManager(
         userInfo: ProviderConfigurationProperties.UserInfoConfig
     ): Map<ProviderUserInfoPathKey, JsonPath> {
         val userInfoPathsKey = "$PROVIDERS_KEY.user-info.paths"
-        val userInfoPaths = userInfo.paths ?: throw businessExceptionOf(
-            INTERNAL_SERVER_ERROR, "config.missing",
+        val userInfoPaths = userInfo.paths ?: throw localizedExceptionOf(
+            "config.missing",
             "key" to userInfoPathsKey
         )
         val paths = userInfoPaths
@@ -131,15 +130,14 @@ open class ProviderConfigManager(
                 val pathKey = convertToEnum<ProviderUserInfoPathKey>(
                     "$userInfoPathsKey.$key", key
                 )
-                val rawPath = value ?: throw businessExceptionOf(
-                    INTERNAL_SERVER_ERROR, "config.provider.user_info.invalid_value",
+                val rawPath = value ?: throw localizedExceptionOf(
+                    "config.provider.user_info.invalid_value",
                     "key" to "$userInfoPathsKey.$key"
                 )
                 val path = try {
                     JsonPath.compile(rawPath)
                 } catch (e: Throwable) {
-                    throw BusinessException(
-                        status = INTERNAL_SERVER_ERROR,
+                    throw LocalizedException(
                         detailsId = "config.provider.user_info.invalid_value",
                         values = mapOf(
                             "key" to "$userInfoPathsKey.$key"
@@ -151,14 +149,14 @@ open class ProviderConfigManager(
             }
             .toMap()
         if (paths[SUB] == null) {
-            throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "config.provider.user_info.missing_subject_key",
+            throw localizedExceptionOf(
+                "config.provider.user_info.missing_subject_key",
                 "key" to "${PROVIDERS_KEY}.user-info.paths"
             )
         }
         if (advancedConfig.orThrow().userMergingStrategy == BY_MAIL && paths[EMAIL] == null) {
-            throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "config.provider.user_info.missing_email_key",
+            throw localizedExceptionOf(
+                "config.provider.user_info.missing_email_key",
                 "key" to "${PROVIDERS_KEY}.user-info.paths"
             )
         }
@@ -168,8 +166,8 @@ open class ProviderConfigManager(
     private fun configureProviderAuth(config: ProviderConfigurationProperties): ProviderAuthConfig {
         return when {
             config.oauth2 != null -> configureProviderOauth2(config, config.oauth2!!)
-            else -> throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "config.auth.missing"
+            else -> throw localizedExceptionOf(
+                "config.auth.missing"
             )
         }
     }

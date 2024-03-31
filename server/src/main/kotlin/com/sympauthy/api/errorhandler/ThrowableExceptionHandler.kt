@@ -11,7 +11,7 @@ class ThrowableExceptionHandler<T: Throwable>(
     private val exceptionHandler: LocalizedHttpExceptionHandler
 ) : ExceptionHandler<T, HttpResponse<ErrorResource>> {
 
-    val logger = loggerForClass()
+    private val logger = loggerForClass()
 
     override fun handle(request: HttpRequest<*>, throwable: T): HttpResponse<ErrorResource> {
         val httpException = exceptionConverter.normalize(throwable)

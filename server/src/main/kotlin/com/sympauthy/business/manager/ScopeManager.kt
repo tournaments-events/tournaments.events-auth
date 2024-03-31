@@ -1,11 +1,15 @@
 package com.sympauthy.business.manager
 
+import com.sympauthy.business.exception.BusinessException
+import com.sympauthy.business.exception.businessExceptionOf
 import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.business.model.user.StandardScope
 import com.sympauthy.config.model.AuthConfig
 import com.sympauthy.config.model.ScopesConfig
 import com.sympauthy.config.model.StandardScopeConfig
 import com.sympauthy.config.model.orThrow
+import com.sympauthy.exception.LocalizedException
+import io.micronaut.http.HttpStatus.BAD_REQUEST
 import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -66,6 +70,17 @@ class ScopeManager(
     }
 
     /**
+     * Parse the request scope provided to the authorization endpoint into a list of known [Scope].
+     * Throws a [LocalizedException] if one of the request scope cannot be found according to the rules described
+     * on [findOrThrow].
+     */
+    suspend fun parseRequestScope(requestScope: String?): List<Scope>? {
+        return requestScope?.split(" ")
+            ?.filter { it.isNotBlank() }
+            ?.map { findOrThrow(it) }
+    }
+
+    /**
      * List of [Scope] enabled on this authorization server.
      *
      * The list contains both standard claims defined in the OpenID specification and custom scopes defined by
@@ -82,5 +97,20 @@ class ScopeManager(
      */
     suspend fun find(scope: String): Scope? {
         return listScopes().firstOrNull { it.scope == scope }
+    }
+
+    /**
+     * Return the [Scope] if:
+     * - [scope] is a standard scope and its has not been explicitly disabled by configuration.
+     * - [scope] is a custom scope and have been properly defined in the configuration.
+     *
+     * Otherwise, throws a "scope.unsupported" error as a [BusinessException].
+     */
+    suspend fun findOrThrow(scope: String): Scope {
+        return find(scope) ?: throw businessExceptionOf(
+            detailsId = "scope.unsupported",
+            recommendedStatus = BAD_REQUEST,
+            values = arrayOf("scope" to scope)
+        )
     }
 }

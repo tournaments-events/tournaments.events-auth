@@ -2,7 +2,9 @@ package com.sympauthy.api.controller.oauth2
 
 import com.sympauthy.api.controller.oauth2.AuthorizeController.Companion.OAUTH2_AUTHORIZE_ENDPOINT
 import com.sympauthy.api.exception.oauth2ExceptionOf
+import com.sympauthy.api.exception.toOauth2Exception
 import com.sympauthy.api.util.AuthorizationFlowRedirectBuilder
+import com.sympauthy.business.exception.BusinessException
 import com.sympauthy.business.manager.ClientManager
 import com.sympauthy.business.manager.ScopeManager
 import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
@@ -131,18 +133,12 @@ The authorization server includes this value when redirecting the user-agent bac
         )
     }
 
-    private suspend fun getScopes(uncheckedScope: String?): List<Scope> {
-        if (uncheckedScope.isNullOrBlank()) {
-            return emptyList()
+    private suspend fun getScopes(requestScope: String?): List<Scope>? {
+        return try {
+            scopeManager.parseRequestScope(requestScope)
+        } catch (e: BusinessException) {
+            throw e.toOauth2Exception(INVALID_REQUEST, "description.oauth2.invalid")
         }
-        return uncheckedScope.split(" ")
-            .filter { it.isNotBlank() }
-            .map { scope ->
-                scopeManager.find(scope) ?: throw oauth2ExceptionOf(
-                    INVALID_REQUEST, "authorize.scope.invalid", "description.oauth2.invalid",
-                    "scope" to scope
-                )
-            }
     }
 
     private fun getRedirectUri(redirectUri: String?): URI {
@@ -160,12 +156,16 @@ The authorization server includes this value when redirecting the user-agent bac
         scopes: List<Scope>?,
         redirectUri: URI
     ): HttpResponse<*> {
-        val authorizeAttempt = authorizeManager.newAuthorizeAttempt(
-            client = client,
-            clientState = clientState,
-            uncheckedScopes = scopes,
-            uncheckedRedirectUri = redirectUri,
-        )
+        val authorizeAttempt = try {
+            authorizeManager.newAuthorizeAttempt(
+                client = client,
+                clientState = clientState,
+                uncheckedScopes = scopes,
+                uncheckedRedirectUri = redirectUri,
+            )
+        } catch (e: BusinessException) {
+            throw e.toOauth2Exception(INVALID_REQUEST, "description.oauth2.invalid")
+        }
         return responseBuilder.redirectToSignIn(authorizeAttempt)
     }
 

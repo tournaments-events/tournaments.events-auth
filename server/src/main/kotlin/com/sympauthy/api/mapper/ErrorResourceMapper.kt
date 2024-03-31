@@ -1,8 +1,8 @@
 package com.sympauthy.api.mapper
 
+import com.sympauthy.api.exception.LocalizedHttpException
 import com.sympauthy.api.resource.error.ErrorResource
 import com.sympauthy.exception.LocalizedException
-import com.sympauthy.exception.LocalizedHttpException
 import com.sympauthy.server.ErrorMessages
 import io.micronaut.context.MessageSource
 import io.micronaut.http.HttpStatus

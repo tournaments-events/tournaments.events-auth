@@ -7,7 +7,6 @@ import com.sympauthy.business.model.provider.EnabledProvider
 import com.sympauthy.business.model.provider.ProviderUserInfoPathKey
 import com.sympauthy.business.model.provider.ProviderUserInfoPathKey.*
 import com.sympauthy.business.model.user.RawProviderClaims
-import io.micronaut.http.HttpStatus.INTERNAL_SERVER_ERROR
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -93,8 +92,8 @@ class RawProviderClaimsBuilder {
     fun build(provider: EnabledProvider): RawProviderClaims {
         return RawProviderClaims(
             subject = subject ?: throw businessExceptionOf(
-                INTERNAL_SERVER_ERROR, "provider.user_info.missing_subject",
-                "providerId" to provider.id
+                "provider.user_info.missing_subject",
+                values = arrayOf("providerId" to provider.id)
             ),
             name = name,
             givenName = givenName,

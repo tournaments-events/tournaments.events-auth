@@ -1,14 +1,13 @@
 package com.sympauthy.security
 
 import com.sympauthy.api.exception.OAuth2Exception
+import com.sympauthy.api.exception.httpExceptionOf
 import com.sympauthy.api.exception.toHttpException
 import com.sympauthy.business.manager.ScopeManager
 import com.sympauthy.business.manager.auth.oauth2.TokenManager
 import com.sympauthy.business.manager.jwt.JwtManager
 import com.sympauthy.business.manager.jwt.JwtManager.Companion.PUBLIC_KEY
 import com.sympauthy.exception.LocalizedException
-import com.sympauthy.exception.httpExceptionOf
-import com.sympauthy.exception.toHttpException
 import io.micronaut.http.HttpStatus.UNAUTHORIZED
 import io.micronaut.security.authentication.Authentication
 import io.micronaut.security.token.validator.TokenValidator

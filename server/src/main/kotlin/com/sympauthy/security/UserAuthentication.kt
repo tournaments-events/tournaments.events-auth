@@ -1,8 +1,8 @@
 package com.sympauthy.security
 
+import com.sympauthy.api.exception.httpExceptionOf
 import com.sympauthy.business.model.oauth2.AuthenticationToken
 import com.sympauthy.business.model.oauth2.Scope
-import com.sympauthy.exception.httpExceptionOf
 import com.sympauthy.security.SecurityRule.IS_ADMIN
 import com.sympauthy.security.SecurityRule.IS_USER
 import io.micronaut.http.HttpStatus.FORBIDDEN

@@ -1,12 +1,12 @@
 package com.sympauthy.business.manager
 
+import com.sympauthy.business.exception.businessExceptionOf
 import com.sympauthy.business.mapper.ClaimValueMapper
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.User
 import com.sympauthy.data.repository.CollectedClaimRepository
 import com.sympauthy.data.repository.findAnyClaimMatching
-import com.sympauthy.exception.httpExceptionOf
 import io.micronaut.http.HttpStatus.BAD_REQUEST
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -19,7 +19,7 @@ class SignUpFlowManager(
 ) {
 
     /**
-     * Throws a [LocalizedHttpException] if any of the [claims] conflict with another user login.
+     * Throws a sign_up.existing error if any of the [claims] conflict with another user login.
      *
      * As a user can use any of the provided [claims] to login, we must ensure that the values are unique
      * to a user and across the claims.
@@ -31,7 +31,7 @@ class SignUpFlowManager(
             .mapNotNull(claimValueMapper::toEntity)
         val existingCollectedClaims = collectedClaimRepository.findAnyClaimMatching(claimIds, values)
         if (existingCollectedClaims.isNotEmpty()) {
-            throw httpExceptionOf(BAD_REQUEST, "sign_up.existing")
+            throw businessExceptionOf("sign_up.existing", recommendedStatus = BAD_REQUEST)
         }
     }
 
