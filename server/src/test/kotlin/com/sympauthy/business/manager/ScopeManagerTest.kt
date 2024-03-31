@@ -4,7 +4,6 @@ import com.sympauthy.business.exception.BusinessException
 import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.config.model.EnabledAuthConfig
 import com.sympauthy.config.model.EnabledScopesConfig
-import com.sympauthy.exception.LocalizedException
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -65,7 +64,7 @@ class ScopeManagerTest {
     @Test
     fun `findOrThrow - Throw if scope cannot be found`() = runTest {
         val scope = "scope"
-        coEvery { scopeManager.find(scope) } throws mockk<LocalizedException>()
+        coEvery { scopeManager.find(scope) } throws mockk<BusinessException>()
         assertThrows<BusinessException> {
             scopeManager.findOrThrow(scope)
         }
