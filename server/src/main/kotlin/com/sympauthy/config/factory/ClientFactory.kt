@@ -11,6 +11,7 @@ import com.sympauthy.config.model.DisabledClientsConfig
 import com.sympauthy.config.model.EnabledClientsConfig
 import com.sympauthy.config.properties.ClientConfigurationProperties
 import com.sympauthy.config.properties.ClientConfigurationProperties.Companion.CLIENTS_KEY
+import com.sympauthy.config.properties.ClientConfigurationProperties.Companion.DEFAULT
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -28,9 +29,14 @@ class ClientFactory(
     fun provideClients(configs: List<ClientConfigurationProperties>): Flow<ClientsConfig> {
         return flow {
             val errors = mutableListOf<ConfigurationException>()
-            val clients = configs.mapNotNull { config ->
-                getClient(config = config, errors = errors)
-            }
+
+            val defaultConfig = configs.firstOrNull { it.id == DEFAULT }
+
+            val clients = configs
+                .filter { it.id != DEFAULT }
+                .mapNotNull { config ->
+                    getClient(config = config, defaultConfig = defaultConfig, errors = errors)
+                }
 
             val config = if (errors.isEmpty()) {
                 EnabledClientsConfig(clients)
@@ -43,6 +49,7 @@ class ClientFactory(
 
     private suspend fun getClient(
         config: ClientConfigurationProperties,
+        defaultConfig: ClientConfigurationProperties?,
         errors: MutableList<ConfigurationException>
     ): Client? {
         val secret = try {
@@ -57,18 +64,19 @@ class ClientFactory(
 
         val allowedRedirectUris = getAllowedRedirectUris(
             config = config,
+            allowedRedirectUris = config.allowedRedirectUris ?: defaultConfig?.allowedRedirectUris,
             errors = errors
         )
 
         val allowedScopes = getScopes(
             key = "$CLIENTS_KEY.${config.id}.allowed-scopes",
-            scopes = config.allowedScopes,
+            scopes = config.allowedScopes ?: defaultConfig?.allowedScopes,
             errors = errors
         )?.toSet()
 
         val defaultScopes = getScopes(
             key = "$CLIENTS_KEY.${config.id}.default-scopes",
-            scopes = config.defaultScopes,
+            scopes = config.defaultScopes ?: defaultConfig?.defaultScopes,
             errors = errors
         )
 
@@ -85,11 +93,12 @@ class ClientFactory(
 
     private fun getAllowedRedirectUris(
         config: ClientConfigurationProperties,
+        allowedRedirectUris: List<String>?,
         errors: MutableList<ConfigurationException>
     ): List<URI>? {
         val listErrors = mutableListOf<ConfigurationException>()
 
-        val allowedRedirectUris = config.allowedRedirectUris?.mapIndexedNotNull { index, uri ->
+        val allowedRedirectUris = allowedRedirectUris?.mapIndexedNotNull { index, uri ->
             try {
                 parser.getAbsoluteUriOrThrow(
                     uri, "$CLIENTS_KEY.${config.id}.allowed-redirect-uris[$index]"

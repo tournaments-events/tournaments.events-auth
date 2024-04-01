@@ -1,0 +1,18 @@
+# Configuration allowing end-user to sign-up using their email.
+# Can be enabled by setting the micronaut.environments to by-mail.
+
+claims:
+  email:
+    enabled: true
+
+password-auth:
+  enabled: true
+  login-claims:
+    - email
+
+clients:
+  default:
+    default-scopes:
+      - openid
+      - profile
+      - email

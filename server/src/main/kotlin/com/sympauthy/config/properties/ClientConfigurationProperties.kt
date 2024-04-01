@@ -18,5 +18,12 @@ class ClientConfigurationProperties(
 
     companion object {
         const val CLIENTS_KEY = "clients"
+
+        /**
+         * Special client id allowing to apply default configuration to all clients.
+         *
+         * Configuration on the all client are used as fallback if the client does not provide its own value.
+         */
+        const val DEFAULT = "default"
     }
 }
