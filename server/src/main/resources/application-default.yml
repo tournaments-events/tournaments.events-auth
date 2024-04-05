@@ -1,0 +1,29 @@
+# This configuration contains a default configuration allowing to start SympAuhty with minimal
+# additional configurations.
+
+advanced:
+  hash:
+    block-size: 8
+    cost-parameter: 16_384
+    key-length: 32
+    parallelization-parameter: 1
+    salt-length: 256
+  jwt:
+    public-alg: rs256
+    private-alg: rs256
+  keys-generation-strategy: autoincrement
+  user-merging-strategy: by-mail
+
+auth:
+  token:
+    access-expiration: 1h
+    refresh-enabled: true
+    refresh-expiration: 30d
+
+scope-granting-rules:
+  default:
+    scopes:
+      - openid
+      - profile
+    rules:
+      - anyUser

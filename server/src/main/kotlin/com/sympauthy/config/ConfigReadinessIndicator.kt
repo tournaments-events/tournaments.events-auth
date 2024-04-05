@@ -4,8 +4,11 @@ import com.sympauthy.config.exception.ConfigurationException
 import com.sympauthy.config.model.*
 import com.sympauthy.exception.LocalizedException
 import com.sympauthy.server.ErrorMessages
+import com.sympauthy.util.DEFAULT_ENVIRONMENT
+import com.sympauthy.util.isDefaultActive
 import com.sympauthy.util.loggerForClass
 import io.micronaut.context.MessageSource
+import io.micronaut.context.env.Environment
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.discovery.event.ServiceReadyEvent
 import io.micronaut.health.HealthStatus.DOWN
@@ -27,6 +30,7 @@ import java.util.*
 @Singleton
 @Readiness
 open class ConfigReadinessIndicator(
+    @Inject private val environment: Environment,
     @ErrorMessages @Inject private val messageSource: MessageSource,
     @Inject private val advancedConfig: AdvancedConfig,
     @Inject private val authConfig: AuthConfig,
@@ -89,6 +93,10 @@ open class ConfigReadinessIndicator(
                 .forEach { (key, localizedErrorMessage) ->
                     logger.error("- $key: $localizedErrorMessage")
                 }
+
+            if (!environment.isDefaultActive) {
+                logger.info("The '$DEFAULT_ENVIRONMENT' environment is not enabled meaning you are missing default configuration of SympAuthy. If it is not intentional, you can enable it by adding 'default' to micronaut environements. Either by param '--micronaut-environments=$DEFAULT_ENVIRONMENT' or by environment variable 'MICRONAUT_ENVIRONMENTS=$DEFAULT_ENVIRONMENT'.")
+            }
         }
     }
 

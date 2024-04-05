@@ -2,8 +2,7 @@ package com.sympauthy.config.factory
 
 import com.sympauthy.business.manager.jwt.CryptoKeysGenerationStrategy
 import com.sympauthy.business.model.jwt.JwtAlgorithm
-import com.sympauthy.business.model.jwt.JwtAlgorithm.RS256
-import com.sympauthy.business.model.user.UserMergingStrategy.BY_MAIL
+import com.sympauthy.business.model.user.UserMergingStrategy
 import com.sympauthy.config.ConfigParser
 import com.sympauthy.config.exception.ConfigurationException
 import com.sympauthy.config.exception.configExceptionOf
@@ -35,8 +34,8 @@ class AdvancedConfigFactory(
     ): AdvancedConfig {
         val errors = mutableListOf<ConfigurationException>()
         val userMergingStrategy = try {
-            parser.getEnum(
-                properties, "$ADVANCED_KEY.user-merging-strategy", BY_MAIL,
+            parser.getEnumOrThrow<AdvancedConfigurationProperties, UserMergingStrategy>(
+                properties, "$ADVANCED_KEY.user-merging-strategy",
                 AdvancedConfigurationProperties::userMergingStrategy
             )
         } catch (e: ConfigurationException) {
@@ -59,8 +58,8 @@ class AdvancedConfigFactory(
         }
 
         val privateJwtAlgorithm = try {
-            parser.getEnum(
-                jwtProperties, "$JWT_KEY.private-alg", RS256,
+            parser.getEnumOrThrow<JwtConfigurationProperties, JwtAlgorithm>(
+                jwtProperties, "$JWT_KEY.private-alg",
                 JwtConfigurationProperties::privateAlg
             )
         } catch (e: ConfigurationException) {
@@ -91,8 +90,8 @@ class AdvancedConfigFactory(
         val strategyId = parser.getString(
             properties, "$ADVANCED_KEY.keys-generation-strategy",
             AdvancedConfigurationProperties::keysGenerationStrategy
-        ) ?: DEFAULT_KEYS_GENERATION_ALGORITHM
-        return keyGenerationStategies[strategyId] ?: throw configExceptionOf(
+        )
+        return strategyId?.let { keyGenerationStategies[it] } ?: throw configExceptionOf(
             "$ADVANCED_KEY.keys-generation-strategy",
             "config.unsupported_generation_algorithm",
             "algorithm" to strategyId,
@@ -103,8 +102,8 @@ class AdvancedConfigFactory(
     private fun getPublicKeyAlgorithm(
         properties: JwtConfigurationProperties
     ): JwtAlgorithm {
-        val publicJwtAlgorithm = parser.getEnum(
-            properties, "$JWT_KEY.public-alg", RS256,
+        val publicJwtAlgorithm: JwtAlgorithm = parser.getEnumOrThrow(
+            properties, "$JWT_KEY.public-alg",
             JwtConfigurationProperties::publicAlg
         )
         if (!publicJwtAlgorithm.keyAlgorithm.supportsPublicKey) {
@@ -175,10 +174,10 @@ class AdvancedConfigFactory(
 
     private fun getCostParameter(properties: HashConfigurationProperties): Int {
         val key = "$HASH_KEY.cost-parameter"
-        val costParameter = parser.getInt(
+        val costParameter = parser.getIntOrThrow(
             properties, key,
             HashConfigurationProperties::costParameter
-        ) ?: DEFAULT_COST_PARAMETER
+        )
         if (costParameter !in 2..65535 || !isPowerOf2(costParameter)) {
             throw configExceptionOf(key, "config.advanced.hash.invalid_cost_parameter")
         }
@@ -187,10 +186,10 @@ class AdvancedConfigFactory(
 
     private fun getBlockSize(properties: HashConfigurationProperties): Int {
         val key = "$HASH_KEY.block-size"
-        val blockSize = parser.getInt(
+        val blockSize = parser.getIntOrThrow(
             properties, key,
             HashConfigurationProperties::blockSize
-        ) ?: DEFAULT_BLOCK_SIZE
+        )
         if (blockSize <= 0) {
             throw configExceptionOf(key, "config.advanced.hash.invalid_block_size")
         }
@@ -207,10 +206,10 @@ class AdvancedConfigFactory(
 
         val key = "$HASH_KEY.parallelization-parameter"
         val max = Int.MAX_VALUE / (128 * costParameter * 8)
-        val parallelizationParameter = parser.getInt(
+        val parallelizationParameter = parser.getIntOrThrow(
             properties, key,
             HashConfigurationProperties::parallelizationParameter
-        ) ?: DEFAULT_PARALLELIZATION_PARAMETER
+        )
         if (parallelizationParameter !in 1..max) {
             throw configExceptionOf(
                 key, "config.advanced.hash.invalid_parallelization_parameter",
@@ -222,10 +221,10 @@ class AdvancedConfigFactory(
 
     private fun getSaltLengthInBytes(properties: HashConfigurationProperties): Int {
         val key = "$HASH_KEY.salt-length"
-        val saltLength = parser.getInt(
+        val saltLength = parser.getIntOrThrow(
             properties, key,
             HashConfigurationProperties::saltLength
-        ) ?: DEFAULT_SALT_LENGTH
+        )
         if (saltLength <= 0 && saltLength % 8 != 0) {
             throw configExceptionOf(key, "config.advanced.hash.invalid_salt_length")
         }
@@ -234,10 +233,10 @@ class AdvancedConfigFactory(
 
     private fun getKeyLengthInBytes(properties: HashConfigurationProperties): Int {
         val key = "$HASH_KEY.key-length"
-        val keyLength = parser.getInt(
+        val keyLength = parser.getIntOrThrow(
             properties, key,
             HashConfigurationProperties::keyLength
-        ) ?: DEFAULT_KEY_LENGTH
+        )
         if (keyLength <= 0) {
             throw configExceptionOf(key, "config.advanced.hash.invalid_key_length")
         }
@@ -245,13 +244,4 @@ class AdvancedConfigFactory(
     }
 
     private fun isPowerOf2(var0: Int): Boolean = (var0 and var0 - 1) == 0
-
-    companion object {
-        private const val DEFAULT_KEYS_GENERATION_ALGORITHM = "autoincrement"
-        private const val DEFAULT_COST_PARAMETER = 16_384
-        private const val DEFAULT_BLOCK_SIZE = 8
-        private const val DEFAULT_PARALLELIZATION_PARAMETER = 1
-        private const val DEFAULT_SALT_LENGTH = 256
-        private const val DEFAULT_KEY_LENGTH = 32
-    }
 }

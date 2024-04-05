@@ -23,6 +23,10 @@ import java.time.Duration
 @Singleton
 class ConfigParser {
 
+    fun <C : Any> getOrThrow(config: C, key: String, value: (C) -> Any?): Any {
+        return value(config) ?: throw configExceptionOf(key, "config.missing")
+    }
+
     fun <C : Any> getOrThrow(config: C, key: String, value: (C) -> String?): String {
         return value(config) ?: throw configExceptionOf(key, "config.missing")
     }
@@ -52,6 +56,15 @@ class ConfigParser {
         }
     }
 
+    fun <C : Any> getBooleanOrThrow(config: C, key: String, value: (C) -> Any?): Boolean {
+        val value = getOrThrow(config, key, value)
+        return when (value) {
+            is String -> booleanFromString(key, value)
+            is Boolean -> value
+            else -> throw configExceptionOf(key, "config.invalid_boolean")
+        }
+    }
+
     private fun booleanFromString(key: String, value: String): Boolean {
         return when (value.uppercase()) {
             "TRUE", "T", "YES", "Y" -> true
@@ -65,8 +78,20 @@ class ConfigParser {
         return value.toIntOrNull() ?: throw configExceptionOf(key, "config.invalid_int")
     }
 
+    fun <C : Any> getIntOrThrow(config: C, key: String, value: (C) -> String?): Int {
+        val value = getOrThrow(config, key, value)
+        return value.toIntOrNull() ?: throw configExceptionOf(key, "config.invalid_int")
+    }
+
     fun <C : Any> getDuration(config: C, key: String, value: (C) -> String?): Duration? {
         val value = value(config) ?: return null
+        return ConversionService.SHARED.convert(value, Duration::class.java).orElse(null) ?: throw configExceptionOf(
+            key, "config.invalid_duration"
+        )
+    }
+
+    fun <C : Any> getDurationOrThrow(config: C, key: String, value: (C) -> String?): Duration {
+        val value = getOrThrow(config, key, value)
         return ConversionService.SHARED.convert(value, Duration::class.java).orElse(null) ?: throw configExceptionOf(
             key, "config.invalid_duration"
         )
@@ -80,6 +105,15 @@ class ConfigParser {
     fun <C : Any> getAbsoluteUriOrThrow(config: C, key: String, value: (C) -> String?): URI {
         return getOrThrow(config, key, value).toAbsoluteUri()
             ?: throw configExceptionOf(key, "config.invalid_url")
+    }
+
+    inline fun <C : Any, reified T : Enum<T>> getEnumOrThrow(
+        config: C,
+        key: String,
+        noinline value: (C) -> String?
+    ): T {
+        val serializedValue = getOrThrow(config, key, value)
+        return convertToEnum(key, serializedValue)
     }
 
     inline fun <C : Any, reified T : Enum<T>> getEnum(

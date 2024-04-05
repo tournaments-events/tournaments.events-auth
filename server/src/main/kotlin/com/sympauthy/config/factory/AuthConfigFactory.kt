@@ -13,8 +13,6 @@ import com.sympauthy.config.properties.TokenConfigurationProperties.Companion.TO
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import java.time.Duration
-import java.time.temporal.ChronoUnit
 
 @Factory
 class AuthConfigFactory(
@@ -37,8 +35,8 @@ class AuthConfigFactory(
 
         val accessExpiration = try {
             tokenProperties?.let {
-                parser.getDuration(it, "$TOKEN_KEY.access-expiration", TokenConfigurationProperties::accessExpiration)
-            } ?: Duration.of(1, ChronoUnit.HOURS)
+                parser.getDurationOrThrow(it, "$TOKEN_KEY.access-expiration", TokenConfigurationProperties::accessExpiration)
+            }
         } catch (e: ConfigurationException) {
             errors.add(e)
             null
@@ -46,8 +44,8 @@ class AuthConfigFactory(
 
         val refreshEnabled = try {
             tokenProperties?.let {
-                parser.getBoolean(it, "$TOKEN_KEY.refresh-enabled", TokenConfigurationProperties::refreshEnabled)
-            } ?: false
+                parser.getBooleanOrThrow(it, "$TOKEN_KEY.refresh-enabled", TokenConfigurationProperties::refreshEnabled)
+            }
         } catch (e: ConfigurationException) {
             errors.add(e)
             null
