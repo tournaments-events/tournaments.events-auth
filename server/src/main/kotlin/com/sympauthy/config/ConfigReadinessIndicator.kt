@@ -95,7 +95,7 @@ open class ConfigReadinessIndicator(
                 }
 
             if (!environment.isDefaultActive) {
-                logger.info("The '$DEFAULT_ENVIRONMENT' environment is not enabled meaning you are missing default configuration of SympAuthy. If it is not intentional, you can enable it by adding 'default' to micronaut environements. Either by param '--micronaut-environments=$DEFAULT_ENVIRONMENT' or by environment variable 'MICRONAUT_ENVIRONMENTS=$DEFAULT_ENVIRONMENT'.")
+                logger.info("The '$DEFAULT_ENVIRONMENT' environment is not enabled meaning you are missing default configuration of SympAuthy. If it is not intentional, you can enable it by adding '$DEFAULT_ENVIRONMENT' to micronaut environments. Either by param '--micronaut-environments=$DEFAULT_ENVIRONMENT' or by environment variable 'MICRONAUT_ENVIRONMENTS=$DEFAULT_ENVIRONMENT'.")
             }
         }
     }
