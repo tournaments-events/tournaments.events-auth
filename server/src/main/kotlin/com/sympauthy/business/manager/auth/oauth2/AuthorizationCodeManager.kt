@@ -29,7 +29,8 @@ class AuthorizationCodeManager(
     ): AuthorizationCode {
         val entity = AuthorizationCodeEntity(
             attemptId = authorizeAttempt.id,
-            code = randomGenerator.generateAndEncodeToBase64(),
+            // To avoid encoded characters in the returned code.
+            code = randomGenerator.generateAndEncodeToHex(),
             creationDate = LocalDateTime.now(),
             // We copy the expiration to simplify the cleanup code.
             expirationDate = authorizeAttempt.expirationDate

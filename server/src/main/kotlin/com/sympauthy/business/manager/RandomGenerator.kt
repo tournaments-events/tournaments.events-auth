@@ -11,7 +11,7 @@ import java.util.*
 class RandomGenerator {
 
     private val secureRandom: SecureRandom = SecureRandom()
-    private val encoder: Base64.Encoder = Base64.getEncoder()
+    private val hexEncoder = HexFormat.of()
 
     /**
      * Generate a byte array containing random values.
@@ -25,8 +25,11 @@ class RandomGenerator {
         return byteArray
     }
 
-    fun generateAndEncodeToBase64(lengthInBytes: Int = DEFAULT_LENGTH): String {
-        return encoder.encodeToString(generate(lengthInBytes))
+    /**
+     * Generate a byte array containing [lengthInBytes] random bytes then convert the value into hexadecimal.
+     */
+    fun generateAndEncodeToHex(lengthInBytes: Int = DEFAULT_LENGTH): String {
+        return hexEncoder.formatHex(generate(lengthInBytes))
     }
 
     companion object {
