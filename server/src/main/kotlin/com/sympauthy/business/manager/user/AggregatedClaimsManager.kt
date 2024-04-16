@@ -2,7 +2,6 @@ package com.sympauthy.business.manager.user
 
 import com.sympauthy.business.manager.provider.ProviderClaimsManager
 import com.sympauthy.business.model.user.RawProviderClaims
-import com.sympauthy.business.security.Context
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.async
@@ -21,15 +20,15 @@ class AggregatedClaimsManager(
 
     /**
      * Merge all the claims collected about the user identified by [userId].
-     * Depending on the scope contained in the [context], some information may be filtered as the client
-     * is not granted access to them.
+     * Only claims readable according to the [scopes] will be populated in the return object.
+     * If [scopes] is null, then all claims are considered readable.
      */
     suspend fun aggregateClaims(
-        context: Context,
-        userId: UUID
+        userId: UUID,
+        scopes: List<String>? = null
     ): RawProviderClaims = coroutineScope {
         val deferredCollectedUserInfoList = async {
-            collectedClaimManager.findReadableUserInfoByUserId(context, userId) // FIXME: use user context
+            collectedClaimManager.findReadableUserInfoByUserId(userId, scopes)
         }
         val deferredProviderUserInfoList = async {
             providerClaimsManager.findByUserId(userId)

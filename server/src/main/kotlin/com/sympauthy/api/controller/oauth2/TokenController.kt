@@ -7,9 +7,11 @@ import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
 import com.sympauthy.business.manager.auth.oauth2.TokenManager
 import com.sympauthy.business.model.oauth2.AuthenticationTokenType.ACCESS
 import com.sympauthy.business.model.oauth2.AuthenticationTokenType.REFRESH
+import com.sympauthy.business.model.oauth2.EncodedAuthenticationToken
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.INVALID_GRANT
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.UNSUPPORTED_GRANT_TYPE
 import com.sympauthy.security.client
+import com.sympauthy.util.nullIfBlank
 import io.micronaut.http.MediaType.APPLICATION_FORM_URLENCODED
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Part
@@ -71,18 +73,16 @@ class TokenController(
         if (attempt.redirectUri != redirectUri) {
             throw oauth2ExceptionOf(INVALID_GRANT, "token.non_matching_redirect_uri")
         }
-        val (accessToken, refreshToken) = tokenManager.generateTokens(attempt)
+
+        val tokens = tokenManager.generateTokens(attempt)
 
         return TokenResource(
-            accessToken = accessToken.token,
+            accessToken = tokens.accessToken.token,
             tokenType = "bearer",
-            expiredIn = accessToken.expirationDate?.let {
-                Duration.between(
-                    Instant.now(),
-                    it.toInstant(ZoneOffset.UTC)
-                ).toMillisPart()
-            },
-            refreshToken = refreshToken?.token
+            expiredIn = getExpiredIn(tokens.accessToken),
+            scope = getScope(tokens.accessToken),
+            refreshToken = tokens.refreshToken?.token,
+            idToken = tokens.idToken?.token
         )
     }
 
@@ -100,14 +100,25 @@ class TokenController(
         return TokenResource(
             accessToken = accessToken.token,
             tokenType = "bearer",
-            expiredIn = accessToken.expirationDate?.let {
-                Duration.between(
-                    Instant.now(),
-                    it.toInstant(ZoneOffset.UTC)
-                ).toMillisPart()
-            },
+            expiredIn = getExpiredIn(accessToken),
+            scope = getScope(accessToken),
             refreshToken = refreshedRefreshToken?.token ?: encodedRefreshToken
         )
+    }
+
+    private fun getScope(accessToken: EncodedAuthenticationToken): String? {
+        return accessToken.scopes
+            .joinToString(" ")
+            .nullIfBlank()
+    }
+
+    private fun getExpiredIn(accessToken: EncodedAuthenticationToken): Int? {
+        return accessToken.expirationDate?.let {
+            Duration.between(
+                Instant.now(),
+                it.toInstant(ZoneOffset.UTC)
+            ).toMillisPart()
+        }
     }
 
     companion object {

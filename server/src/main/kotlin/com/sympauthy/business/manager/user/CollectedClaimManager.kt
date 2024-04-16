@@ -1,14 +1,11 @@
 package com.sympauthy.business.manager.user
 
-import com.sympauthy.business.manager.ClaimManager
-import com.sympauthy.business.mapper.ClaimValueMapper
 import com.sympauthy.business.mapper.CollectedClaimMapper
 import com.sympauthy.business.mapper.CollectedUserInfoUpdateMapper
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.claim.Claim
-import com.sympauthy.business.security.Context
 import com.sympauthy.data.model.CollectedClaimEntity
 import com.sympauthy.data.repository.CollectedClaimRepository
 import com.sympauthy.exception.localizedExceptionOf
@@ -24,36 +21,43 @@ import java.util.*
 
 @Singleton
 open class CollectedClaimManager(
-    @Inject private val claimManager: ClaimManager,
     @Inject private val collectedClaimRepository: CollectedClaimRepository,
-    @Inject private val claimValueMapper: ClaimValueMapper,
     @Inject private val collectedClaimMapper: CollectedClaimMapper,
     @Inject private val collectedClaimUpdateMapper: CollectedUserInfoUpdateMapper
 ) {
 
     /**
      * Return the user info we have collected for the user identified by [userId].
-     * Only return the user info that can be read accorded to the [context].
+     * [scopes] can be provided to return only the claims accessible by the provided [scopes].
      */
     suspend fun findReadableUserInfoByUserId(
-        context: Context,
-        userId: UUID
+        userId: UUID,
+        scopes: List<String>? = null
     ): List<CollectedClaim> {
-        return collectedClaimRepository.findByUserId(userId)
+        var claims = collectedClaimRepository.findByUserId(userId)
+            .asSequence()
             .mapNotNull(collectedClaimMapper::toCollectedClaim)
-            .filter { context.canRead(it.claim) }
+        if (scopes != null) {
+            claims = claims.filter { it.claim.canBeRead(scopes) }
+        }
+        return claims.toList()
     }
 
     /**
-     * Update the claims collected for the [user] and return all the claims readable according to the [context].
+     * Update the claims collected for the [user] and return all the claims readable according to the [scopes].
+     * Only claims that are editable according to the [scopes] will be modified. Other update will be ignored.
+     * If [scopes] is null, it forces the application of all [updates] and return all claims.
      */
     @Transactional
     open suspend fun updateUserInfo(
-        context: Context,
         user: User,
+        scopes: List<String>? = null,
         updates: List<CollectedClaimUpdate>
     ): List<CollectedClaim> = coroutineScope {
-        val applicableUpdates = updates.filter { context.canWrite(it.claim) }
+        val applicableUpdates = if (scopes != null) {
+            updates.filter { it.claim.canBeWritten(scopes) }
+        } else updates
+
         val existingEntities = collectedClaimRepository.findByUserId(user.id)
             .associateBy(CollectedClaimEntity::claim)
             .toMutableMap()
@@ -89,9 +93,13 @@ open class CollectedClaimManager(
 
         awaitAll(deferredSave, deferredDelete)
 
-        (existingEntities.values + entitiesToCreate)
+        val collectedClaims = (existingEntities.values + entitiesToCreate)
             .mapNotNull { collectedClaimMapper.toCollectedClaim(it) }
-            .filter { context.canRead(it.claim) }
+        if (scopes != null) {
+            collectedClaims.filter { it.claim.canBeRead(scopes) }
+        } else {
+            collectedClaims
+        }
     }
 
     /**
@@ -104,7 +112,7 @@ open class CollectedClaimManager(
                 "claim" to claim, "type" to claim.dataType
             )
         }
-        return when(value) {
+        return when (value) {
             null -> CollectedClaimUpdate(claim, Optional.empty())
             is String -> validateStringAndConvertToUpdate(claim, value)
             else -> throw localizedExceptionOf("claim.validate.unsupported_type", "claim" to claim)
@@ -116,8 +124,3 @@ open class CollectedClaimManager(
         return CollectedClaimUpdate(claim, Optional.ofNullable(value.nullIfBlank()))
     }
 }
-
-data class ConflictingCollectedUserClaims(
-    val userId: UUID,
-    val claims: List<Claim>
-)

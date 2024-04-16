@@ -29,8 +29,6 @@ class ClientManager(
      * Otherwise, return null whether no client matches or the secret does not match.
      */
     suspend fun authenticateClient(clientId: String, clientSecret: String): Client? {
-        return uncheckedClientsConfig.firstOrNull()?.orThrow()
-            ?.clients
-            ?.firstOrNull { it.id == clientId && it.secret == clientSecret }
+        return listClients().firstOrNull { it.id == clientId && it.secret == clientSecret }
     }
 }

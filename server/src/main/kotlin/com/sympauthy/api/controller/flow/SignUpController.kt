@@ -36,7 +36,11 @@ Initiate the creation of an account of a end-user with a password.
     ): SignUpResultResource {
         val attempt = authentication.authorizeAttempt
         val updates = collectedClaimUpdateMapper.toUpdates(inputResource.claims)
-        val result = passwordFlowManager.signUpWithClaimsAndPassword(updates, inputResource.password)
+        val result = passwordFlowManager.signUpWithClaimsAndPassword(
+            authorizeAttempt = attempt,
+            unfilteredUpdates = updates,
+            password = inputResource.password
+        )
         return authorizationFlowRedirectUriBuilder.getRedirectUri(attempt, result)
             .toString()
             .let(::SignUpResultResource)

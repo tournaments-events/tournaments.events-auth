@@ -6,6 +6,7 @@ class CustomClaim(
     required: Boolean
 ): Claim(
     id = id,
+    verifiedId = null, // Add support for verification on custom claim.
     dataType = dataType,
     group = null,
     required = required

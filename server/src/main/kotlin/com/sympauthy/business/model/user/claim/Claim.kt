@@ -6,6 +6,11 @@ sealed class Claim(
      */
     val id: String,
     /**
+     * Identifier of the claim indicating the value of this claims has been verified by the authorization server.
+     * Ex. email_verified for the standard email claim.
+     */
+    val verifiedId: String?,
+    /**
      * Type of the claim.
      */
     val dataType: ClaimDataType,
@@ -38,9 +43,9 @@ sealed class Claim(
     }
 
     /**
-     * Return true if one of the [scopeTokens] allows to edit the claim.
+     * Return true if one of the [scopes] allows to edit the claim.
      */
-    fun canBeWritten(scopeTokens: List<String>): Boolean {
-        return scopeTokens.any { writeScopes.contains(it) }
+    fun canBeWritten(scopes: List<String>): Boolean {
+        return scopes.any { writeScopes.contains(it) }
     }
 }

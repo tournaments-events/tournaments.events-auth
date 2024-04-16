@@ -34,7 +34,7 @@ class RefreshTokenGenerator(
     ) = generateRefreshToken(
         userId = userId,
         clientId = authorizeAttempt.clientId,
-        scopeTokens = authorizeAttempt.scopes,
+        scopeTokens = authorizeAttempt.grantedScopes ?: emptyList(),
         authorizeAttemptId = authorizeAttempt.id
     )
 

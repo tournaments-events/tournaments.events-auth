@@ -42,6 +42,15 @@ class AuthConfigFactory(
             null
         }
 
+        val idExpiration = try {
+            tokenProperties?.let {
+                parser.getDuration(it, "$TOKEN_KEY.id-expiration", TokenConfigurationProperties::idExpiration)
+            } ?: accessExpiration
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
         val refreshEnabled = try {
             tokenProperties?.let {
                 parser.getBooleanOrThrow(it, "$TOKEN_KEY.refresh-enabled", TokenConfigurationProperties::refreshEnabled)
@@ -66,6 +75,7 @@ class AuthConfigFactory(
                 audience = properties.audience,
                 token = TokenConfig(
                     accessExpiration = accessExpiration!!,
+                    idExpiration = idExpiration!!,
                     refreshEnabled = refreshEnabled!!,
                     refreshExpiration = refreshExpiration
                 )

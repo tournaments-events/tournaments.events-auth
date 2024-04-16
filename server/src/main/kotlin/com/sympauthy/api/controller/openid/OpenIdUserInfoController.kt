@@ -4,19 +4,20 @@ import com.sympauthy.api.controller.openid.OpenIdUserInfoController.Companion.OP
 import com.sympauthy.api.mapper.UserInfoResourceMapper
 import com.sympauthy.api.resource.openid.UserInfoResource
 import com.sympauthy.business.manager.user.AggregatedClaimsManager
-import com.sympauthy.business.security.AdminContext
+import com.sympauthy.business.model.oauth2.Scope
+import com.sympauthy.security.SecurityRule.IS_USER
+import com.sympauthy.security.scopes
 import com.sympauthy.security.userId
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.authentication.Authentication
-import io.micronaut.security.rules.SecurityRule.IS_AUTHENTICATED
 import io.swagger.v3.oas.annotations.ExternalDocumentation
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
 
 @Controller(OPENID_USERINFO_ENDPOINT)
-@Secured(IS_AUTHENTICATED)
+@Secured(IS_USER)
 class OpenIdUserInfoController(
     @Inject private val aggregatedClaimsManager: AggregatedClaimsManager,
     @Inject private val userInfoMapper: UserInfoResourceMapper
@@ -34,8 +35,8 @@ class OpenIdUserInfoController(
         authentication: Authentication
     ): UserInfoResource {
         val userInfo = aggregatedClaimsManager.aggregateClaims(
-            context = AdminContext, // FIXME Generate context from authentication
-            userId = authentication.userId
+            userId = authentication.userId,
+            scopes = authentication.scopes.map(Scope::scope)
         )
         return userInfoMapper.toResource(userInfo)
     }

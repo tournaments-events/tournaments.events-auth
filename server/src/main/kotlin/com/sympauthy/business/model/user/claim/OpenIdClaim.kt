@@ -13,6 +13,7 @@ import com.sympauthy.business.model.user.claim.ClaimGroup.IDENTITY
  */
 enum class OpenIdClaim(
     val id: String,
+    val verifiedId: String? = null,
     val type: ClaimDataType,
     /**
      * Group the claim is part of.
@@ -81,12 +82,8 @@ enum class OpenIdClaim(
     ),
     EMAIL(
         id = Id.EMAIL,
+        verifiedId = Id.EMAIL_VERIFIED,
         type = ClaimDataType.EMAIL,
-        scope = StandardScope.EMAIL
-    ),
-    EMAIL_VERIFIED(
-        Id.EMAIL_VERIFIED,
-        type = STRING,
         scope = StandardScope.EMAIL
     ),
     GENDER(
@@ -111,11 +108,7 @@ enum class OpenIdClaim(
     ),
     PHONE_NUMBER(
         id = Id.PHONE_NUMBER,
-        type = STRING,
-        scope = StandardScope.PHONE
-    ),
-    PHONE_NUMBER_VERIFIED(
-        id = Id.PHONE_NUMBER_VERIFIED,
+        verifiedId = Id.PHONE_NUMBER_VERIFIED,
         type = STRING,
         scope = StandardScope.PHONE
     ),

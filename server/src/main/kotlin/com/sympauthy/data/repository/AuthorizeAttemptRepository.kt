@@ -19,5 +19,5 @@ interface AuthorizeAttemptRepository : CoroutineCrudRepository<AuthorizeAttemptE
     )
     suspend fun findByCode(code: String): AuthorizeAttemptEntity?
 
-    suspend fun updateUserId(@Id id: UUID, userId: UUID)
+    suspend fun updateUserIdAndGrantedScopes(@Id id: UUID, userId: UUID, grantedScopes: List<String>?)
 }

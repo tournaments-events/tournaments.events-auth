@@ -21,15 +21,20 @@ data class AuthorizeAttempt(
      */
     val clientId: String,
     /**
-     * The scope that was requested by the client broken down to its token.
+     * Sanitized scopes requested by the client.
+     * Un-allowed and invalid scopes have already been filtered out.
      *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc6749#section-3.3">Scope</a>
      */
-    val scopes: List<String>,
+    val requestedScopes: List<String>,
     /**
      * The identifier of the user that was connected at the end of the authentication flow.
      */
     val userId: UUID?,
+    /*
+     * The scopes that were granted to the user during the authentication flow.
+     */
+    val grantedScopes: List<String>?,
     /**
      * The URI where we must redirect the user once the authentication flow is finished.
      */

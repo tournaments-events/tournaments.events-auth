@@ -4,12 +4,20 @@ import com.sympauthy.business.model.provider.ProviderUserInfo
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.RawProviderClaims
 import com.sympauthy.business.model.user.RawUserInfoBuilder
+import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.EMAIL
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.FAMILY_NAME
+import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.GENDER
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.GIVEN_NAME
+import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.LOCALE
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.MIDDLE_NAME
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.NAME
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.NICKNAME
+import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.PHONE_NUMBER
+import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.PICTURE
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.PREFERRED_USERNAME
+import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.PROFILE
+import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.WEBSITE
+import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.ZONE_INFO
 import com.sympauthy.util.nullIfBlank
 import java.time.LocalDateTime
 import java.util.*
@@ -23,7 +31,7 @@ import java.util.*
  *
  * - Then we apply the info we collected as a first-party that are stored in [collectedClaimList].
  *
- * - FIXME: Finally, we filter the user info that will be returned according to the [context].
+ * - FIXME: Finally, we filter the user info that will be returned according to the [scopes].
  */
 internal class ClaimsMerger(
     // private val user: User,
@@ -92,45 +100,26 @@ internal class ClaimsMerger(
                 info.claim.id == MIDDLE_NAME && info.value is String -> builder.withMiddleName(info.value)
                 info.claim.id == NICKNAME && info.value is String -> builder.withNickname(info.value)
                 info.claim.id == PREFERRED_USERNAME && info.value is String -> builder.withPreferredUsername(info.value)
+                info.claim.id == PROFILE && info.value is String -> builder.withProfile(info.value)
+                info.claim.id == PICTURE && info.value is String -> builder.withPicture(info.value)
+                info.claim.id == WEBSITE && info.value is String -> builder.withWebsite(info.value)
+                info.claim.id == EMAIL && info.value is String -> builder.withEmail(info.value, info.verified ?: false)
+                info.claim.id == GENDER && info.value is String -> builder.withGender(info.value)
+                info.claim.id == ZONE_INFO && info.value is String -> builder.withZoneInfo(info.value)
+                info.claim.id == LOCALE && info.value is String -> builder.withLocale(info.value)
+                info.claim.id == PHONE_NUMBER && info.value is String -> builder.withPhoneNumber(info.value, info.verified ?: false)
             }
             if (updatedAt == null || updatedAt?.isBefore(info.collectionDate) == true) {
                 updatedAt = info.collectionDate
             }
         }
+
         /* FIXME
-        if (collectedClaims.contains(PROFILE)) {
-            builder.withProfile(info.profile)
-        }
-        if (collectedClaims.contains(PICTURE)) {
-            builder.withPicture(info.picture)
-        }
-        if (collectedClaims.contains(WEBSITE)) {
-            builder.withWebsite(info.website)
-        }
-
-        if (collectedClaims.contains(EMAIL)) {
-            builder.withEmail(info.email, info.emailVerified)
-        }
-
-        if (collectedClaims.contains(GENDER)) {
-            builder.withGender(info.gender)
-        }
         if (collectedClaims.contains(BIRTH_DATE)) {
             builder.withBirthDate(info.birthDate)
         }
-
-        if (collectedClaims.contains(ZONE_INFO)) {
-            builder.withZoneInfo(info.zoneInfo)
-        }
-        if (collectedClaims.contains(LOCALE)) {
-            builder.withLocale(info.locale)
-        }
-
-        if (collectedClaims.contains(PHONE_NUMBER)) {
-            builder.withPhoneNumber(info.phoneNumber, info.phoneNumberVerified)
-        }
-
          */
+
         return builder
     }
 }

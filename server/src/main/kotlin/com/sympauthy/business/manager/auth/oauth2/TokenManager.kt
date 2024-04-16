@@ -24,6 +24,7 @@ open class TokenManager(
     @Inject private val jwtManager: JwtManager,
     @Inject private val accessTokenGenerator: AccessTokenGenerator,
     @Inject private val refreshTokenGenerator: RefreshTokenGenerator,
+    @Inject private val idTokenGenerator: IdTokenGenerator,
     @Inject private val tokenRepository: AuthenticationTokenRepository,
     @Inject private val tokenMapper: AuthenticationTokenMapper
 ) {
@@ -44,7 +45,6 @@ open class TokenManager(
     }
 
     @Transactional
-    @OptIn(ExperimentalCoroutinesApi::class)
     open suspend fun generateTokens(
         authorizeAttempt: AuthorizeAttempt
     ): GenerateTokenResult = coroutineScope {
@@ -63,10 +63,19 @@ open class TokenManager(
             refreshTokenGenerator.generateRefreshToken(authorizeAttempt, userId)
         }
 
-        awaitAll(deferredAccessToken, deferredRefreshToken)
+        val accessToken = deferredAccessToken.await()
+        val deferredIdToken = async {
+            idTokenGenerator.generateIdToken(
+                authorizeAttempt = authorizeAttempt,
+                userId = userId,
+                accessToken = accessToken
+            )
+        }
+
         GenerateTokenResult(
-            accessToken = deferredAccessToken.getCompleted(),
-            refreshToken = deferredRefreshToken.getCompleted()
+            accessToken = accessToken,
+            refreshToken = deferredRefreshToken.await(),
+            idToken = deferredIdToken.await()
         )
     }
 
@@ -144,5 +153,6 @@ open class TokenManager(
 
 data class GenerateTokenResult(
     val accessToken: EncodedAuthenticationToken,
-    val refreshToken: EncodedAuthenticationToken?
+    val refreshToken: EncodedAuthenticationToken?,
+    val idToken: EncodedAuthenticationToken?
 )

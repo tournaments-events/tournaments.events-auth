@@ -36,7 +36,7 @@ class AuthorizeManager(
         val entity = AuthorizeAttemptEntity(
             clientId = client.id,
             redirectUri = redirectUri.toString(),
-            scopes = scopes.map(Scope::scope).toTypedArray(),
+            requestedScopes = scopes.map(Scope::scope).toTypedArray(),
             state = clientState,
 
             attemptDate = LocalDateTime.now(),
@@ -62,6 +62,7 @@ class AuthorizeManager(
                 val allowedScopes = client.allowedScopes.map(Scope::scope)
                 uncheckedScopes.filter { allowedScopes.contains(it.scope) }
             }
+
             else -> uncheckedScopes
         }
         if (scopes.isNullOrEmpty()) {
@@ -127,10 +128,21 @@ class AuthorizeManager(
     /**
      * Associate the user that have been authenticated to its [AuthorizeAttempt].
      */
-    suspend fun setAuthenticatedUserId(authorizeAttempt: AuthorizeAttempt, userId: UUID): AuthorizeAttempt {
-        authorizeAttemptRepository.updateUserId(authorizeAttempt.id, userId)
+    suspend fun setAuthenticatedUserId(
+        authorizeAttempt: AuthorizeAttempt,
+        userId: UUID
+    ): AuthorizeAttempt {
+        // FIXME Computed granted scopes based on rules.
+        val grantedScopes = authorizeAttempt.requestedScopes
+
+        authorizeAttemptRepository.updateUserIdAndGrantedScopes(
+            id = authorizeAttempt.id,
+            userId = userId,
+            grantedScopes = grantedScopes
+        )
         return authorizeAttempt.copy(
-            userId = userId
+            userId = userId,
+            grantedScopes = grantedScopes
         )
     }
 

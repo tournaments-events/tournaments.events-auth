@@ -15,7 +15,7 @@ import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.UserStatus
 import com.sympauthy.business.model.user.claim.Claim
 import com.sympauthy.business.model.user.claim.OpenIdClaim
-import com.sympauthy.business.security.AdminContext
+import com.sympauthy.config.model.EnabledPasswordAuthConfig
 import com.sympauthy.config.model.PasswordAuthConfig
 import com.sympauthy.config.model.orThrow
 import com.sympauthy.data.repository.CollectedClaimRepository
@@ -100,10 +100,7 @@ open class PasswordFlowManager(
         authorizeManager.setAuthenticatedUserId(authorizeAttempt, user.id)
 
         // Check if sign-up is completed
-        val claims = collectedClaimManager.findReadableUserInfoByUserId(
-            context = AdminContext,
-            userId = user.id
-        )
+        val claims = collectedClaimManager.findReadableUserInfoByUserId(userId = user.id)
         return signUpFlowManager.checkIfSignUpIsComplete(
             user = user,
             collectedClaims = claims
@@ -127,10 +124,11 @@ open class PasswordFlowManager(
     }
 
     /**
-     * Create a new user with the provided claims [updates] and [password].
+     * Create a new user with the provided claims([unfilteredUpdates]) and [password].
      */
     @Transactional
     open suspend fun signUpWithClaimsAndPassword(
+        authorizeAttempt: AuthorizeAttempt,
         unfilteredUpdates: List<CollectedClaimUpdate>,
         password: String
     ): SignInOrSignUpResult {
@@ -145,11 +143,13 @@ open class PasswordFlowManager(
 
         val user = userManager.createUser()
         val collectedClaims = collectedClaimManager.updateUserInfo(
-            context = AdminContext,
             user = user,
             updates = claimUpdates
         )
         passwordManager.createPassword(user, password)
+
+        // Update the authorize attempt with the id of the user so they can retrieve their access token.
+        authorizeManager.setAuthenticatedUserId(authorizeAttempt, user.id)
 
         return signUpFlowManager.checkIfSignUpIsComplete(
             user = user,

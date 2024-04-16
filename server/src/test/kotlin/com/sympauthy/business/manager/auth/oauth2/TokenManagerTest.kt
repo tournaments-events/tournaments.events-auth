@@ -41,6 +41,9 @@ class TokenManagerTest {
     lateinit var refreshTokenGenerator: RefreshTokenGenerator
 
     @MockK
+    lateinit var idTokenGenerator: IdTokenGenerator
+
+    @MockK
     lateinit var tokenRepository: AuthenticationTokenRepository
 
     @MockK
@@ -70,16 +73,18 @@ class TokenManagerTest {
     }
 
     @Test
-    fun `generateTokens - Generate both tokens`() = runTest {
+    fun `generateTokens - Generate all tokens`() = runTest {
         val userId = UUID.randomUUID()
         val attempt = mockk<AuthorizeAttempt>()
         val accessToken = mockk<EncodedAuthenticationToken>()
         val refreshToken = mockk<EncodedAuthenticationToken>()
+        val idToken = mockk<EncodedAuthenticationToken>()
 
         every { attempt.expired } returns false
         every { attempt.userId } returns userId
         coEvery { accessTokenGenerator.generateAccessToken(attempt, userId) } returns accessToken
         coEvery { refreshTokenGenerator.generateRefreshToken(attempt, userId) } returns refreshToken
+        coEvery { idTokenGenerator.generateIdToken(attempt, userId, accessToken) } returns idToken
 
         val result = tokenManager.generateTokens(attempt)
 

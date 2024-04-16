@@ -7,6 +7,7 @@ import io.micronaut.context.annotation.ConfigurationProperties
 @ConfigurationProperties(TOKEN_KEY)
 interface TokenConfigurationProperties {
     val accessExpiration: String?
+    val idExpiration: String?
     val refreshEnabled: String?
     val refreshExpiration: String?
 

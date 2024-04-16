@@ -18,10 +18,10 @@ import com.sympauthy.business.model.provider.oauth2.ProviderOauth2Tokens
 import com.sympauthy.business.model.redirect.ProviderOauth2AuthorizationRedirect
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.RawProviderClaims
+import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.UserMergingStrategy.BY_MAIL
 import com.sympauthy.business.model.user.UserMergingStrategy.NONE
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.EMAIL
-import com.sympauthy.business.security.AdminContext
 import com.sympauthy.client.oauth2.TokenEndpointClient
 import com.sympauthy.config.model.AdvancedConfig
 import com.sympauthy.config.model.UrlsConfig
@@ -159,10 +159,8 @@ open class Oauth2ProviderManager(
         val existingUser = userManager.findByEmail(email)
         val user = existingUser
             ?: userManager.createUser().apply {
+                // We do not pass the scopes to forcefully update since we must save the email even if it was not requested by the client.
                 collectedClaimManager.updateUserInfo(
-                    // We use the admin context as the email may not be part of the claims requested by the client
-                    // but is necessary for the merging strategy to work.
-                    context = AdminContext,
                     user = this,
                     updates = listOf(
                         CollectedClaimUpdate(

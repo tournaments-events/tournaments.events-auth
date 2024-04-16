@@ -8,6 +8,7 @@ class StandardClaim(
     required: Boolean
 ) : Claim(
     id = openIdClaim.id,
+    verifiedId = openIdClaim.verifiedId,
     dataType = openIdClaim.type,
     group = openIdClaim.group,
     required = required
