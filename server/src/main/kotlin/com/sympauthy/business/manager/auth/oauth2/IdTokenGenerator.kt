@@ -94,7 +94,9 @@ class IdTokenGenerator(
 
         val encodedToken = jwtManager.create(JwtManager.PUBLIC_KEY) {
             entity.id?.toString()?.let(this::withJWTId)
-            authConfig.audience?.let { this.withAudience(it) }
+            // Pretty weird but in OpenID spec, the audience is the client_id of the client which defer from OAuth2 spec.
+            // https://openid.net/specs/openid-connect-basic-1_0.html#IDToken
+            withAudience(clientId)
             withSubject(userId.toString())
             withIssuedAt(issueDate.toInstant(ZoneOffset.UTC))
             withExpiresAt(expirationDate.toInstant(ZoneOffset.UTC))
