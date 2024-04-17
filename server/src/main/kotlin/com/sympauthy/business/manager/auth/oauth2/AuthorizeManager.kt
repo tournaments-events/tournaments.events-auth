@@ -26,6 +26,7 @@ class AuthorizeManager(
     suspend fun newAuthorizeAttempt(
         client: Client,
         clientState: String? = null,
+        clientNonce: String? = null,
         uncheckedScopes: List<Scope>? = null,
         uncheckedRedirectUri: URI? = null,
     ): AuthorizeAttempt {
@@ -38,6 +39,7 @@ class AuthorizeManager(
             redirectUri = redirectUri.toString(),
             requestedScopes = scopes.map(Scope::scope).toTypedArray(),
             state = clientState,
+            nonce = clientNonce,
 
             attemptDate = LocalDateTime.now(),
             expirationDate = LocalDateTime.now().plusMinutes(15) // TODO: Add to advanced config

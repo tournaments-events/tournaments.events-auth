@@ -79,6 +79,17 @@ The authorization server includes this value when redirecting the user-agent bac
                 )
             ),
             Parameter(
+                name = "nonce",
+                `in` = QUERY,
+                description = """
+An opaque value used to associate a Client session with an ID Token, and to mitigate replay attacks.
+The authorization server includes this value unmodified in the ID Token.
+                """,
+                schema = Schema(
+                    type = "string"
+                )
+            ),
+            Parameter(
                 name = "redirect_uri",
                 `in` = QUERY,
                 description = "The url where the end-user must be redirected at the end of the authorization code grant flow.",
@@ -103,7 +114,9 @@ The authorization server includes this value when redirecting the user-agent bac
         @QueryValue("scope")
         uncheckedScope: String?,
         @QueryValue("state")
-        state: String?
+        state: String?,
+        @QueryValue("nonce")
+        nonce: String?
     ): HttpResponse<*> {
         val client = getClient(uncheckedClientId)
         val scopes = getScopes(uncheckedScope)
@@ -112,6 +125,7 @@ The authorization server includes this value when redirecting the user-agent bac
             "code" -> authorizeWithCodeFlow(
                 client = client,
                 clientState = state,
+                clientNonce = nonce,
                 scopes = scopes,
                 redirectUri = redirectUri
             )
@@ -153,6 +167,7 @@ The authorization server includes this value when redirecting the user-agent bac
     private suspend fun authorizeWithCodeFlow(
         client: Client,
         clientState: String?,
+        clientNonce: String?,
         scopes: List<Scope>?,
         redirectUri: URI
     ): HttpResponse<*> {
@@ -160,6 +175,7 @@ The authorization server includes this value when redirecting the user-agent bac
             authorizeManager.newAuthorizeAttempt(
                 client = client,
                 clientState = clientState,
+                clientNonce = clientNonce,
                 uncheckedScopes = scopes,
                 uncheckedRedirectUri = redirectUri,
             )

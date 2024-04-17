@@ -41,10 +41,11 @@ class IdTokenGenerator(
         accessToken: EncodedAuthenticationToken
     ) = generateIdToken(
         userId = userId,
+        authorizeAttemptId = authorizeAttempt.id,
         clientId = authorizeAttempt.clientId,
         scopes = authorizeAttempt.grantedScopes ?: emptyList(),
-        authorizeAttemptId = authorizeAttempt.id,
-        accessToken = accessToken
+        nonce = authorizeAttempt.nonce,
+        accessToken = accessToken,
     )
 
     /**
@@ -66,10 +67,10 @@ class IdTokenGenerator(
         clientId: String,
         scopes: List<String>,
         authorizeAttemptId: UUID,
-        accessToken: EncodedAuthenticationToken
+        accessToken: EncodedAuthenticationToken,
+        nonce: String? = null
     ): EncodedAuthenticationToken? {
         val authConfig = uncheckedAuthConfig.orThrow()
-
 
         // FIXME compute at_hash with accessToken
 
@@ -97,6 +98,7 @@ class IdTokenGenerator(
             withSubject(userId.toString())
             withIssuedAt(issueDate.toInstant(ZoneOffset.UTC))
             withExpiresAt(expirationDate.toInstant(ZoneOffset.UTC))
+            nonce?.let { withClaim("nonce", it) }
 
             claims.forEach { claim ->
                 withClaim(claim)

@@ -82,17 +82,18 @@ CREATE INDEX provider_user_info__user_id ON provider_user_info (user_id);
 
 CREATE TABLE authorize_attempts
 (
-    id               uuid      NOT NULL DEFAULT random_uuid(),
-    client_id        text      NOT NULL,
-    redirect_uri     text      NOT NULL,
+    id               uuid       NOT NULL DEFAULT random_uuid(),
+    client_id        text       NOT NULL,
+    redirect_uri     text       NOT NULL,
     requested_scopes text array NOT NULL,
     state            text,
+    nonce            text,
 
     user_id          uuid,
     granted_scopes   text array,
 
-    attempt_date     timestamp NOT NULL,
-    expiration_date  timestamp NOT NULL,
+    attempt_date     timestamp  NOT NULL,
+    expiration_date  timestamp  NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
@@ -113,15 +114,15 @@ CREATE INDEX authorization_codes__code ON authorization_codes (code);
 
 CREATE TABLE authentication_tokens
 (
-    id                   uuid      NOT NULL DEFAULT random_uuid(),
-    type                 text      NOT NULL,
-    user_id              uuid      NOT NULL,
-    client_id            text      NOT NULL,
+    id                   uuid       NOT NULL DEFAULT random_uuid(),
+    type                 text       NOT NULL,
+    user_id              uuid       NOT NULL,
+    client_id            text       NOT NULL,
     scopes               text array NOT NULL,
-    authorize_attempt_id uuid      NOT NULL,
+    authorize_attempt_id uuid       NOT NULL,
 
-    revoked              boolean   NOT NULL,
-    issue_date           timestamp NOT NULL,
+    revoked              boolean    NOT NULL,
+    issue_date           timestamp  NOT NULL,
     expiration_date      timestamp,
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id)

@@ -44,6 +44,10 @@ data class AuthorizeAttempt(
      */
     val state: String? = null,
     /**
+     * The nonce passed by the client to the authorize endpoint.
+     */
+    val nonce: String? = null,
+    /**
      * When the authentication flow was initiated by the user.
      */
     val attemptDate: LocalDateTime,

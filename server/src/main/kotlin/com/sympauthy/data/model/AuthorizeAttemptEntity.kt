@@ -14,6 +14,7 @@ class AuthorizeAttemptEntity(
     val redirectUri: String,
     val requestedScopes: Array<String> = emptyArray(),
     val state: String? = null,
+    val nonce: String? = null,
     val userId: UUID? = null,
     val grantedScopes: Array<String>? = null,
     val attemptDate: LocalDateTime,

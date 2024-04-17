@@ -87,6 +87,7 @@ CREATE TABLE authorize_attempts
     redirect_uri     text      NOT NULL,
     requested_scopes text[] NOT NULL,
     state            text,
+    nonce            text,
 
     user_id          uuid,
     granted_scopes   text[],
