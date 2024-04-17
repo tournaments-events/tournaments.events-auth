@@ -34,7 +34,6 @@ class JwtManager(
     ): String {
         val algorithm = getAlgorithm(name)
         return JWT.create().apply {
-            withKeyId(name) // Must be available at least for public keys for validation to find the key in the published JWKS.
             authConfig.orThrow().issuer.let(this::withIssuer)
             block(this)
         }.sign(algorithm)

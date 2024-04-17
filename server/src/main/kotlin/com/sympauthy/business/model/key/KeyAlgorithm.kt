@@ -68,7 +68,9 @@ class RSAKeyImpl : KeyAlgorithmImpl() {
         return object : RSAKeyProvider {
             override fun getPublicKeyById(keyId: String?): RSAPublicKey = publicKey
             override fun getPrivateKey(): RSAPrivateKey = privateKey
-            override fun getPrivateKeyId(): String = ""
+            // We want the name of the key to be exposed since client may need it to find the public key
+            // in the public JSON Web Key Sets.
+            override fun getPrivateKeyId(): String = keys.name
         }
     }
 
