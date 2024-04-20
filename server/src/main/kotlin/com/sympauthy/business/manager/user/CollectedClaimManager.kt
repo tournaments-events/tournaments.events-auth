@@ -1,5 +1,6 @@
 package com.sympauthy.business.manager.user
 
+import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.mapper.CollectedClaimMapper
 import com.sympauthy.business.mapper.CollectedUserInfoUpdateMapper
 import com.sympauthy.business.model.user.CollectedClaim
@@ -21,6 +22,7 @@ import java.util.*
 
 @Singleton
 open class CollectedClaimManager(
+    @Inject private val claimManager: ClaimManager,
     @Inject private val collectedClaimRepository: CollectedClaimRepository,
     @Inject private val collectedClaimMapper: CollectedClaimMapper,
     @Inject private val collectedClaimUpdateMapper: CollectedUserInfoUpdateMapper
@@ -122,5 +124,20 @@ open class CollectedClaimManager(
     internal fun validateStringAndConvertToUpdate(claim: Claim, value: String): CollectedClaimUpdate {
         // FIXME add validation for email & phone number
         return CollectedClaimUpdate(claim, Optional.ofNullable(value.nullIfBlank()))
+    }
+
+    /**
+     * Return true if all [Claim] that have been marked as [Claim.required] have been collected from the end-user.
+     */
+    fun areAllRequiredClaimCollected(collectedClaims: List<CollectedClaim>): Boolean {
+        val requiredClaims = claimManager.listRequiredClaims()
+        if (requiredClaims.isEmpty()) {
+            return true
+        }
+        val missingRequiredClaims = collectedClaims.fold(requiredClaims.toMutableSet()) { acc, claim ->
+            acc.remove(claim.claim)
+            acc
+        }
+        return missingRequiredClaims.isEmpty()
     }
 }

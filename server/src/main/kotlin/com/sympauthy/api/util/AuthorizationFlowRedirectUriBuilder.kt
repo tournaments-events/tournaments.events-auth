@@ -20,9 +20,17 @@ class AuthorizationFlowRedirectUriBuilder(
         result: SignInOrSignUpResult
     ): URI {
         return when {
+            result.missingRequiredClaims -> getRedirectUriToCollectClaims(attempt)
             result.complete -> getRedirectUriToClient(attempt)
             else -> TODO()
         }
+    }
+
+    /**
+     * Generate a URI that will redirect the end-user to page of the flow collecting end-user claims.
+     */
+    private suspend fun getRedirectUriToCollectClaims(attempt: AuthorizeAttempt): URI {
+        return TODO()
     }
 
     /**

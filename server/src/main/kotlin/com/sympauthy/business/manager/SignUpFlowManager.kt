@@ -1,6 +1,7 @@
 package com.sympauthy.business.manager
 
 import com.sympauthy.business.exception.businessExceptionOf
+import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.mapper.ClaimValueMapper
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.CollectedClaimUpdate
@@ -14,6 +15,7 @@ import kotlin.jvm.optionals.getOrNull
 
 @Singleton
 class SignUpFlowManager(
+    @Inject private val collectedClaimManager: CollectedClaimManager,
     @Inject private val collectedClaimRepository: CollectedClaimRepository,
     @Inject private val claimValueMapper: ClaimValueMapper
 ) {
@@ -40,24 +42,21 @@ class SignUpFlowManager(
         collectedClaims: List<CollectedClaim>
     ): SignInOrSignUpResult {
         // TODO: Check if we have verified the email.
-        // TODO: Check if we have collected enough claim to continue.
+        val missingRequiredClaims = collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)
         return SignInOrSignUpResult(
             user = user,
-            complete = true
+            missingRequiredClaims = missingRequiredClaims,
+            complete = missingRequiredClaims
         )
     }
 }
 
-data class SignInResult(
-    val user: User,
-    /**
-     * True if the sign-up is complete and the user can be redirected to the client.
-     */
-    val complete: Boolean
-)
-
 data class SignInOrSignUpResult(
     val user: User,
+    /**
+     * True if we are missing some required claims from the end-user and they must be collected by the client.
+     */
+    val missingRequiredClaims: Boolean,
     /**
      * True if the sign-up is complete and the user can be redirected to the client.
      */

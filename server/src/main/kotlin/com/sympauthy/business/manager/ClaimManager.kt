@@ -28,6 +28,20 @@ class ClaimManager(
     }
 
     /**
+     * Return all [Claim] enabled on this authorization server.
+     */
+    fun listClaims(): List<Claim> {
+        return cachedClaimsMap.values.toList()
+    }
+
+    /**
+     * Return all [Claim] required to be provided by the end-user during its authorization flow.
+     */
+    fun listRequiredClaims(): List<Claim> {
+        return listClaims().filter(Claim::required)
+    }
+
+    /**
      * Return all the [StandardClaim] enabled on this authorization server.
      */
     fun listStandardClaims(): List<StandardClaim> {

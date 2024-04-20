@@ -78,6 +78,7 @@ It is designed to be cached by the flow to be reused.
         return claimManager.listStandardClaims().map { claim ->
             ClaimResource(
                 id = claim.id,
+                required = claim.required,
                 name = displayMessageSource.getMessage("claims.${claim.id}.name", claim.id, locale),
                 group = claim.group?.name?.lowercase(),
                 type = claim.dataType.name.lowercase()

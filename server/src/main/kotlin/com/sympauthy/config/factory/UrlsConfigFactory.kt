@@ -53,6 +53,18 @@ class UrlsConfigFactory(
             }
         } else null
 
+        val collectMissingClaims = if (root != null) {
+            try {
+                getFlowUri(
+                    flowProperties, root, "$FLOW_KEY.collect-claims",
+                    UrlsFlowConfigurationProperties::collectClaims
+                )
+            } catch (e: ConfigurationException) {
+                errors.add(e)
+                null
+            }
+        } else null
+
         val error = if (root != null) {
             try {
                 getFlowUri(
@@ -70,6 +82,7 @@ class UrlsConfigFactory(
                 root = root!!,
                 flow = FlowUrlConfig(
                     signIn = signIn!!,
+                    collectClaims = collectMissingClaims!!,
                     error = error!!
                 )
             )
@@ -98,6 +111,7 @@ class UrlsConfigFactory(
         val userFlowUri = UriBuilder.of(root).path(USER_FLOW_ENDPOINT)
         return when (key) {
             "$FLOW_KEY.sign-in" -> userFlowUri.path("sign-in")
+            "$FLOW_KEY.collect-claims" -> userFlowUri.path("collect-claims")
             "$FLOW_KEY.error" -> userFlowUri.path("error")
             else -> null
         }?.build()

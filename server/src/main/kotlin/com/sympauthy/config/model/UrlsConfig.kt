@@ -29,7 +29,22 @@ fun UrlsConfig.orThrow(): EnabledUrlsConfig {
 }
 
 class FlowUrlConfig(
+    /**
+     * Page allowing the user either to:
+     * - authenticate by entering its credentials
+     * - select a third-party provider that will authenticate him.
+     */
     val signIn: URI,
+    /**
+     * Page in charge of collecting claims from the end-user claims.
+     *
+     * This page will be presented during the authentication flow whenever all required claims
+     * are not collected for an end-user.
+     */
+    val collectClaims: URI,
+    /**
+     * Page displaying
+     */
     val error: URI
 ) {
     /**

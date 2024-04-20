@@ -7,6 +7,7 @@ import io.micronaut.context.annotation.ConfigurationProperties
 @ConfigurationProperties(FLOW_KEY)
 interface UrlsFlowConfigurationProperties {
     val signIn: String?
+    val collectClaims: String?
     val error: String?
 
     companion object {

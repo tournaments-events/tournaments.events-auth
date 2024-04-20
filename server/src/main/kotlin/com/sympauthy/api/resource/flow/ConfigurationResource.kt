@@ -13,7 +13,9 @@ of those urls.
 @Serdeable
 data class ConfigurationResource(
     @Schema(
-        description = "List of claims that may be collected by the client."
+        description = """
+List of claims which collection is supported by the authorization server.
+        """
     )
     @JsonProperty("claims")
     val claims: List<ClaimResource>,
@@ -37,6 +39,19 @@ data class ClaimResource(
         description = "Identifier of the claim."
     )
     val id: String,
+    @get:Schema(
+        description = """
+Whether the collection of the claim is required to complete the authorization flow?
+
+Required claim must be asked to the end-user and a non-empty value is expected.
+The authorization server will not let the authentication flow to complete if one of the required claim is missing.
+Also the authorization server may present again the authorization flow to the user if a claim become required.
+
+Non-required claim will not impact the end of the authorization flow. 
+It is up to the flow implementation to decide whether they will be presented and asked to the end-user.
+        """
+    )
+    val required: Boolean,
     @get:Schema(
         description = "Localized name of the claim."
     )
