@@ -2,9 +2,10 @@ package com.sympauthy.business.manager.auth.oauth2
 
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_CALLBACK_ENDPOINT
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
-import com.sympauthy.api.util.AuthorizeRedirect
 import com.sympauthy.business.exception.businessExceptionOf
 import com.sympauthy.business.manager.ClaimManager
+import com.sympauthy.business.manager.SignInOrSignUpResult
+import com.sympauthy.business.manager.SignUpFlowManager
 import com.sympauthy.business.manager.provider.ProviderClaimsManager
 import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.user.CreateOrAssociateResult
@@ -36,14 +37,13 @@ import java.util.*
 
 @Singleton
 open class Oauth2ProviderManager(
-    @Inject private val authorizationCodeManager: AuthorizationCodeManager,
     @Inject private val authorizeManager: AuthorizeManager,
     @Inject private val claimManager: ClaimManager,
     @Inject private val collectedClaimManager: CollectedClaimManager,
-    @Inject private val userManager: UserManager,
     @Inject private val providerClaimsManager: ProviderClaimsManager,
-    @Inject private val stateManager: AuthorizeManager,
+    @Inject private val signUpFlowManager: SignUpFlowManager,
     @Inject private val tokenEndpointClient: TokenEndpointClient,
+    @Inject private val userManager: UserManager,
     @Inject private val uncheckedAdvancedConfig: AdvancedConfig,
     @Inject private val uncheckedUrlsConfig: UrlsConfig
 ) {
@@ -67,26 +67,33 @@ open class Oauth2ProviderManager(
     }
 
     suspend fun authorizeWithProvider(
-        provider: EnabledProvider,
-        authorizeAttempt: AuthorizeAttempt
+        authorizeAttempt: AuthorizeAttempt,
+        provider: EnabledProvider
     ): HttpResponse<*> {
         val oauth2 = getOauth2(provider)
         val redirectUri = ProviderOauth2AuthorizationRedirect(
             oauth2 = oauth2,
             responseType = "code",
             redirectUri = getRedirectUri(provider),
-            state = stateManager.encodeState(authorizeAttempt)
+            state = authorizeManager.encodeState(authorizeAttempt)
         ).build()
         return HttpResponse.temporaryRedirect<Any>(redirectUri)
     }
 
-    suspend fun handleCallback(
+    /**
+     * Finalize the sign-in or sign-up of the end-user that authenticated through the [provider].
+     *
+     * This method will perform the following actions:
+     * - retrieve the access token from the [provider] to check if the user is authenticated.
+     * - retrieve end-user claims from the [provider] and store them in this authorization server database.
+     * - sign-in the user if it already exists according to user-merging strategy.
+     * - otherwise, sign-up the user with the claims retrieved from the [provider].
+     */
+    suspend fun signInOrSignUpUsingProvider(
+        authorizeAttempt: AuthorizeAttempt,
         provider: EnabledProvider,
-        authorizeCode: String,
-        state: String?
-    ): AuthorizeRedirect {
-        val authorizeAttempt = authorizeManager.verifyEncodedState(state)
-
+        authorizeCode: String
+    ): SignInOrSignUpResult {
         val oauth2 = getOauth2(provider)
         val authentication = fetchTokens(provider, oauth2, authorizeCode)
 
@@ -97,21 +104,18 @@ open class Oauth2ProviderManager(
             subject = rawUserInfo.subject
         )
 
-        val userId = if (existingUserInfo == null) {
-            createOrAssociateUserWithProviderUserInfo(provider, rawUserInfo).user.id
+        val user = if (existingUserInfo == null) {
+            createOrAssociateUserWithProviderUserInfo(provider, rawUserInfo).user
         } else {
             providerClaimsManager.refreshUserInfo(existingUserInfo, rawUserInfo)
             existingUserInfo.userId
+            TODO("FIXME")
         }
-        authorizeManager.setAuthenticatedUserId(authorizeAttempt, userId)
+        authorizeManager.setAuthenticatedUserId(authorizeAttempt, user.id)
 
-        // TODO: call
-        // TODO: add redirection to complete user info.
-        // TODO: add redirection to verify email.
-
-        return AuthorizeRedirect(
-            authorizeAttempt = authorizeAttempt,
-            authorizationCode = authorizationCodeManager.generateCode(authorizeAttempt)
+        return signUpFlowManager.checkIfSignUpIsComplete(
+            user = user,
+            collectedClaims = collectedClaimManager.findReadableUserInfoByUserId(user.id)
         )
     }
 

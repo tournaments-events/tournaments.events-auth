@@ -14,14 +14,18 @@ class ProviderManager(
     @Inject private val oauth2ProviderManager: Oauth2ProviderManager
 ) {
 
+    /**
+     * Return the URL where the end-user must be redirected to in order to initiate an authentication with
+     * the [provider].
+     */
     suspend fun authorizeWithProvider(
-        provider: EnabledProvider,
-        authorizeAttempt: AuthorizeAttempt
+        authorizeAttempt: AuthorizeAttempt,
+        provider: EnabledProvider
     ): HttpResponse<*> {
         return when {
             provider.auth is ProviderOauth2Config -> oauth2ProviderManager.authorizeWithProvider(
-                provider,
-                authorizeAttempt
+                authorizeAttempt = authorizeAttempt,
+                provider = provider
             )
 
             else -> throw businessExceptionOf("exception.client.unsupported")

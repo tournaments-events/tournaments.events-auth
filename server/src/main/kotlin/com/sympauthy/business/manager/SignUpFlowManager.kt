@@ -42,11 +42,12 @@ class SignUpFlowManager(
         collectedClaims: List<CollectedClaim>
     ): SignInOrSignUpResult {
         // TODO: Check if we have verified the email.
-        val missingRequiredClaims = collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)
+        val missingRequiredClaims = !collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)
+        val complete = listOf(missingRequiredClaims).none { it }
         return SignInOrSignUpResult(
             user = user,
             missingRequiredClaims = missingRequiredClaims,
-            complete = missingRequiredClaims
+            complete = complete
         )
     }
 }

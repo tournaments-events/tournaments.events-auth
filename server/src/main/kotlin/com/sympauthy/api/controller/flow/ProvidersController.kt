@@ -4,6 +4,8 @@ import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROV
 import com.sympauthy.api.errorhandler.ExceptionConverter
 import com.sympauthy.api.mapper.ErrorResourceMapper
 import com.sympauthy.api.util.AuthorizationFlowRedirectBuilder
+import com.sympauthy.api.util.AuthorizationFlowRedirectUriBuilder
+import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
 import com.sympauthy.business.manager.auth.oauth2.Oauth2ProviderManager
 import com.sympauthy.business.manager.provider.ProviderConfigManager
 import com.sympauthy.business.manager.provider.ProviderManager
@@ -27,11 +29,13 @@ import jakarta.inject.Inject
 @Secured(HAS_VALID_STATE)
 @Controller(FLOW_PROVIDER_ENDPOINTS)
 class ProvidersController(
+    @Inject private val authorizeManager: AuthorizeManager,
     @Inject private val oauth2ProviderManager: Oauth2ProviderManager,
     @Inject private val providerManager: ProviderManager,
     @Inject private val providerConfigManager: ProviderConfigManager,
     @Inject private val exceptionConverter: ExceptionConverter,
     @Inject private val redirectBuilder: AuthorizationFlowRedirectBuilder,
+    @Inject private val redirectUriBuilder: AuthorizationFlowRedirectUriBuilder,
     @Inject private val errorResourceMapper: ErrorResourceMapper
 ) {
 
@@ -63,7 +67,7 @@ Following query parameters will be populated with information about the error:
         // Check first to throw UNAUTHORIZED if authentication is not done through state.
         val authorizeAttempt = authentication.authorizeAttempt
         val provider = providerConfigManager.findEnabledProviderById(providerId)
-        return providerManager.authorizeWithProvider(provider, authorizeAttempt)
+        return providerManager.authorizeWithProvider(authorizeAttempt, provider)
     }
 
     @Get(FLOW_PROVIDER_CALLBACK_ENDPOINT)
@@ -73,16 +77,22 @@ Following query parameters will be populated with information about the error:
         @QueryValue("code") code: String?,
         @QueryValue("error") error: String?,
         @QueryValue("error_description") errorDescription: String?,
-        @QueryValue("state") serializedState: String?
+        @QueryValue("state") state: String?
     ): HttpResponse<*> {
+        val authorizeAttempt = authorizeManager.verifyEncodedState(state)
         return if (code != null) {
             val provider = providerConfigManager.findEnabledProviderById(providerId)
-            val redirect = oauth2ProviderManager.handleCallback(
+            val result = oauth2ProviderManager.signInOrSignUpUsingProvider(
+                authorizeAttempt = authorizeAttempt,
                 provider = provider,
-                authorizeCode = code,
-                state = serializedState
+                authorizeCode = code
             )
-            HttpResponse.temporaryRedirect<Any>(redirect.build())
+            val url = redirectUriBuilder.getRedirectUri(
+                attempt = authorizeAttempt,
+                result = result,
+                includeStates = true
+            )
+            HttpResponse.temporaryRedirect<Any>(url)
         } else {
             redirectBuilder.redirectToError(
                 errorCode = error,

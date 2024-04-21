@@ -9,7 +9,7 @@ import java.net.URI
  * Contains all the information to redirect the client back to client application that initiated the authentication
  * with this application.
  */
-data class AuthorizeRedirect(
+data class ToClientRedirect(
     val authorizeAttempt: AuthorizeAttempt,
     val authorizationCode: AuthorizationCode? = null,
     val error: String? = null,
