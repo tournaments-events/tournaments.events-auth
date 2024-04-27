@@ -1,8 +1,6 @@
-package com.sympauthy.business.manager
+package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.manager.user.CollectedClaimManager
-import com.sympauthy.business.mapper.ClaimValueMapper
-import com.sympauthy.data.repository.CollectedClaimRepository
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -15,25 +13,19 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
-class SignUpFlowManagerTest {
+class AuthenticationFlowManagerTest {
 
     @MockK
     lateinit var collectedClaimManager: CollectedClaimManager
 
-    @MockK
-    lateinit var collectedClaimRepository: CollectedClaimRepository
-
-    @MockK
-    lateinit var claimValueMapper: ClaimValueMapper
-
     @InjectMockKs
-    lateinit var manager: SignUpFlowManager
+    lateinit var manager: AuthenticationFlowManager
 
     @Test
-    fun `checkIfSignUpIsComplete - Non complete if missing claims`()= runTest {
+    fun `checkIfSignUpIsComplete - Non complete if missing claims`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns false
 
-        val result = manager.checkIfSignUpIsComplete(mockk(), mockk())
+        val result = manager.checkIfAuthenticationIsComplete(mockk(), mockk())
 
         assertFalse(result.complete)
         assertTrue(result.missingRequiredClaims)
@@ -43,7 +35,7 @@ class SignUpFlowManagerTest {
     fun `checkIfSignUpIsComplete - Complete`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns true
 
-        val result = manager.checkIfSignUpIsComplete(mockk(), mockk())
+        val result = manager.checkIfAuthenticationIsComplete(mockk(), mockk())
 
         assertTrue(result.complete)
     }

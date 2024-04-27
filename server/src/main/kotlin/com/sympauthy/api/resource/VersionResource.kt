@@ -5,6 +5,6 @@ import io.micronaut.serde.annotation.Serdeable
 
 @Serdeable
 data class VersionResource(
-    @JsonProperty("api_versions")
+    @get:JsonProperty("api_versions")
     val apiVersions: List<String>
 )

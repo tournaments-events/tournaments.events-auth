@@ -91,5 +91,6 @@ class OpenAPI(
         val urlsConfig = uncheckedUrlsConfig.getOrNull() ?: return
         log.info("OpenAPI documentation available at: ${urlsConfig.getUri(OPENAPI_ENDPOINT)}")
         log.info("Swagger UI available at: ${urlsConfig.getUri("/swagger-ui")}")
+        log.info("Redoc available at: ${urlsConfig.getUri("/redoc")}")
     }
 }

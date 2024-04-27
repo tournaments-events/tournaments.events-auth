@@ -29,97 +29,97 @@ data class UserInfoResource(
     @get:Schema(
         description = "Identifier for the end-user.",
     )
-    @JsonProperty(SUB)
+    @get:JsonProperty(SUB)
     val sub: String,
     @get:Schema(
         description = "End-user's full name."
     )
-    @JsonProperty(NAME)
+    @get:JsonProperty(NAME)
     val name: String?,
     @get:Schema(
         description = "Given name(s) or first name(s) of the end-user."
     )
-    @JsonProperty(GIVEN_NAME)
+    @get:JsonProperty(GIVEN_NAME)
     val givenName: String?,
     @get:Schema(
         description = "Surname(s) or last name(s) of the end-user."
     )
-    @JsonProperty(FAMILY_NAME)
+    @get:JsonProperty(FAMILY_NAME)
     val familyName: String?,
     @get:Schema(
         description = "Middle name(s) of the end-user."
     )
-    @JsonProperty(MIDDLE_NAME)
+    @get:JsonProperty(MIDDLE_NAME)
     val middleName: String?,
     @get:Schema(
         description = "Casual name of the end-user."
     )
-    @JsonProperty(NICKNAME)
+    @get:JsonProperty(NICKNAME)
     val nickname: String?,
     @get:Schema(
         description = "Shorthand name of the end-user."
     )
-    @JsonProperty(PREFERRED_USERNAME)
+    @get:JsonProperty(PREFERRED_USERNAME)
     val preferredUsername: String?,
     @get:Schema(
         description = "URL of the end-user's profile page."
     )
-    @JsonProperty(PROFILE)
+    @get:JsonProperty(PROFILE)
     val profile: String?,
     @get:Schema(
         description = "URL of the end-user's profile picture."
     )
-    @JsonProperty(PICTURE)
+    @get:JsonProperty(PICTURE)
     val picture: String?,
     @get:Schema(
         description = "URL of the end-user's Web page or blog."
     )
-    @JsonProperty(WEBSITE)
+    @get:JsonProperty(WEBSITE)
     val website: String?,
     @get:Schema(
         description = "End-user's preferred e-mail address."
     )
-    @JsonProperty(EMAIL)
+    @get:JsonProperty(EMAIL)
     val email: String?,
     @get:Schema(
         description = "True if the end-user's e-mail address has been verified, otherwise false."
     )
-    @JsonProperty(EMAIL_VERIFIED)
+    @get:JsonProperty(EMAIL_VERIFIED)
     val emailVerified: String?,
     @get:Schema(
         description = "End-user's gender."
     )
-    @JsonProperty(GENDER)
+    @get:JsonProperty(GENDER)
     val gender: String?,
     @get:Schema(
         description = "End-user's birthday."
     )
-    @JsonProperty(BIRTH_DATE)
+    @get:JsonProperty(BIRTH_DATE)
     val birthDate: LocalDate?,
     @get:Schema(
         description = "String from IANA Time Zone Database representing the end-user's time zone."
     )
-    @JsonProperty(ZONE_INFO)
+    @get:JsonProperty(ZONE_INFO)
     val zoneInfo: LocalDate?,
     @get:Schema(
         description = "End-user's locale, represented as a BCP47 language tag."
     )
-    @JsonProperty(LOCALE)
+    @get:JsonProperty(LOCALE)
     val locale: String?,
     @get:Schema(
         description = "End-user's preferred telephone number."
     )
-    @JsonProperty(PHONE_NUMBER)
+    @get:JsonProperty(PHONE_NUMBER)
     val phoneNumber: String?,
     @get:Schema(
         description = "True if the end-user's phone number has been verified, otherwise false."
     )
-    @JsonProperty(PHONE_NUMBER_VERIFIED)
+    @get:JsonProperty(PHONE_NUMBER_VERIFIED)
     val phoneNumberVerified: Boolean?,
     // TODO: address
     @get:Schema(
         description = "Time the end-user's information was last updated. It is the number of seconds from epoch in UTC timezone."
     )
-    @JsonProperty(UPDATED_AT)
+    @get:JsonProperty(UPDATED_AT)
     val updatedAt: Long?
 )

@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import io.micronaut.serde.annotation.Serdeable
 
 @Serdeable
-class SignUpInputResource(
-    val password: String
-) {
+class ClaimInputResource {
     @set:JsonAnySetter
     var claims: Map<String, Any> = emptyMap()
 }

@@ -1,10 +1,10 @@
 package com.sympauthy.api.controller.flow
 
 import com.sympauthy.api.mapper.CollectedClaimUpdateMapper
+import com.sympauthy.api.resource.flow.FlowResultResource
 import com.sympauthy.api.resource.flow.SignUpInputResource
-import com.sympauthy.api.resource.flow.SignUpResultResource
 import com.sympauthy.api.util.AuthorizationFlowRedirectUriBuilder
-import com.sympauthy.business.manager.password.PasswordFlowManager
+import com.sympauthy.business.manager.flow.PasswordFlowManager
 import com.sympauthy.security.SecurityRule.HAS_VALID_STATE
 import com.sympauthy.security.authorizeAttempt
 import io.micronaut.http.annotation.Body
@@ -33,8 +33,9 @@ Initiate the creation of an account of a end-user with a password.
     suspend fun signUp(
         authentication: Authentication,
         @Body inputResource: SignUpInputResource
-    ): SignUpResultResource {
+    ): FlowResultResource {
         val attempt = authentication.authorizeAttempt
+
         val updates = collectedClaimUpdateMapper.toUpdates(inputResource.claims)
         val result = passwordFlowManager.signUpWithClaimsAndPassword(
             authorizeAttempt = attempt,
@@ -43,6 +44,6 @@ Initiate the creation of an account of a end-user with a password.
         )
         return authorizationFlowRedirectUriBuilder.getRedirectUri(attempt, result)
             .toString()
-            .let(::SignUpResultResource)
+            .let(::FlowResultResource)
     }
 }

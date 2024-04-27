@@ -1,9 +1,10 @@
 package com.sympauthy.api.util
 
-import com.sympauthy.business.manager.SignInOrSignUpResult
 import com.sympauthy.business.manager.auth.oauth2.AuthorizationCodeManager
 import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
+import com.sympauthy.business.manager.flow.AuthenticationFlowResult
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
+import com.sympauthy.config.model.FlowUrlConfig
 import com.sympauthy.config.model.UrlsConfig
 import com.sympauthy.config.model.orThrow
 import io.micronaut.http.uri.UriBuilder
@@ -23,15 +24,10 @@ class AuthorizationFlowRedirectUriBuilder(
      */
     suspend fun getRedirectUri(
         attempt: AuthorizeAttempt,
-        result: SignInOrSignUpResult,
-        includeStates: Boolean = false
+        result: AuthenticationFlowResult
     ): URI {
         return when {
-            result.missingRequiredClaims -> getRedirectUriToCollectClaims(
-                attempt = attempt,
-                includeStates = includeStates
-            )
-
+            result.missingRequiredClaims -> getRedirectUriToCollectClaims(attempt)
             result.complete -> getRedirectUriToClient(attempt)
             else -> TODO()
         }
@@ -41,14 +37,9 @@ class AuthorizationFlowRedirectUriBuilder(
      * Generate a URI that will redirect the end-user to page of the flow collecting end-user claims.
      */
     private suspend fun getRedirectUriToCollectClaims(
-        attempt: AuthorizeAttempt,
-        includeStates: Boolean
+        attempt: AuthorizeAttempt
     ): URI {
-        return getFlowUri(
-            attempt = attempt,
-            flowUri = uncheckedUrlsConfig.orThrow().flow.collectClaims,
-            includeStates = includeStates
-        )
+        return getFlowUri(attempt = attempt) { it.collectClaims }
     }
 
     /**
@@ -66,16 +57,12 @@ class AuthorizationFlowRedirectUriBuilder(
 
     private suspend fun getFlowUri(
         attempt: AuthorizeAttempt,
-        flowUri: URI,
-        includeStates: Boolean
+        flowUri: (config: FlowUrlConfig) -> URI
     ): URI {
-        return if (includeStates) {
-            val state = authorizeManager.encodeState(attempt)
-            UriBuilder.of(flowUri)
-                .queryParam("state", state)
-                .build()
-        } else {
-            flowUri
-        }
+        val state = authorizeManager.encodeState(attempt)
+        val flowUrlConfig = uncheckedUrlsConfig.orThrow().flow
+        return flowUri(flowUrlConfig).let(UriBuilder::of)
+            .queryParam("state", state)
+            .build()
     }
 }

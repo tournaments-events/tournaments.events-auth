@@ -9,7 +9,8 @@ class CustomClaim(
     verifiedId = null, // Add support for verification on custom claim.
     dataType = dataType,
     group = null,
-    required = required
+    required = required,
+    userInputted = false // FIXME
 ) {
     override val readScopes = emptySet<String>()
 

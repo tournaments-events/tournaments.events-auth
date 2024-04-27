@@ -11,7 +11,8 @@ class StandardClaim(
     verifiedId = openIdClaim.verifiedId,
     dataType = openIdClaim.type,
     group = openIdClaim.group,
-    required = required
+    required = required,
+    userInputted = !openIdClaim.generated
 ) {
     override val readScopes = setOf(openIdClaim.scope.scope)
 

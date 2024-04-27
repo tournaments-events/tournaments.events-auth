@@ -5,14 +5,14 @@ import io.micronaut.serde.annotation.Serdeable
 
 @Serdeable
 data class TokenEndpointResponse(
-    @JsonProperty("access_token")
+    @get:JsonProperty("access_token")
     val accessToken: String,
-    @JsonProperty("token_type")
+    @get:JsonProperty("token_type")
     val tokenType: String,
-    @JsonProperty("expires_in")
+    @get:JsonProperty("expires_in")
     val expiresIn: Int,
-    @JsonProperty("refresh_token")
+    @get:JsonProperty("refresh_token")
     val refreshToken: String,
-    @JsonProperty("scope")
+    @get:JsonProperty("scope")
     val scope: String
 )

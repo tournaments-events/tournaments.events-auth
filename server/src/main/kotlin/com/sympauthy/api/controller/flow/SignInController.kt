@@ -1,9 +1,9 @@
 package com.sympauthy.api.controller.flow
 
+import com.sympauthy.api.resource.flow.FlowResultResource
 import com.sympauthy.api.resource.flow.SignInInputResource
-import com.sympauthy.api.resource.flow.SignInResultResource
 import com.sympauthy.api.util.AuthorizationFlowRedirectUriBuilder
-import com.sympauthy.business.manager.password.PasswordFlowManager
+import com.sympauthy.business.manager.flow.PasswordFlowManager
 import com.sympauthy.security.authorizeAttempt
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
@@ -40,7 +40,7 @@ class SignInController(
     suspend fun signIn(
         authentication: Authentication,
         @Body inputResource: SignInInputResource
-    ): SignInResultResource {
+    ): FlowResultResource {
         val attempt = authentication.authorizeAttempt
 
         val result = passwordFlowManager.signInWithPassword(
@@ -50,6 +50,6 @@ class SignInController(
         )
         return authorizationFlowRedirectUriBuilder.getRedirectUri(attempt, result)
             .toString()
-            .let(::SignInResultResource)
+            .let(::FlowResultResource)
     }
 }

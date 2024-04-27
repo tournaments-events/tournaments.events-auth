@@ -1,10 +1,9 @@
-package com.sympauthy.business.manager.password
+package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.exception.businessExceptionOf
 import com.sympauthy.business.manager.ClaimManager
-import com.sympauthy.business.manager.SignInOrSignUpResult
-import com.sympauthy.business.manager.SignUpFlowManager
 import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
+import com.sympauthy.business.manager.password.PasswordManager
 import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.user.UserManager
 import com.sympauthy.business.mapper.ClaimValueMapper
@@ -15,16 +14,16 @@ import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.UserStatus
 import com.sympauthy.business.model.user.claim.Claim
 import com.sympauthy.business.model.user.claim.OpenIdClaim
-import com.sympauthy.config.model.EnabledPasswordAuthConfig
 import com.sympauthy.config.model.PasswordAuthConfig
 import com.sympauthy.config.model.orThrow
 import com.sympauthy.data.repository.CollectedClaimRepository
 import com.sympauthy.data.repository.UserRepository
 import com.sympauthy.data.repository.findAnyClaimMatching
-import io.micronaut.http.HttpStatus.BAD_REQUEST
+import io.micronaut.http.HttpStatus
 import io.micronaut.transaction.annotation.Transactional
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * Manager in charge of the authentication and registration of end-user using a password.
@@ -36,7 +35,7 @@ open class PasswordFlowManager(
     @Inject private val collectedClaimManager: CollectedClaimManager,
     @Inject private val collectedClaimRepository: CollectedClaimRepository,
     @Inject private val passwordManager: PasswordManager,
-    @Inject private val signUpFlowManager: SignUpFlowManager,
+    @Inject private val authenticationFlowManager: AuthenticationFlowManager,
     @Inject private val userManager: UserManager,
     @Inject private val userRepository: UserRepository,
     @Inject private val claimValueMapper: ClaimValueMapper,
@@ -78,22 +77,22 @@ open class PasswordFlowManager(
         authorizeAttempt: AuthorizeAttempt,
         login: String?,
         password: String?
-    ): SignInOrSignUpResult {
+    ): AuthenticationFlowResult {
         if (!signInEnabled) {
-            throw businessExceptionOf("password.flow.sign_in.disabled", recommendedStatus = BAD_REQUEST)
+            throw businessExceptionOf("password.flow.sign_in.disabled", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
         if (login.isNullOrBlank() || password.isNullOrBlank()) {
-            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = BAD_REQUEST)
+            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
 
         val user = findByLogin(login)
         // The user does not exist or has been created using a third-party provider.
         if (user == null || user.status != UserStatus.ENABLED) {
-            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = BAD_REQUEST)
+            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
 
         if (!passwordManager.arePasswordMatching(user, password)) {
-            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = BAD_REQUEST)
+            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
 
         // Update the authorize attempt with the id of the user so they can retrieve their access token.
@@ -101,7 +100,7 @@ open class PasswordFlowManager(
 
         // Check if sign-up is completed
         val claims = collectedClaimManager.findReadableUserInfoByUserId(userId = user.id)
-        return signUpFlowManager.checkIfSignUpIsComplete(
+        return authenticationFlowManager.checkIfAuthenticationIsComplete(
             user = user,
             collectedClaims = claims
         )
@@ -131,7 +130,7 @@ open class PasswordFlowManager(
         authorizeAttempt: AuthorizeAttempt,
         unfilteredUpdates: List<CollectedClaimUpdate>,
         password: String
-    ): SignInOrSignUpResult {
+    ): AuthenticationFlowResult {
         val claimUpdateMap = getSignUpClaims().associateWith { claim ->
             unfilteredUpdates.firstOrNull { it.claim == claim }
         }
@@ -139,7 +138,7 @@ open class PasswordFlowManager(
 
         checkForMissingClaims(claimUpdateMap)
         passwordManager.validatePassword(password)
-        signUpFlowManager.checkForConflictingUsers(claimUpdates)
+        checkForConflictingUsers(claimUpdates)
 
         val user = userManager.createUser()
         val collectedClaims = collectedClaimManager.updateUserInfo(
@@ -151,7 +150,7 @@ open class PasswordFlowManager(
         // Update the authorize attempt with the id of the user so they can retrieve their access token.
         authorizeManager.setAuthenticatedUserId(authorizeAttempt, user.id)
 
-        return signUpFlowManager.checkIfSignUpIsComplete(
+        return authenticationFlowManager.checkIfAuthenticationIsComplete(
             user = user,
             collectedClaims = collectedClaims
         )
@@ -165,9 +164,26 @@ open class PasswordFlowManager(
             throw businessExceptionOf(
                 detailsId = "password.flow.sign_up.missing_claim",
                 descriptionId = "password.flow.sign_up.missing_claim",
-                recommendedStatus = BAD_REQUEST,
+                recommendedStatus = HttpStatus.BAD_REQUEST,
                 "claim" to missingClaim.id
             )
+        }
+    }
+
+    /**
+     * Throws a sign_up.existing error if any of the [claims] conflict with another user login.
+     *
+     * As a user can use any of the provided [claims] to login, we must ensure that the values are unique
+     * to a user and across the claims.
+     */
+    internal suspend fun checkForConflictingUsers(claims: List<CollectedClaimUpdate>) {
+        val claimIds = claims.map { it.claim.id }
+        val values = claims
+            .mapNotNull { it.value?.getOrNull() }
+            .mapNotNull(claimValueMapper::toEntity)
+        val existingCollectedClaims = collectedClaimRepository.findAnyClaimMatching(claimIds, values)
+        if (existingCollectedClaims.isNotEmpty()) {
+            throw businessExceptionOf("password.flow.sign_up.existing", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
     }
 }

@@ -4,7 +4,7 @@ import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROV
 import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROVIDER_ENDPOINTS
 import com.sympauthy.api.resource.flow.*
 import com.sympauthy.business.manager.ClaimManager
-import com.sympauthy.business.manager.password.PasswordFlowManager
+import com.sympauthy.business.manager.flow.PasswordFlowManager
 import com.sympauthy.business.manager.provider.ProviderConfigManager
 import com.sympauthy.business.model.provider.EnabledProvider
 import com.sympauthy.config.model.*
@@ -18,9 +18,7 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule.IS_ANONYMOUS
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import java.util.*
 
@@ -31,11 +29,9 @@ class ConfigurationController(
     @Inject private val passwordFlowManager: PasswordFlowManager,
     @Inject private val providerManager: ProviderConfigManager,
     @Inject private val uncheckedUrlsConfig: UrlsConfig,
-    @Inject private val uncheckedPasswordAuthConfig: PasswordAuthConfig,
     @Inject @DisplayMessages private val displayMessageSource: MessageSource
 ) {
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Operation(
         description = """
 Expose the server configuration to the end-user authentication flow.
@@ -55,7 +51,7 @@ It is designed to be cached by the flow to be reused.
         val urlsConfig = uncheckedUrlsConfig.orThrow()
 
         val deferredClaims = async {
-            getClaims(locale)
+            getCollectableClaims(locale)
         }
         val features = getFeatures()
         val deferredProviders = async {
@@ -64,19 +60,17 @@ It is designed to be cached by the flow to be reused.
                 ?.map { getProvider(it, urlsConfig) }
         }
 
-        awaitAll(deferredClaims, deferredProviders)
-
         ConfigurationResource(
-            claims = deferredClaims.getCompleted(),
+            claims = deferredClaims.await(),
             features = features,
             password = getPassword(),
-            providers = deferredProviders.getCompleted()
+            providers = deferredProviders.await()
         )
     }
 
-    private fun getClaims(locale: Locale): List<ClaimResource> {
-        return claimManager.listStandardClaims().map { claim ->
-            ClaimResource(
+    private fun getCollectableClaims(locale: Locale): List<CollectableClaimConfigurationResource> {
+        return claimManager.listCollectableClaims().map { claim ->
+            CollectableClaimConfigurationResource(
                 id = claim.id,
                 required = claim.required,
                 name = displayMessageSource.getMessage("claims.${claim.id}.name", claim.id, locale),
@@ -96,19 +90,8 @@ It is designed to be cached by the flow to be reused.
     private fun getPassword(): PasswordConfigurationResource {
         return PasswordConfigurationResource(
             loginClaims = passwordFlowManager.getSignInClaims().map { it.id },
-            signUpClaims = getPasswordSignUpClaims()
+            signUpClaims = passwordFlowManager.getSignUpClaims().map { it.id }
         )
-    }
-
-    private fun getPasswordSignUpClaims(): List<CollectedClaimConfigurationResource> {
-        return passwordFlowManager.getSignUpClaims()
-            .mapIndexed { index, claim ->
-                CollectedClaimConfigurationResource(
-                    id = claim.id,
-                    index = index,
-                    required = claim.required
-                )
-            }
     }
 
     private fun getProvider(

@@ -10,8 +10,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 @Serdeable
 data class AdminClientResource(
     val id: String,
-    @JsonProperty("allowed_scopes")
+    @get:JsonProperty("allowed_scopes")
     val allowedScopes: List<String>,
-    @JsonProperty("default_scopes")
+    @get:JsonProperty("default_scopes")
     val defaultScopes: List<String>
 )

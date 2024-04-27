@@ -12,29 +12,31 @@ of those urls.
 )
 @Serdeable
 data class ConfigurationResource(
-    @Schema(
-        description = """
-List of claims which collection is supported by the authorization server.
-        """
+    @get:Schema(
+        description = "List of claims collectable by the authorization server."
     )
-    @JsonProperty("claims")
-    val claims: List<ClaimResource>,
-    @JsonProperty("features")
+    val claims: List<CollectableClaimConfigurationResource>,
     val features: FeaturesResource,
-    @JsonProperty("password")
     val password: PasswordConfigurationResource?,
     @get:Schema(
         description = "List of configuration of third-party providers."
     )
-    @JsonProperty("providers")
     val providers: List<ProviderConfigurationResource>?
 )
 
 @Schema(
-    description = "Configuration related to a claim that can be collected from the end-user."
+    description = """
+Configuration related to a claim collectable by this authorization server.
+
+A collectable claim is:
+- a claim which value is expected to be inputted by the end-user. (ex. the end-user email)
+
+Custom claim are not considered collectable by default. You need to configure a custom claim as explicitly ```collectable```
+through the configuration if you want your custom claims to be collected by the authorization flow.
+"""
 )
 @Serdeable
-data class ClaimResource(
+data class CollectableClaimConfigurationResource(
     @get:Schema(
         description = "Identifier of the claim."
     )
@@ -84,12 +86,12 @@ data class FeaturesResource(
     @get:Schema(
         description = "Authentication of the end-user using a login and a password couple."
     )
-    @JsonProperty("password_sign_in")
+    @get:JsonProperty("password_sign_in")
     val passwordSignIn: Boolean,
     @get:Schema(
         description = "End-user account creation."
     )
-    @JsonProperty("sign_up")
+    @get:JsonProperty("sign_up")
     val signUp: Boolean,
 )
 
@@ -101,57 +103,43 @@ data class ProviderConfigurationResource(
     @get:Schema(
         description = "Identifier of the third-party provider."
     )
-    @JsonProperty("id")
+    @get:JsonProperty("id")
     val id: String,
     @get:Schema(
         description = "Name of the third-party provider as it should be displayed to the end-user."
     )
-    @JsonProperty("name")
+    @get:JsonProperty("name")
     val name: String,
     @get:Schema(
+        name = "authorize_url",
         description = """
 URL to redirect the end-user to to initiate a authorization grant flow with the third-party provider.
         """
     )
-    @JsonProperty("authorize_url")
+    @get:JsonProperty("authorize_url")
     val authorizeUrl: String
 )
 
 @Schema(
     description = """
 If null or not present, the authentication by password is disabled by the authorization server.
-        """
+"""
 )
 @Serdeable
 data class PasswordConfigurationResource(
     @get:Schema(
-        description = "List of claims that the end-user can use to sign-in."
+        name = "login_claims",
+        description = "List of claims that the end-user can use as login to sign-in."
     )
-    @JsonProperty("login_claims")
+    @get:JsonProperty("login_claims")
     val loginClaims: List<String>,
     @get:Schema(
+        name = "sign_up_claims",
         description = """
 List of claims the end-user MUST provide in addition to its password to sign-up.
-Not present if the sign-up by mail is disabled on this authorization server.
+Not present if the sign-up by password is disabled on this authorization server.
 """
     )
-    @JsonProperty("sign_up_claims")
-    val signUpClaims: List<CollectedClaimConfigurationResource>?,
-)
-
-@Schema(
-    description = "Configuration of a claim collected from the end-user at a step of the flow."
-)
-@Serdeable
-data class CollectedClaimConfigurationResource(
-    @Schema(description = "Identifier of the claim.")
-    val id: String,
-    @Schema(description =
-    """
-Order in which the claim must be presented to the end-user. Lowest value must be presented first.
-    """)
-    @JsonProperty("index")
-    val index: Int,
-    @Schema(description = "True if a value must be collected before the end-user can continue the flow.")
-    val required: Boolean
+    @get:JsonProperty("sign_up_claims")
+    val signUpClaims: List<String>?,
 )

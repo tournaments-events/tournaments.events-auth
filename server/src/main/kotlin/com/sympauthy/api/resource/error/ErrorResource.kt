@@ -9,15 +9,15 @@ data class ErrorResource(
     @get:Schema(description = "HTTP status responded.")
     val status: Int,
 
-    @JsonProperty("error_code")
     @get:Schema(description = "A code identifying the error.")
+    @get:JsonProperty("error_code")
     val errorCode: String,
 
-    @JsonProperty("description")
     @get:Schema(description = "A message explaining the error to the end-user. It may contain information on how to recover from the issue.")
+    @get:JsonProperty("description")
     val description: String?,
 
-    @JsonProperty("details")
     @get:Schema(description = "A message containing technical details about the error.")
+    @get:JsonProperty("details")
     val details: String?
 )

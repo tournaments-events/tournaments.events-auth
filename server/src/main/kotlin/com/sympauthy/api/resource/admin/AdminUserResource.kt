@@ -18,6 +18,6 @@ data class AdminUserResource(
     @get:Schema(
         description = "When the user has been created."
     )
-    @JsonProperty("creation_date")
+    @get:JsonProperty("creation_date")
     val creationDate: LocalDateTime
 )

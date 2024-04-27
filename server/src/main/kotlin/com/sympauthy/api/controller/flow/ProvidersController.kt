@@ -89,8 +89,7 @@ Following query parameters will be populated with information about the error:
             )
             val url = redirectUriBuilder.getRedirectUri(
                 attempt = authorizeAttempt,
-                result = result,
-                includeStates = true
+                result = result
             )
             HttpResponse.temporaryRedirect<Any>(url)
         } else {
