@@ -2,12 +2,11 @@ package com.sympauthy.business.manager.user
 
 import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.mapper.CollectedClaimMapper
-import com.sympauthy.business.mapper.CollectedUserInfoUpdateMapper
+import com.sympauthy.business.mapper.CollectedClaimUpdateMapper
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.claim.Claim
-import com.sympauthy.data.model.CollectedClaimEntity
 import com.sympauthy.data.repository.CollectedClaimRepository
 import com.sympauthy.exception.localizedExceptionOf
 import com.sympauthy.util.nullIfBlank
@@ -25,7 +24,7 @@ open class CollectedClaimManager(
     @Inject private val claimManager: ClaimManager,
     @Inject private val collectedClaimRepository: CollectedClaimRepository,
     @Inject private val collectedClaimMapper: CollectedClaimMapper,
-    @Inject private val collectedClaimUpdateMapper: CollectedUserInfoUpdateMapper
+    @Inject private val collectedClaimUpdateMapper: CollectedClaimUpdateMapper
 ) {
 
     /**
@@ -61,7 +60,7 @@ open class CollectedClaimManager(
         } else updates
 
         val existingEntities = collectedClaimRepository.findByUserId(user.id)
-            .associateBy(CollectedClaimEntity::claim)
+            .associateBy { it.claim }
             .toMutableMap()
 
         val entitiesToDelete = applicableUpdates

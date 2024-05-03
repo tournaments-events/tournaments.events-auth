@@ -1,17 +1,20 @@
 package com.sympauthy.business.mapper
 
-import com.sympauthy.business.mapper.config.ToEntityMapperConfig
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.claim.Claim
 import com.sympauthy.data.model.CollectedClaimEntity
-import org.mapstruct.*
+import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.MappingTarget
+import org.mapstruct.Mappings
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-@Mapper(
-    config = ToEntityMapperConfig::class
-)
-abstract class CollectedUserInfoUpdateMapper {
+/**
+ * We do not apply the ToEntityMapperConfig for this mapper because of weird behaviour with the userId.
+ */
+@Mapper
+abstract class CollectedClaimUpdateMapper {
 
     lateinit var claimValueMapper: ClaimValueMapper
 
@@ -19,18 +22,16 @@ abstract class CollectedUserInfoUpdateMapper {
         Mapping(target = "verified", expression = "java(null)"),
         Mapping(target = "collectionDate", expression = "java(java.time.LocalDateTime.now())")
     )
-    @InheritInverseConfiguration
     abstract fun toEntity(
         userId: UUID,
         update: CollectedClaimUpdate
     ): CollectedClaimEntity
 
     @Mappings(
-        Mapping(target = "userId", ignore = true),
+        Mapping(target = "id", ignore = true),
         Mapping(target = "verified", ignore = true),
         Mapping(target = "collectionDate", expression = "java(java.time.LocalDateTime.now())")
     )
-    @InheritInverseConfiguration
     abstract fun updateEntity(
         @MappingTarget entity: CollectedClaimEntity,
         update: CollectedClaimUpdate

@@ -16,7 +16,9 @@ abstract class ClaimsResourceMapper {
     fun toResource(
         collectedClaims: List<CollectedClaim>
     ): ClaimsResource {
-        TODO()
+        return ClaimsResource(
+            claims = collectedClaims.map(this::toResource)
+        )
     }
 
     @Mappings(

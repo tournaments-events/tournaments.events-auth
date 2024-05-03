@@ -2,7 +2,7 @@ package com.sympauthy.business.manager.user
 
 import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.mapper.CollectedClaimMapper
-import com.sympauthy.business.mapper.CollectedUserInfoUpdateMapper
+import com.sympauthy.business.mapper.CollectedClaimUpdateMapper
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.claim.Claim
 import com.sympauthy.data.repository.CollectedClaimRepository
@@ -29,7 +29,7 @@ class CollectedClaimManagerTest {
     lateinit var collectedClaimMapper: CollectedClaimMapper
 
     @MockK
-    lateinit var collectedClaimUpdateMapper: CollectedUserInfoUpdateMapper
+    lateinit var collectedClaimUpdateMapper: CollectedClaimUpdateMapper
 
     @InjectMockKs
     lateinit var manager: CollectedClaimManager

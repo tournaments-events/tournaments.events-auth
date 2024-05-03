@@ -31,8 +31,8 @@ class BusinessMapperFactory {
     @Singleton
     fun collectedUserInfoUpdateMapper(
         claimValueMapper: ClaimValueMapper
-    ): CollectedUserInfoUpdateMapper {
-        return Mappers.getMapper(CollectedUserInfoUpdateMapper::class.java).also {
+    ): CollectedClaimUpdateMapper {
+        return Mappers.getMapper(CollectedClaimUpdateMapper::class.java).also {
             it.claimValueMapper = claimValueMapper
         }
     }
@@ -41,7 +41,7 @@ class BusinessMapperFactory {
     fun cryptoKeysMapper() = Mappers.getMapper(CryptoKeysMapper::class.java)
 
     @Singleton
-    fun encodedAuthenticationTokenMapper() = Mappers.getMapper(com.sympauthy.business.mapper.EncodedAuthenticationTokenMapper::class.java)
+    fun encodedAuthenticationTokenMapper() = Mappers.getMapper(EncodedAuthenticationTokenMapper::class.java)
 
     @Singleton
     fun providerUserInfoMapper() = Mappers.getMapper(ProviderUserInfoMapper::class.java)
@@ -50,5 +50,5 @@ class BusinessMapperFactory {
     fun indexedCryptoKeysMapper() = Mappers.getMapper(IndexedCryptoKeysMapper::class.java)
 
     @Singleton
-    fun userMapper() = Mappers.getMapper(com.sympauthy.business.mapper.UserMapper::class.java)
+    fun userMapper() = Mappers.getMapper(UserMapper::class.java)
 }
