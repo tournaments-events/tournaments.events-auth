@@ -16,8 +16,9 @@ CREATE TABLE collected_claims
     claim           text      NOT NULL,
     `value`         text,
     verified        boolean,
-    PRIMARY KEY (user_id, claim),
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    UNIQUE (user_id, claim)
 );
 
 CREATE INDEX collected_user_info__user_id ON collected_claims (user_id);

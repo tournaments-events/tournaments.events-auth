@@ -88,8 +88,8 @@ the end-user but it declined to fulfill the value.
         val user = helper.getUser(authorizeAttempt)
         val updates = getUpdates(inputResource)
 
-        val collectedClaims = collectedClaimManager.updateUserInfo(user, updates = updates)
-        if (collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)) {
+        val collectedClaims = collectedClaimManager.update(user, updates = updates)
+        if (!collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)) {
             throw httpExceptionOf(BAD_REQUEST, "flow.claims.missing_required")
         }
 

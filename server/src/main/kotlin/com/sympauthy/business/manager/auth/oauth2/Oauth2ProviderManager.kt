@@ -164,7 +164,7 @@ open class Oauth2ProviderManager(
         val user = existingUser
             ?: userManager.createUser().apply {
                 // We do not pass the scopes to forcefully update since we must save the email even if it was not requested by the client.
-                collectedClaimManager.updateUserInfo(
+                collectedClaimManager.update(
                     user = this,
                     updates = listOf(
                         CollectedClaimUpdate(

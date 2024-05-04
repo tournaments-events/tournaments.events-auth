@@ -14,6 +14,7 @@ import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.UserStatus
 import com.sympauthy.business.model.user.claim.Claim
 import com.sympauthy.business.model.user.claim.OpenIdClaim
+import com.sympauthy.config.model.EnabledPasswordAuthConfig
 import com.sympauthy.config.model.PasswordAuthConfig
 import com.sympauthy.config.model.orThrow
 import com.sympauthy.data.repository.CollectedClaimRepository
@@ -141,7 +142,7 @@ open class PasswordFlowManager(
         checkForConflictingUsers(claimUpdates)
 
         val user = userManager.createUser()
-        val collectedClaims = collectedClaimManager.updateUserInfo(
+        val collectedClaims = collectedClaimManager.update(
             user = user,
             updates = claimUpdates
         )
