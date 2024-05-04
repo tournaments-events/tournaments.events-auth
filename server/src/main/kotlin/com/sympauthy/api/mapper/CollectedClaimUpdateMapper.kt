@@ -1,23 +1,53 @@
 package com.sympauthy.api.mapper
 
+import com.sympauthy.api.exception.LocalizedHttpException
 import com.sympauthy.business.manager.ClaimManager
-import com.sympauthy.business.manager.user.CollectedClaimManager
+import com.sympauthy.business.manager.user.ClaimValueValidator
 import com.sympauthy.business.model.user.CollectedClaimUpdate
+import com.sympauthy.business.model.user.claim.Claim
+import com.sympauthy.exception.AdditionalLocalizedMessage
+import com.sympauthy.exception.LocalizedException
+import io.micronaut.http.HttpStatus.BAD_REQUEST
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 @Singleton
 class CollectedClaimUpdateMapper(
     @Inject private val claimManager: ClaimManager,
-    @Inject private val collectedClaimManager: CollectedClaimManager
+    @Inject private val claimValueValidator: ClaimValueValidator
 ) {
 
     fun toUpdates(values: Map<String, Any?>): List<CollectedClaimUpdate> {
-        return values.mapNotNull { (claimId, value) -> toUpdate(claimId, value) }
-    }
+        val claimUpdates = ArrayList<CollectedClaimUpdate>(values.size)
+        val exceptionByClaimMap = mutableMapOf<Claim, LocalizedException>()
 
-    fun toUpdate(claimId: String, value: Any?): CollectedClaimUpdate? {
-        val claim = claimManager.findById(claimId) ?: return null
-        return collectedClaimManager.validateAndConvertToUpdate(claim, value)
+        for ((claimId, value) in values) {
+            val claim = claimManager.findById(claimId) ?: continue
+            try {
+                val validatedAndCleanedValue = claimValueValidator.validateAndCleanValueForClaim(claim, value)
+                claimUpdates.add(
+                    CollectedClaimUpdate(
+                        claim = claim,
+                        value = validatedAndCleanedValue
+                    )
+                )
+            } catch (ex: LocalizedException) {
+                exceptionByClaimMap[claim] = ex
+            }
+        }
+
+        if (exceptionByClaimMap.isNotEmpty()) {
+            throw LocalizedHttpException(
+                status = BAD_REQUEST,
+                detailsId = "flow.claims.invalid",
+                additionalMessages = exceptionByClaimMap.map { (claim, ex) ->
+                    AdditionalLocalizedMessage(
+                        path = claim.id,
+                        messageId = ex.detailsId
+                    )
+                }
+            )
+        }
+        return claimUpdates
     }
 }

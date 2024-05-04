@@ -9,8 +9,6 @@ import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.claim.Claim
 import com.sympauthy.data.model.CollectedClaimEntity
 import com.sympauthy.data.repository.CollectedClaimRepository
-import com.sympauthy.exception.localizedExceptionOf
-import com.sympauthy.util.nullIfBlank
 import io.micronaut.transaction.annotation.Transactional
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -160,27 +158,5 @@ open class CollectedClaimManager(
                 collectedClaimUpdateMapper.toEntity(user.id, it)
             }
         return collectedClaimRepository.saveAll(entitiesToCreate).toList()
-    }
-
-    /**
-     * Return if the [value] is valid otherwise throws an exception.
-     */
-    fun validateAndConvertToUpdate(claim: Claim, value: Any?): CollectedClaimUpdate {
-        if (value != null && claim.dataType.typeClass != value::class) {
-            throw localizedExceptionOf(
-                "claim.validate.invalid_type",
-                "claim" to claim, "type" to claim.dataType
-            )
-        }
-        return when (value) {
-            null -> CollectedClaimUpdate(claim, Optional.empty())
-            is String -> validateStringAndConvertToUpdate(claim, value)
-            else -> throw localizedExceptionOf("claim.validate.unsupported_type", "claim" to claim)
-        }
-    }
-
-    internal fun validateStringAndConvertToUpdate(claim: Claim, value: String): CollectedClaimUpdate {
-        // FIXME add validation for email & phone number
-        return CollectedClaimUpdate(claim, Optional.ofNullable(value.nullIfBlank()))
     }
 }
