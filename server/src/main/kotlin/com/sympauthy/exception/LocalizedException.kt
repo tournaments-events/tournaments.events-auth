@@ -23,7 +23,6 @@ open class LocalizedException(
      * Value to expose to the mustache template to inject values into the localized message.
      */
     val values: Map<String, Any?> = emptyMap(),
-    val additionalMessages: List<AdditionalLocalizedMessage> = emptyList(),
     /**
      * Underlying cause of this exception.
      */
@@ -39,12 +38,6 @@ open class LocalizedException(
         }
     }
 }
-
-data class AdditionalLocalizedMessage(
-    val path: String,
-    val messageId: String,
-    val values: Map<String, Any> = emptyMap()
-)
 
 fun localizedExceptionOf(
     detailsId: String,

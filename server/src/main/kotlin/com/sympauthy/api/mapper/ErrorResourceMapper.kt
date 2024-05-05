@@ -2,6 +2,7 @@ package com.sympauthy.api.mapper
 
 import com.sympauthy.api.exception.LocalizedHttpException
 import com.sympauthy.api.resource.error.ErrorResource
+import com.sympauthy.api.resource.error.PropertyErrorResource
 import com.sympauthy.exception.LocalizedException
 import com.sympauthy.server.ErrorMessages
 import io.micronaut.context.MessageSource
@@ -14,11 +15,6 @@ import java.util.*
 class ErrorResourceMapper(
     @Inject @ErrorMessages private val messageSource: MessageSource
 ) {
-
-    fun toResource(
-        exception: LocalizedHttpException,
-        locale: Locale
-    ) = toResource(exception.status, exception, locale)
 
     fun toResource(
         status: HttpStatus,
@@ -35,8 +31,34 @@ class ErrorResourceMapper(
             status = status.code,
             errorCode = exception.detailsId,
             description = descriptionId?.let { messageSource.getMessage(it, locale, exception.values) }?.orElse(null),
-            details = messageSource.getMessage(exception.detailsId, locale, exception.values).orElse(null)
+            details = messageSource.getMessage(exception.detailsId, locale, exception.values).orElse(null),
+            properties = null
         )
+    }
+
+    fun toResource(
+        exception: LocalizedHttpException,
+        locale: Locale
+    ): ErrorResource {
+        return toResource(exception.status, exception, locale).copy(
+            properties = toPropertyResources(exception, locale)
+        )
+    }
+
+    private fun toPropertyResources(
+        exception: LocalizedHttpException,
+        locale: Locale
+    ): List<PropertyErrorResource>? {
+        return exception.additionalInfo
+            .mapNotNull {
+                PropertyErrorResource(
+                    path = it.path ?: return@mapNotNull null,
+                    description = it.descriptionId
+                        ?.let { messageSource.getMessage(it, locale, exception.values) }
+                        ?.orElse(null)
+                )
+            }
+            .takeIf { it.isNotEmpty() }
     }
 
     /*

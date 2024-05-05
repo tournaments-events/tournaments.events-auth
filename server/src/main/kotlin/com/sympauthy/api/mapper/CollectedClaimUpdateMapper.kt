@@ -1,11 +1,11 @@
 package com.sympauthy.api.mapper
 
+import com.sympauthy.api.exception.LocalizedAdditionalMessage
 import com.sympauthy.api.exception.LocalizedHttpException
 import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.manager.user.ClaimValueValidator
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.claim.Claim
-import com.sympauthy.exception.AdditionalLocalizedMessage
 import com.sympauthy.exception.LocalizedException
 import io.micronaut.http.HttpStatus.BAD_REQUEST
 import jakarta.inject.Inject
@@ -40,10 +40,10 @@ class CollectedClaimUpdateMapper(
             throw LocalizedHttpException(
                 status = BAD_REQUEST,
                 detailsId = "flow.claims.invalid",
-                additionalMessages = exceptionByClaimMap.map { (claim, ex) ->
-                    AdditionalLocalizedMessage(
+                additionalInfo = exceptionByClaimMap.map { (claim, ex) ->
+                    LocalizedAdditionalMessage(
                         path = claim.id,
-                        messageId = ex.detailsId
+                        descriptionId = ex.descriptionId ?: ex.detailsId
                     )
                 }
             )

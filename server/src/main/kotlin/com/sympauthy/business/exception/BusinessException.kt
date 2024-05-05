@@ -1,6 +1,5 @@
 package com.sympauthy.business.exception
 
-import com.sympauthy.exception.AdditionalLocalizedMessage
 import com.sympauthy.exception.LocalizedException
 import io.micronaut.http.HttpStatus
 
@@ -15,9 +14,13 @@ class BusinessException(
     descriptionId: String? = null,
     values: Map<String, Any?> = emptyMap(),
     val recommendedStatus: HttpStatus? = null,
-    additionalMessages: List<AdditionalLocalizedMessage> = emptyList(),
     throwable: Throwable? = null
-) : LocalizedException(detailsId, descriptionId, values, additionalMessages, throwable)
+) : LocalizedException(
+    detailsId = detailsId,
+    descriptionId = descriptionId,
+    values = values,
+    throwable
+)
 
 fun businessExceptionOf(
     detailsId: String,

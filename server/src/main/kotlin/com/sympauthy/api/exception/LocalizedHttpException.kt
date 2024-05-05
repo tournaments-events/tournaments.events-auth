@@ -1,6 +1,5 @@
 package com.sympauthy.api.exception
 
-import com.sympauthy.exception.AdditionalLocalizedMessage
 import com.sympauthy.exception.LocalizedException
 import io.micronaut.http.HttpStatus
 
@@ -12,22 +11,42 @@ open class LocalizedHttpException(
     detailsId: String,
     descriptionId: String? = null,
     values: Map<String, Any?> = emptyMap(),
-    additionalMessages: List<AdditionalLocalizedMessage> = emptyList(),
+    val additionalInfo: List<LocalizedAdditionalMessage> = emptyList(),
     throwable: Throwable? = null
-): LocalizedException(
+) : LocalizedException(
     detailsId = detailsId,
     descriptionId = descriptionId,
     values = values,
-    additionalMessages = additionalMessages,
     throwable = throwable
 )
 
-fun <T: LocalizedException> T.toHttpException(httpStatus: HttpStatus) = LocalizedHttpException(
+/**
+ * Additional information about the error that is related to:
+ * - a query param.
+ * - a property in the payload.
+ */
+data class LocalizedAdditionalMessage(
+    /**
+     * Path to a property of the payload causing the error.
+     */
+    val path: String? = null,
+    /**
+     * Query param causing the error.
+     */
+    val queryParam: String? = null,
+    /**
+     * Identifier of the message displayed to the end user.
+     * It is intended to be displayed to the end-user, in order for him to correct its input and retry the operation.
+     */
+    val descriptionId: String? = null,
+    val values: Map<String, Any> = emptyMap()
+)
+
+fun <T : LocalizedException> T.toHttpException(httpStatus: HttpStatus) = LocalizedHttpException(
     status = httpStatus,
     detailsId = detailsId,
     descriptionId = descriptionId,
     values = values,
-    additionalMessages = additionalMessages,
     throwable = throwable
 )
 
