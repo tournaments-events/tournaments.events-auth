@@ -14,7 +14,7 @@ group = "com.sympauthy"
 
 extra.apply {
     set("kotlinVersion", "1.9.21")
-    set("kotlinCoroutinesVersion", "1.7.3")
+    set("kotlinCoroutinesVersion", "1.8.0")
     set("mapStructVersion", "1.5.1.Final")
     set("javaJwtVersion", "4.4.0")
     set("jsonPathVersion", "2.8.0")
