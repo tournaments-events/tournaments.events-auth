@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.21"
-    id("org.jetbrains.kotlin.kapt") version "1.9.21"
+    id("org.jetbrains.kotlin.kapt") version "1.9.24"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.9.21"
     id("com.google.devtools.ksp") version "1.9.21-1.0.15"
     id("com.github.johnrengelman.shadow") version "7.1.2"
