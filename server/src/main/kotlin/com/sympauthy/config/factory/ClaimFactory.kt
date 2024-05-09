@@ -1,10 +1,8 @@
 package com.sympauthy.config.factory
 
 import com.sympauthy.business.model.user.UserMergingStrategy.BY_MAIL
-import com.sympauthy.business.model.user.claim.Claim
-import com.sympauthy.business.model.user.claim.OpenIdClaim
+import com.sympauthy.business.model.user.claim.*
 import com.sympauthy.business.model.user.claim.OpenIdClaim.Id.EMAIL
-import com.sympauthy.business.model.user.claim.StandardClaim
 import com.sympauthy.config.ConfigParser
 import com.sympauthy.config.exception.ConfigurationException
 import com.sympauthy.config.exception.configExceptionOf
@@ -26,26 +24,21 @@ class ClaimFactory(
         val errors = mutableListOf<ConfigurationException>()
 
         val standardClaims = OpenIdClaim.entries.mapNotNull { openIdClaim ->
-            try {
-                provideStandardClaim(
-                    properties = properties.firstOrNull { it.id == openIdClaim.id },
-                    openIdClaim = openIdClaim
-                )
-            } catch (e: ConfigurationException) {
-                errors.add(e)
-                null
-            }
+            provideStandardClaim(
+                properties = properties.firstOrNull { it.id == openIdClaim.id },
+                openIdClaim = openIdClaim,
+                errors = errors
+            )
         }
 
         val customClaims = properties.mapNotNull { claimProperties ->
-            try {
-                if (OpenIdClaim.entries.none { it.id == claimProperties.id }) {
-                    provideCustomClaim(claimProperties)
-                } else null
-            } catch (e: ConfigurationException) {
-                errors.add(e)
-                null
-            }
+            if (OpenIdClaim.entries.none { it.id == claimProperties.id }) {
+                provideCustomClaim(
+                    properties = claimProperties,
+                    claim = claimProperties.id,
+                    errors = errors
+                )
+            } else null
         }
 
         // Check if claims are properly configured for by-mail user merging strategy.
@@ -71,30 +64,101 @@ class ClaimFactory(
 
     private fun provideStandardClaim(
         properties: ClaimConfigurationProperties?,
-        openIdClaim: OpenIdClaim
+        openIdClaim: OpenIdClaim,
+        errors: MutableList<ConfigurationException>
     ): Claim? {
-        val enabled = properties?.let {
-            parser.getBoolean(
-                it, "$CLAIMS_KEY.${it.id}.enabled",
+        if (properties == null) {
+            return null
+        }
+        val enabled = try {
+            parser.getBooleanOrThrow(
+                properties, "$CLAIMS_KEY.${openIdClaim.id}.enabled",
                 ClaimConfigurationProperties::enabled
             )
-        } ?: true
-        val required = properties?.let {
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            return null
+        }
+        val required = try {
             parser.getBoolean(
-                it, "$CLAIMS_KEY.${it.id}.required",
+                properties, "$CLAIMS_KEY.${openIdClaim.id}.required",
                 ClaimConfigurationProperties::required
-            )
-        } ?: false
+            ) ?: false
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            return null
+        }
+        val allowedValues = getAllowedValues(
+            properties = properties,
+            key = "$CLAIMS_KEY.${openIdClaim.id}.allowed-values",
+            type = openIdClaim.type,
+            errors = errors
+        )
         return if (enabled) {
             StandardClaim(
                 openIdClaim = openIdClaim,
-                required = required
+                required = required,
+                allowedValues = allowedValues
             )
         } else null
     }
 
-    private fun provideCustomClaim(properties: ClaimConfigurationProperties): Claim? {
-        // FIXME Handle custom claims
-        return null
+    private fun getAllowedValues(
+        properties: ClaimConfigurationProperties,
+        key: String,
+        type: ClaimDataType,
+        errors: MutableList<ConfigurationException>
+    ): List<Any>? {
+        return properties.allowedValues?.mapIndexedNotNull { index, value ->
+            val itemKey = "${key}[${index}]"
+            try {
+                when (type.typeClass) {
+                    String::class -> parser.getString(properties, itemKey) { value }
+                    else -> throw configExceptionOf(
+                        itemKey, "config.claim.allowed_values.invalid_type",
+                        "type" to type.typeClass.simpleName
+                    )
+                }
+            } catch (e: ConfigurationException) {
+                errors.add(e)
+                null
+            }
+        }
+    }
+
+    private fun provideCustomClaim(
+        properties: ClaimConfigurationProperties,
+        claim: String,
+        errors: MutableList<ConfigurationException>
+    ): Claim? {
+        val dataType: ClaimDataType = try {
+            parser.getEnumOrThrow(
+                properties, "$CLAIMS_KEY.$claim.type",
+            ) { properties.type }
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            return null
+        }
+        val required = try {
+            parser.getBoolean(
+                properties, "$CLAIMS_KEY.$claim.required",
+                ClaimConfigurationProperties::required
+            ) ?: false
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            return null
+        }
+        val allowedValues = getAllowedValues(
+            properties = properties,
+            key = "$CLAIMS_KEY.$claim.allowed-values",
+            type = dataType,
+            errors = errors
+        )
+        return CustomClaim(
+            id = claim,
+            dataType = dataType,
+            required = required,
+            allowedValues = allowedValues
+        )
     }
 }

@@ -7,6 +7,9 @@ import com.sympauthy.exception.localizedExceptionOf
 import jakarta.inject.Singleton
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.time.DateTimeException
+import java.time.ZoneId
+import java.time.zone.ZoneRulesException
 import java.util.*
 
 /**
@@ -22,13 +25,18 @@ class ClaimValueValidator {
      *
      * The [value] is not valid for the [claim] if:
      * - the type of [value] do not match the [ClaimDataType.typeClass] expected by the [Claim.dataType].
-     * -
+     * - it is not part of the [Claim.allowedValues].
      */
     fun validateAndCleanValueForClaim(claim: Claim, value: Any?): Optional<Any> {
         if (value != null && claim.dataType.typeClass != value::class) {
             throw localizedExceptionOf(
-                "claim.validate.invalid_type", "claim" to claim, "type" to claim.dataType
+                detailsId = "claim.validate.invalid_type",
+                "claim" to claim,
+                "type" to claim.dataType
             )
+        }
+        if (claim.allowedValues != null && value != null && !claim.allowedValues.contains(value)) {
+            throw localizedExceptionOf("claim.validate.invalid_value")
         }
         return when (value) {
             null -> Optional.empty()
@@ -50,6 +58,7 @@ class ClaimValueValidator {
             EMAIL -> validateEmailForClaim(value)
             PHONE_NUMBER -> validatePhoneNumberForClaim(value)
             STRING -> Optional.of(trimmedValue)
+            TIMEZONE -> validateTimeZoneForClaim(value)
             else -> throw IllegalArgumentException("Claim of type ${claim.dataType} do not expect string value.}")
         }
     }
@@ -84,5 +93,16 @@ class ClaimValueValidator {
 
     internal fun validatePhoneNumberForClaim(value: String): Optional<Any> {
         return Optional.of(value) // FIXME
+    }
+
+    internal fun validateTimeZoneForClaim(value: String): Optional<Any> {
+        try {
+            ZoneId.of(value)
+        } catch (e: DateTimeException) {
+            throw localizedExceptionOf("claim.validate.invalid_time_zone")
+        } catch (e: ZoneRulesException) {
+            throw localizedExceptionOf("claim.validate.invalid_time_zone")
+        }
+        return Optional.of(value)
     }
 }

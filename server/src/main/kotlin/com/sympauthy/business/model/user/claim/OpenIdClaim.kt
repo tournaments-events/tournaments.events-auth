@@ -2,6 +2,7 @@ package com.sympauthy.business.model.user.claim
 
 import com.sympauthy.business.model.user.StandardScope
 import com.sympauthy.business.model.user.claim.ClaimDataType.STRING
+import com.sympauthy.business.model.user.claim.ClaimDataType.TIMEZONE
 import com.sympauthy.business.model.user.claim.ClaimGroup.IDENTITY
 
 /**
@@ -103,7 +104,7 @@ enum class OpenIdClaim(
     ),
     ZONE_INFO(
         id = Id.ZONE_INFO,
-        type = STRING,
+        type = TIMEZONE,
         scope = StandardScope.PROFILE
     ),
     LOCALE(

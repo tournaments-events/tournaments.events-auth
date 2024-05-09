@@ -16,5 +16,6 @@ enum class ClaimDataType(
     DATE(String::class),
     EMAIL(String::class),
     PHONE_NUMBER(String::class),
-    STRING(String::class)
+    STRING(String::class),
+    TIMEZONE(String::class)
 }
