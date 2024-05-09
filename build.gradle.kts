@@ -17,7 +17,7 @@ extra.apply {
     set("kotlinCoroutinesVersion", "1.8.0")
     set("mapStructVersion", "1.5.5.Final")
     set("javaJwtVersion", "4.4.0")
-    set("jsonPathVersion", "2.8.0")
+    set("jsonPathVersion", "2.9.0")
     set("bouncyCastleVersion", "1.78.1")
 
     // Test dependencies
