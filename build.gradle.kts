@@ -18,7 +18,7 @@ extra.apply {
     set("mapStructVersion", "1.5.1.Final")
     set("javaJwtVersion", "4.4.0")
     set("jsonPathVersion", "2.8.0")
-    set("bouncyCastleVersion", "1.77")
+    set("bouncyCastleVersion", "1.78.1")
 
     // Test dependencies
     set("junitJupiterVersion", "5.10.2")
