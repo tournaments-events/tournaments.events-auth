@@ -21,7 +21,7 @@ extra.apply {
     set("bouncyCastleVersion", "1.77")
 
     // Test dependencies
-    set("junitJupiterVersion", "5.10.1")
+    set("junitJupiterVersion", "5.10.2")
     set("mockkVersion", "1.13.10")
 }
 
