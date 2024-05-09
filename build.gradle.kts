@@ -68,7 +68,7 @@ dependencies {
 
     // Database
     implementation("io.micronaut.data:micronaut-data-r2dbc")
-    implementation("jakarta.persistence:jakarta.persistence-api:3.0.0")
+    implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
 
     // Views
