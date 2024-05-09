@@ -22,7 +22,7 @@ extra.apply {
 
     // Test dependencies
     set("junitJupiterVersion", "5.10.1")
-    set("mockkVersion", "1.13.8")
+    set("mockkVersion", "1.13.10")
 }
 
 repositories {
