@@ -13,7 +13,7 @@ version = "0.1"
 group = "com.sympauthy"
 
 extra.apply {
-    set("kotlinVersion", "1.9.21")
+    set("kotlinVersion", "1.9.24")
     set("kotlinCoroutinesVersion", "1.8.0")
     set("mapStructVersion", "1.5.1.Final")
     set("javaJwtVersion", "4.4.0")
