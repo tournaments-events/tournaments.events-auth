@@ -1,5 +1,6 @@
 package com.sympauthy.api.controller.flow
 
+import com.sympauthy.api.mapper.flow.TimeZoneResourceMapper
 import com.sympauthy.api.resource.provider.TimeZoneResource
 import com.sympauthy.api.util.orNotFound
 import com.sympauthy.business.manager.ClaimManager
@@ -16,7 +17,8 @@ import jakarta.inject.Inject
 @Controller("/api/v1/flow/claims/{claimId}/timezones")
 class TimeZoneController(
     @Inject private val claimManager: ClaimManager,
-    @Inject private val timeZoneProvider: TimeZoneClaimValueProvider
+    @Inject private val timeZoneProvider: TimeZoneClaimValueProvider,
+    @Inject private val timeZoneResourceMapper: TimeZoneResourceMapper
 ) {
 
     @Get
@@ -30,12 +32,11 @@ The list of timezones will depends on:
 - the allowed value declared for the claim in the configuration.
         """
     )
-    fun listTimeZones(
+    suspend fun listTimeZones(
         @PathVariable claimId: String
     ): List<TimeZoneResource> {
         val claim = claimManager.findById(claimId).orNotFound()
-        return timeZoneProvider.listAvailableTimezones(claim).map {
-            TimeZoneResource(it.id)
-        }
+        val timeZones = timeZoneProvider.listAvailableTimezones(claim)
+        return timeZoneResourceMapper.toResources(timeZones)
     }
 }
