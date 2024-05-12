@@ -30,7 +30,12 @@ List all timezones that are allowed to be selected for the claim.
 The list of timezones will depends on:
 - the version of the TZ database integrated into the authorization server.
 - the allowed value declared for the claim in the configuration.
-        """
+
+> Note on pagination: The timezone database contains around 600 entries which convert to a maximum payload of around 5kb 
+once compressed with Gzip. Therefore pagination will be more hurtful to the performance than getting all the list in one go. 
+This is why it has been decided than this operation will not support pagination.
+        """,
+        tags = ["flow"]
     )
     suspend fun listTimeZones(
         @PathVariable claimId: String
