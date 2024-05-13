@@ -1,6 +1,51 @@
 [
   {
+    "name": "com.sympauthy.api.mapper.CollectedClaimUpdateMapperImpl",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
     "name": "com.sympauthy.api.mapper.UserInfoResourceMapperImpl",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.sympauthy.api.mapper.admin.AdminClientResourceMapperImpl",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.sympauthy.api.mapper.admin.AdminUserResourceMapperImpl",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.sympauthy.api.mapper.flow.ClaimsResourceMapperImpl",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.sympauthy.api.mapper.flow.TimeZoneResourceMapperImpl",
     "methods": [
       {
         "name": "<init>",
@@ -45,7 +90,7 @@
     ]
   },
   {
-    "name": "com.sympauthy.business.mapper.CollectedUserInfoUpdateMapperImpl",
+    "name": "com.sympauthy.business.mapper.CollectedClaimUpdateMapperImpl",
     "methods": [
       {
         "name": "<init>",
