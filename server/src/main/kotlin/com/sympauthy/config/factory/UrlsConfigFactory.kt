@@ -69,7 +69,7 @@ class UrlsConfigFactory(
             try {
                 getFlowUri(
                     flowProperties, root, "$FLOW_KEY.error",
-                    UrlsFlowConfigurationProperties::signIn
+                    UrlsFlowConfigurationProperties::error
                 )
             } catch (e: ConfigurationException) {
                 errors.add(e)

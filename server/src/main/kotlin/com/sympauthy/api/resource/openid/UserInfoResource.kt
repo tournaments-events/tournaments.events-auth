@@ -100,7 +100,7 @@ data class UserInfoResource(
         description = "String from IANA Time Zone Database representing the end-user's time zone."
     )
     @get:JsonProperty(ZONE_INFO)
-    val zoneInfo: LocalDate?,
+    val zoneInfo: String?,
     @get:Schema(
         description = "End-user's locale, represented as a BCP47 language tag."
     )
