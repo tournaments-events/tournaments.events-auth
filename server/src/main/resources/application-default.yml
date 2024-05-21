@@ -20,6 +20,13 @@ auth:
     refresh-enabled: true
     refresh-expiration: 30d
 
+authentication-flows:
+  default:
+    type: web
+    sign-in: sign-in
+    collect-claims: collect-claims
+    error: error
+
 scope-granting-rules:
   default:
     scopes:
@@ -27,3 +34,11 @@ scope-granting-rules:
       - profile
     rules:
       - anyUser
+
+ui:
+  mail:
+    email-background-color: "#f3f3f5"
+    primary-color: ""
+    background-color: "#ffffff"
+    on-primary-color: ""
+    on-background-color: "#3C3F44"

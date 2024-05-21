@@ -1,8 +1,13 @@
 package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.manager.user.CollectedClaimManager
+import com.sympauthy.business.manager.validationcode.ValidationCodeManager
+import com.sympauthy.business.model.code.ValidationCode
+import com.sympauthy.business.model.code.ValidationCodeReason
+import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
+import com.sympauthy.business.model.user.claim.OpenIdClaim
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
@@ -11,20 +16,58 @@ import jakarta.inject.Singleton
  */
 @Singleton
 class AuthenticationFlowManager(
-    @Inject private val collectedClaimManager: CollectedClaimManager
+    @Inject private val collectedClaimManager: CollectedClaimManager,
+    @Inject private val validationCodeManager: ValidationCodeManager
 ) {
+
+    /**
+     * Queue the sending of [ValidationCode]s to validate the [collectedClaims] listed.
+     */
+    suspend fun queueRequiredValidationCodes(
+        user: User,
+        authorizeAttempt: AuthorizeAttempt,
+        collectedClaims: List<CollectedClaim>
+    ): List<ValidationCode> {
+        val reasons = getRequiredValidationCodeReasons(
+            collectedClaims = collectedClaims
+        )
+        return if (reasons.isNotEmpty()) {
+            validationCodeManager.queueRequiredValidationCodes(
+                user = user,
+                authorizeAttempt = authorizeAttempt,
+                reasons = reasons
+            )
+        } else emptyList()
+    }
+
+    /**
+     * Return the list of code validation type that must be sent to the end-user.
+     */
+    internal fun getRequiredValidationCodeReasons(
+        collectedClaims: List<CollectedClaim>
+    ): List<ValidationCodeReason> {
+        val reasons = mutableListOf<ValidationCodeReason>()
+
+        // Validate user email.
+        val emailClaim = collectedClaims.firstOrNull { it.claim.id == OpenIdClaim.EMAIL.id }
+        if (emailClaim != null && emailClaim.verified != true) {
+            reasons.add(ValidationCodeReason.EMAIL_CLAIM)
+        }
+
+        return reasons.filter { validationCodeManager.canSendValidationCodeForReason(it) }
+    }
 
     suspend fun checkIfAuthenticationIsComplete(
         user: User,
         collectedClaims: List<CollectedClaim>
     ): AuthenticationFlowResult {
-        // TODO: Check if we have verified the email.
         val missingRequiredClaims = !collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)
-        val complete = listOf(missingRequiredClaims).none { it }
+        val missingValidation = getRequiredValidationCodeReasons(collectedClaims).isNotEmpty()
+
         return AuthenticationFlowResult(
             user = user,
             missingRequiredClaims = missingRequiredClaims,
-            complete = complete
+            missingValidation = missingValidation
         )
     }
 }
@@ -42,7 +85,16 @@ data class AuthenticationFlowResult(
      */
     val missingRequiredClaims: Boolean,
     /**
+     * True if some claims requires a validation by the end-user.
+     */
+    val missingValidation: Boolean,
+) {
+
+    /**
      * True if the sign-up is complete and the user can be redirected to the client.
      */
-    val complete: Boolean
-)
+    val complete: Boolean = listOf(
+        missingRequiredClaims,
+        missingValidation
+    ).none { it }
+}

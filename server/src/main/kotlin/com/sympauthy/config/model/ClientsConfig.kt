@@ -7,7 +7,7 @@ sealed class ClientsConfig(
     configurationErrors: List<ConfigurationException>? = null
 ) : Config(configurationErrors)
 
-class EnabledClientsConfig(
+data class EnabledClientsConfig(
     val clients: List<Client>
 ) : ClientsConfig()
 

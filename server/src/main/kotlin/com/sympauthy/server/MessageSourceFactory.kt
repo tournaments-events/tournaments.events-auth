@@ -16,6 +16,11 @@ annotation class DisplayMessages
 @Qualifier
 @Retention(RUNTIME)
 @MustBeDocumented
+annotation class MailMessages
+
+@Qualifier
+@Retention(RUNTIME)
+@MustBeDocumented
 annotation class ErrorMessages
 
 @Factory
@@ -25,6 +30,12 @@ class MessageSourceFactory {
     @ErrorMessages
     fun provideErrorMessageSource(): MessageSource {
         return ResourceBundleMessageSource("error_messages", DEFAULT_LOCALE)
+    }
+
+    @Singleton
+    @MailMessages
+    fun provideMailMessageSource(): MessageSource {
+        return ResourceBundleMessageSource("mail_messages", DEFAULT_LOCALE)
     }
 
     @Singleton

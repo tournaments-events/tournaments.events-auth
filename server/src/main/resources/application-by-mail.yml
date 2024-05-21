@@ -5,14 +5,17 @@ claims:
   email:
     enabled: true
 
-password-auth:
-  enabled: true
-  login-claims:
-    - email
-
 clients:
   default:
     default-scopes:
       - openid
       - profile
       - email
+
+features:
+  email-validation: true
+
+password-auth:
+  enabled: true
+  login-claims:
+    - email

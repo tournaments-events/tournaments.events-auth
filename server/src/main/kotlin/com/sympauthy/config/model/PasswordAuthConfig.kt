@@ -7,7 +7,7 @@ sealed class PasswordAuthConfig(
     configurationErrors: List<ConfigurationException>? = null
 ) : Config(configurationErrors)
 
-class EnabledPasswordAuthConfig(
+data class EnabledPasswordAuthConfig(
     val enabled: Boolean,
     /**
      * List of [OpenIdClaim] that the user can use as a login to sign-in.

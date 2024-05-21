@@ -7,7 +7,7 @@ sealed class ClaimsConfig(
     configurationErrors: List<ConfigurationException>? = null
 ) : Config(configurationErrors)
 
-class EnabledClaimsConfig(
+data class EnabledClaimsConfig(
     val claims: List<Claim>
 ) : ClaimsConfig()
 

@@ -11,10 +11,6 @@ import java.time.DateTimeException
 import java.time.ZoneId
 import java.time.zone.ZoneRulesException
 
-
-/**
- *
- */
 @Singleton
 class TimeZoneClaimValueProvider {
 

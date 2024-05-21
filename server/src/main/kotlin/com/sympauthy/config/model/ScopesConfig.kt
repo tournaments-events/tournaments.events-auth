@@ -6,7 +6,7 @@ sealed class ScopesConfig(
     configurationErrors: List<ConfigurationException>? = null
 ) : Config(configurationErrors)
 
-class EnabledScopesConfig(
+data class EnabledScopesConfig(
     val scopes: List<ScopeConfig>
 ) : ScopesConfig()
 

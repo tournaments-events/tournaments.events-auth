@@ -14,6 +14,13 @@ class RandomGenerator {
     private val hexEncoder = HexFormat.of()
 
     /**
+     * Generate an [Int] between [origin] (inclusive) and [bound] (exclusive).
+     */
+    fun generateInt(origin: Int, bound: Int): Int {
+        return secureRandom.nextInt(origin, bound)
+    }
+
+    /**
      * Generate a byte array containing random values.
      */
     fun generate(lengthInBytes: Int = DEFAULT_LENGTH): ByteArray {

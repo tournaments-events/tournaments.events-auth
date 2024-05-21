@@ -88,7 +88,7 @@ CREATE TABLE authorize_attempts
     id               uuid      NOT NULL DEFAULT gen_random_uuid(),
     client_id        text      NOT NULL,
     redirect_uri     text      NOT NULL,
-    requested_scopes text[] NOT NULL,
+    requested_scopes text[]    NOT NULL,
     state            text,
     nonce            text,
 
@@ -121,13 +121,30 @@ CREATE TABLE authentication_tokens
     type                 text      NOT NULL,
     user_id              uuid      NOT NULL,
     client_id            text      NOT NULL,
-    scopes               text[] NOT NULL,
+    scopes               text[]    NOT NULL,
     authorize_attempt_id uuid      NOT NULL,
 
     revoked              boolean   NOT NULL,
     issue_date           timestamp NOT NULL,
     expiration_date      timestamp,
     PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+-- Validation codes
+
+CREATE TABLE validation_codes
+(
+    code            text      NOT NULL,
+
+    user_id         uuid      NOT NULL,
+    attempt_id      uuid,
+    media           text      NOT NULL,
+    reasons         text[]    NOT NULL,
+
+    creation_date   timestamp NOT NULL,
+    expiration_date timestamp NOT NULL,
+    PRIMARY KEY (code),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 

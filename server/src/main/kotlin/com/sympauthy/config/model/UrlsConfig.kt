@@ -8,7 +8,7 @@ sealed class UrlsConfig(
     configurationErrors: List<ConfigurationException>? = null
 ) : Config(configurationErrors)
 
-class EnabledUrlsConfig(
+data class EnabledUrlsConfig(
     val root: URI,
     val flow: FlowUrlConfig
 ) : UrlsConfig()
@@ -28,7 +28,7 @@ fun UrlsConfig.orThrow(): EnabledUrlsConfig {
     return this.getOrNull() ?: throw this.invalidConfig
 }
 
-class FlowUrlConfig(
+data class FlowUrlConfig(
     /**
      * Page allowing the user either to:
      * - authenticate by entering its credentials

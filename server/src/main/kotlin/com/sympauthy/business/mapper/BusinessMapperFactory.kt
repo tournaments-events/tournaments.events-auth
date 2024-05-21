@@ -51,4 +51,7 @@ class BusinessMapperFactory {
 
     @Singleton
     fun userMapper() = Mappers.getMapper(UserMapper::class.java)
+
+    @Singleton
+    fun validationCodeMapper() = Mappers.getMapper(ValidationCodeMapper::class.java)
 }

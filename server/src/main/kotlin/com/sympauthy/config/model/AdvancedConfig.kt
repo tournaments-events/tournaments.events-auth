@@ -9,7 +9,7 @@ sealed class AdvancedConfig(
     configurationErrors: List<ConfigurationException>? = null
 ) : Config(configurationErrors)
 
-class EnabledAdvancedConfig(
+data class EnabledAdvancedConfig(
     val userMergingStrategy: UserMergingStrategy,
     val keysGenerationStrategy: CryptoKeysGenerationStrategy,
     val publicJwtAlgorithm: JwtAlgorithm,

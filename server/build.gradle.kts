@@ -65,8 +65,16 @@ dependencies {
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
 
-    // Views
-    implementation("io.micronaut.views:micronaut-views-thymeleaf")
+    // Views rendering
+    implementation("io.micronaut.views:micronaut-views-freemarker")
+
+    // Mail templating
+    implementation("io.micronaut.email:micronaut-email-template")
+    runtimeOnly("org.freemarker:freemarker:${project.extra["freemarkerVersion"]}")
+
+    // Mail sending (SMTP)
+    implementation("io.micronaut.email:micronaut-email-javamail")
+    runtimeOnly("org.eclipse.angus:angus-mail")
 
     // Object mapping
     api("org.mapstruct:mapstruct:${project.extra["mapStructVersion"]}")
