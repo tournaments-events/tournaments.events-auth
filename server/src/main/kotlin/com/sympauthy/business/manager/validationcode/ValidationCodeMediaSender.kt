@@ -2,6 +2,7 @@ package com.sympauthy.business.manager.validationcode
 
 import com.sympauthy.business.model.code.ValidationCode
 import com.sympauthy.business.model.code.ValidationCodeMedia
+import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
 import com.sympauthy.config.model.EnabledFeaturesConfig
 
@@ -31,6 +32,7 @@ interface ValidationCodeMediaSender {
      */
     suspend fun sendValidationCode(
         user: User,
+        collectedClaim: CollectedClaim,
         validationCode: ValidationCode
     )
 }

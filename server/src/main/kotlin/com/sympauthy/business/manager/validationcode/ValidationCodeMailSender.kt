@@ -4,6 +4,7 @@ import com.sympauthy.business.manager.mail.MailSender
 import com.sympauthy.business.manager.mail.TemplatedMailBuilderFactory
 import com.sympauthy.business.model.code.ValidationCode
 import com.sympauthy.business.model.code.ValidationCodeMedia.EMAIL
+import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
 import com.sympauthy.config.model.FeaturesConfig
 import com.sympauthy.config.model.orThrow
@@ -32,14 +33,23 @@ class ValidationCodeMailSender(
 
     override suspend fun sendValidationCode(
         user: User,
+        claim: CollectedClaim,
         validationCode: ValidationCode
     ) {
+        val email = claim.value?.toString()
+        if (claim.claim.id != media.claim || email.isNullOrBlank()) {
+            throw IllegalArgumentException("${this::class.simpleName} requires a ${media.claim} claim as parameter.")
+        }
+
         val builder = mailBuilderFactory
             .builder(
                 template = "mails/validation_code",
                 locale = Locale.US // FIXME
             ).apply {
+                receiver(email)
+
                 set("code", validationCode.code)
+                localizedSubject("mail.validation_code.subject")
                 localizedTitle("mail.validation_code.title")
                 localizedPreviewText("mail.validation_code.preview_text")
             }

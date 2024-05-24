@@ -48,7 +48,12 @@ class AuthenticationFlowManagerTest {
 
         every { manager.getRequiredValidationCodeReasons(collectedClaims) } returns reasons
         coEvery {
-            validationCodeManager.queueRequiredValidationCodes(user, authorizeAttempt, reasons)
+            validationCodeManager.queueRequiredValidationCodes(
+                user = user,
+                authorizeAttempt = authorizeAttempt,
+                reasons = reasons,
+                collectedClaims = collectedClaims
+            )
         } returns listOf(validationCode)
 
         val result = manager.queueRequiredValidationCodes(

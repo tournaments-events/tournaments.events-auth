@@ -1,6 +1,7 @@
 package com.sympauthy.business.model.code
 
 import com.sympauthy.business.model.code.ValidationCodeMedia.EMAIL
+import com.sympauthy.business.model.user.claim.OpenIdClaim
 import java.time.LocalDateTime
 import java.util.*
 
@@ -58,6 +59,12 @@ enum class ValidationCodeReason(
 /**
  * Enumeration of media used to send the validation code to the end-user.
  */
-enum class ValidationCodeMedia {
-    EMAIL
+enum class ValidationCodeMedia(
+    /**
+     * The claim required to send the media to the end-user.
+     * ex. The OpenID ```email``` claim is required to email the end-user.
+     */
+    val claim: String
+) {
+    EMAIL(OpenIdClaim.EMAIL.id)
 }

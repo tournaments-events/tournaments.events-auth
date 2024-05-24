@@ -4,10 +4,10 @@ import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.validationcode.ValidationCodeManager
 import com.sympauthy.business.model.code.ValidationCode
 import com.sympauthy.business.model.code.ValidationCodeReason
+import com.sympauthy.business.model.code.ValidationCodeReason.EMAIL_CLAIM
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
-import com.sympauthy.business.model.user.claim.OpenIdClaim
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
@@ -35,7 +35,8 @@ class AuthenticationFlowManager(
             validationCodeManager.queueRequiredValidationCodes(
                 user = user,
                 authorizeAttempt = authorizeAttempt,
-                reasons = reasons
+                reasons = reasons,
+                collectedClaims = collectedClaims
             )
         } else emptyList()
     }
@@ -49,9 +50,9 @@ class AuthenticationFlowManager(
         val reasons = mutableListOf<ValidationCodeReason>()
 
         // Validate user email.
-        val emailClaim = collectedClaims.firstOrNull { it.claim.id == OpenIdClaim.EMAIL.id }
+        val emailClaim = collectedClaims.firstOrNull { it.claim.id == EMAIL_CLAIM.media.claim }
         if (emailClaim != null && emailClaim.verified != true) {
-            reasons.add(ValidationCodeReason.EMAIL_CLAIM)
+            reasons.add(EMAIL_CLAIM)
         }
 
         return reasons.filter { validationCodeManager.canSendValidationCodeForReason(it) }

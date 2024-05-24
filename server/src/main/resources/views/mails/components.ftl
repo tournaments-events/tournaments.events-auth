@@ -21,6 +21,7 @@ Rich text
 <#macro rich_text>
     <tr>
         <td style="padding-bottom: 15px; font-family: arial, sans-serif; font-size: 15px; line-height: 21px; color: #3C3F44; text-align: left;">
+            <#nested>
         </td>
     </tr>
 </#macro>
