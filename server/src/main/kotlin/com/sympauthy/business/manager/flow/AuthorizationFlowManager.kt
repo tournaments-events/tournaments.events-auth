@@ -5,20 +5,70 @@ import com.sympauthy.business.manager.validationcode.ValidationCodeManager
 import com.sympauthy.business.model.code.ValidationCode
 import com.sympauthy.business.model.code.ValidationCodeReason
 import com.sympauthy.business.model.code.ValidationCodeReason.EMAIL_CLAIM
+import com.sympauthy.business.model.flow.AuthorizationFlow
+import com.sympauthy.business.model.flow.AuthorizationFlow.Companion.DEFAULT_AUTHORIZATION_FLOW_ID
+import com.sympauthy.business.model.flow.WebAuthorizationFlow
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
+import com.sympauthy.config.model.AuthorizationFlowsConfig
+import com.sympauthy.config.model.UrlsConfig
+import com.sympauthy.config.model.orThrow
+import com.sympauthy.view.DefaultAuthorizationFlowController.Companion.USER_FLOW_ENDPOINT
+import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 /**
- * Manager in charge of checking if the authentication flow of a user is completed.
+ * Manager in charge of checking if the authorization flow of a user is completed.
  */
 @Singleton
-class AuthenticationFlowManager(
+class AuthorizationFlowManager(
     @Inject private val collectedClaimManager: CollectedClaimManager,
-    @Inject private val validationCodeManager: ValidationCodeManager
+    @Inject private val validationCodeManager: ValidationCodeManager,
+    @Inject private val authorizationFlowsConfig: AuthorizationFlowsConfig,
+    @Inject private val uncheckedUrlsConfig: UrlsConfig
 ) {
+
+    /**
+     * The default web authentication flow is hardcoded since it is bundled with this authorization server.
+     */
+    val defaultAuthorizationFlow: WebAuthorizationFlow by lazy {
+        val builder = uncheckedUrlsConfig.orThrow().root
+            .let(UriBuilder::of)
+            .path(USER_FLOW_ENDPOINT)
+        WebAuthorizationFlow(
+            id = DEFAULT_AUTHORIZATION_FLOW_ID,
+            signInUri = builder.path("sign-in").build(),
+            collectClaimsUri = builder.path("collect-claims").build(),
+            validateCodeUri = builder.path("code").build(),
+            errorUri = builder.path("error").build(),
+        )
+    }
+
+    /**
+     * Return the [AuthorizationFlow] identified by [id] or null.
+     */
+    fun findById(id: String): AuthorizationFlow? {
+        if (id == DEFAULT_AUTHORIZATION_FLOW_ID) {
+            return defaultAuthorizationFlow
+        }
+        return authorizationFlowsConfig.orThrow().flows
+            .firstOrNull { it.id == id }
+    }
+
+    /**
+     * Verify the authorization flow used by the [authorizeAttempt] is a [WebAuthorizationFlow].
+     */
+    fun verifyIsWebFlow(
+        authorizeAttempt: AuthorizeAttempt
+    ): WebAuthorizationFlow {
+        val flow = authorizeAttempt.authorizationFlowId?.let(this::findById)
+        if (flow !is WebAuthorizationFlow) {
+            TODO("Put proper exception to verify the flow")
+        }
+        return flow
+    }
 
     /**
      * Queue the sending of [ValidationCode]s to validate the [collectedClaims] listed.
@@ -58,14 +108,14 @@ class AuthenticationFlowManager(
         return reasons.filter { validationCodeManager.canSendValidationCodeForReason(it) }
     }
 
-    suspend fun checkIfAuthenticationIsComplete(
+    suspend fun checkIfAuthorizationIsComplete(
         user: User,
         collectedClaims: List<CollectedClaim>
-    ): AuthenticationFlowResult {
+    ): AuthorizationFlowResult {
         val missingRequiredClaims = !collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)
         val missingValidation = getRequiredValidationCodeReasons(collectedClaims).isNotEmpty()
 
-        return AuthenticationFlowResult(
+        return AuthorizationFlowResult(
             user = user,
             missingRequiredClaims = missingRequiredClaims,
             missingValidation = missingValidation
@@ -74,9 +124,9 @@ class AuthenticationFlowManager(
 }
 
 /**
- * The result of the authentication flow.
+ * The result of the authorization flow.
  */
-data class AuthenticationFlowResult(
+data class AuthorizationFlowResult(
     /**
      * The user that has been authentication during the authentication flow.
      */
@@ -92,7 +142,7 @@ data class AuthenticationFlowResult(
 ) {
 
     /**
-     * True if the sign-up is complete and the user can be redirected to the client.
+     * True if the authorization is complete and the user can be redirected to the client.
      */
     val complete: Boolean = listOf(
         missingRequiredClaims,

@@ -9,8 +9,7 @@ sealed class UrlsConfig(
 ) : Config(configurationErrors)
 
 data class EnabledUrlsConfig(
-    val root: URI,
-    val flow: FlowUrlConfig
+    val root: URI
 ) : UrlsConfig()
 
 class DisabledUrlsConfig(
@@ -26,32 +25,6 @@ fun UrlsConfig.getOrNull(): EnabledUrlsConfig? {
 
 fun UrlsConfig.orThrow(): EnabledUrlsConfig {
     return this.getOrNull() ?: throw this.invalidConfig
-}
-
-data class FlowUrlConfig(
-    /**
-     * Page allowing the user either to:
-     * - authenticate by entering its credentials
-     * - select a third-party provider that will authenticate him.
-     */
-    val signIn: URI,
-    /**
-     * Page in charge of collecting claims from the end-user claims.
-     *
-     * This page will be presented during the authentication flow whenever all required claims
-     * are not collected for an end-user.
-     */
-    val collectClaims: URI,
-    /**
-     * Page displaying
-     */
-    val error: URI
-) {
-    /**
-     * Return all URIs that are part of the end-user flow.
-     */
-    val all: List<URI>
-        get() = listOf(signIn, error)
 }
 
 fun UrlsConfig.buildUponRoot(): UriBuilder {

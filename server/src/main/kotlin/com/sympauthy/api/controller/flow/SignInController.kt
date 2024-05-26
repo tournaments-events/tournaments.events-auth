@@ -2,8 +2,9 @@ package com.sympauthy.api.controller.flow
 
 import com.sympauthy.api.resource.flow.FlowResultResource
 import com.sympauthy.api.resource.flow.SignInInputResource
-import com.sympauthy.api.util.AuthorizationFlowRedirectUriBuilder
+import com.sympauthy.business.manager.flow.AuthorizationFlowManager
 import com.sympauthy.business.manager.flow.PasswordFlowManager
+import com.sympauthy.business.manager.flow.WebAuthorizationFlowRedirectUriBuilder
 import com.sympauthy.security.authorizeAttempt
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
@@ -21,8 +22,9 @@ import jakarta.inject.Inject
 @Controller("/api/v1/flow/sign-in")
 @Secured(IS_ANONYMOUS)
 class SignInController(
+    @Inject private val authorizationFlowManager: AuthorizationFlowManager,
     @Inject private val passwordFlowManager: PasswordFlowManager,
-    @Inject private val authorizationFlowRedirectUriBuilder: AuthorizationFlowRedirectUriBuilder,
+    @Inject private val redirectUriBuilder: WebAuthorizationFlowRedirectUriBuilder,
 ) {
 
     @Operation(
@@ -41,15 +43,18 @@ class SignInController(
         authentication: Authentication,
         @Body inputResource: SignInInputResource
     ): FlowResultResource {
-        val attempt = authentication.authorizeAttempt
+        val authorizeAttempt = authentication.authorizeAttempt
+        val flow = authorizationFlowManager.verifyIsWebFlow(authorizeAttempt)
 
         val result = passwordFlowManager.signInWithPassword(
-            authorizeAttempt = attempt,
+            authorizeAttempt = authorizeAttempt,
             login = inputResource.login,
             password = inputResource.password
         )
-        return authorizationFlowRedirectUriBuilder.getRedirectUri(attempt, result)
-            .toString()
-            .let(::FlowResultResource)
+        return redirectUriBuilder.getRedirectUri(
+            authorizeAttempt = authorizeAttempt,
+            flow = flow,
+            result = result
+        ).toString().let(::FlowResultResource)
     }
 }

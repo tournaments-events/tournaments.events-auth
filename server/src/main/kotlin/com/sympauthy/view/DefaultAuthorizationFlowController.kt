@@ -4,8 +4,7 @@ import com.sympauthy.config.model.UrlsConfig
 import com.sympauthy.config.model.getOrNull
 import com.sympauthy.config.model.getUri
 import com.sympauthy.util.loggerForClass
-import com.sympauthy.view.UserFlowController.Companion.USER_FLOW_ENDPOINT
-import io.micronaut.context.annotation.Requires
+import com.sympauthy.view.DefaultAuthorizationFlowController.Companion.USER_FLOW_ENDPOINT
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.context.event.StartupEvent
 import io.micronaut.core.io.ResourceResolver
@@ -20,13 +19,10 @@ import kotlin.jvm.optionals.getOrNull
 
 /**
  * Serve the index.html of sympauthy-flow that have been added in the resources by the CI.
- *
- * FIXME: Add @Requires to disable this controller if the flow is not used in the configuration.
  */
 @Hidden
 @Controller(USER_FLOW_ENDPOINT)
-@Requires(condition = UserFlowEnabled::class)
-class UserFlowController(
+class DefaultAuthorizationFlowController(
     @Inject private val resourceResolver: ResourceResolver,
     @Inject private val uncheckedUrlsConfig: UrlsConfig,
 ) : ApplicationEventListener<StartupEvent> {

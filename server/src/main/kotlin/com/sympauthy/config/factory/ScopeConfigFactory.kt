@@ -11,7 +11,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 @Factory
-class ScopeFactory(
+class ScopeConfigFactory(
     @Inject private val parser: ConfigParser
 ) {
 

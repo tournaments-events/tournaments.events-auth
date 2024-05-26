@@ -14,6 +14,7 @@ data class AuthorizeAttempt(
      * An uniq identifier for the flow.
      */
     val id: UUID,
+
     /**
      * The identifier of the client that initiated the authentication.
      *
@@ -28,14 +29,6 @@ data class AuthorizeAttempt(
      */
     val requestedScopes: List<String>,
     /**
-     * The identifier of the user that was connected at the end of the authentication flow.
-     */
-    val userId: UUID?,
-    /*
-     * The scopes that were granted to the user during the authentication flow.
-     */
-    val grantedScopes: List<String>?,
-    /**
      * The URI where we must redirect the user once the authentication flow is finished.
      */
     val redirectUri: String,
@@ -47,6 +40,22 @@ data class AuthorizeAttempt(
      * The nonce passed by the client to the authorize endpoint.
      */
     val nonce: String? = null,
+
+    /**
+     * The identifier of the authorization flow the user is going through.
+     * null for non-interactive flows.
+     */
+    val authorizationFlowId: String?,
+
+    /**
+     * The identifier of the user that was connected at the end of the authentication flow.
+     */
+    val userId: UUID?,
+    /*
+     * The scopes that were granted to the user during the authentication flow.
+     */
+    val grantedScopes: List<String>?,
+
     /**
      * When the authentication flow was initiated by the user.
      */

@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
-class AuthenticationFlowManagerTest {
+class AuthorizationFlowManagerTest {
 
     @MockK
     lateinit var collectedClaimManager: CollectedClaimManager
@@ -31,7 +31,7 @@ class AuthenticationFlowManagerTest {
 
     @SpyK
     @InjectMockKs
-    lateinit var manager: AuthenticationFlowManager
+    lateinit var manager: AuthorizationFlowManager
 
     @Test
     fun `queueRequiredValidationCodes - Queues validation codes`() = runTest {
@@ -67,31 +67,31 @@ class AuthenticationFlowManagerTest {
     }
 
     @Test
-    fun `checkIfSignUpIsComplete - Non complete if missing claims`() = runTest {
+    fun `checkIfAuthorizationIsComplete - Non complete if missing claims`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns false
         every { manager.getRequiredValidationCodeReasons(any()) } returns emptyList()
 
-        val result = manager.checkIfAuthenticationIsComplete(mockk(), mockk())
+        val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
         assertTrue(result.missingRequiredClaims)
     }
 
     @Test
-    fun `checkIfSignUpIsComplete - Non complete if missing validation`() = runTest {
+    fun `checkIfAuthorizationIsComplete - Non complete if missing validation`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns true
         every { manager.getRequiredValidationCodeReasons(any()) } returns listOf(mockk())
 
-        val result = manager.checkIfAuthenticationIsComplete(mockk(), mockk())
+        val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
         assertTrue(result.missingValidation)
     }
 
     @Test
-    fun `checkIfSignUpIsComplete - Complete`() = runTest {
+    fun `checkIfAuthorizationIsComplete - Complete`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns true
         every { manager.getRequiredValidationCodeReasons(any()) } returns emptyList()
 
-        val result = manager.checkIfAuthenticationIsComplete(mockk(), mockk())
+        val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
         assertTrue(result.complete)
     }

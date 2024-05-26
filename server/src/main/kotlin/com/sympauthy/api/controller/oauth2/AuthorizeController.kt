@@ -9,6 +9,7 @@ import com.sympauthy.business.manager.ClientManager
 import com.sympauthy.business.manager.ScopeManager
 import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
 import com.sympauthy.business.model.client.Client
+import com.sympauthy.business.model.flow.WebAuthorizationFlow
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.UNSUPPORTED_RESPONSE_TYPE
 import com.sympauthy.business.model.oauth2.Scope
@@ -171,7 +172,7 @@ The authorization server includes this value unmodified in the ID Token.
         scopes: List<Scope>?,
         redirectUri: URI
     ): HttpResponse<*> {
-        val authorizeAttempt = try {
+        val result = try {
             authorizeManager.newAuthorizeAttempt(
                 client = client,
                 clientState = clientState,
@@ -182,7 +183,13 @@ The authorization server includes this value unmodified in the ID Token.
         } catch (e: BusinessException) {
             throw e.toOauth2Exception(INVALID_REQUEST, "description.oauth2.invalid")
         }
-        return responseBuilder.redirectToSignIn(authorizeAttempt)
+
+        return when (result.flow) {
+            is WebAuthorizationFlow -> responseBuilder.redirectToSignIn(
+                authorizeAttempt = result.authorizeAttempt,
+                flow = result.flow
+            )
+        }
     }
 
     companion object {

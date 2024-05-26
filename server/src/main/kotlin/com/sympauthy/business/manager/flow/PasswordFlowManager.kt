@@ -36,7 +36,7 @@ open class PasswordFlowManager(
     @Inject private val collectedClaimManager: CollectedClaimManager,
     @Inject private val collectedClaimRepository: CollectedClaimRepository,
     @Inject private val passwordManager: PasswordManager,
-    @Inject private val authenticationFlowManager: AuthenticationFlowManager,
+    @Inject private val authorizationFlowManager: AuthorizationFlowManager,
     @Inject private val userManager: UserManager,
     @Inject private val userRepository: UserRepository,
     @Inject private val claimValueMapper: ClaimValueMapper,
@@ -78,7 +78,7 @@ open class PasswordFlowManager(
         authorizeAttempt: AuthorizeAttempt,
         login: String?,
         password: String?
-    ): AuthenticationFlowResult {
+    ): AuthorizationFlowResult {
         if (!signInEnabled) {
             throw businessExceptionOf("password.flow.sign_in.disabled", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
@@ -101,7 +101,7 @@ open class PasswordFlowManager(
 
         // Check if sign-up is completed
         val claims = collectedClaimManager.findReadableUserInfoByUserId(userId = user.id)
-        return authenticationFlowManager.checkIfAuthenticationIsComplete(
+        return authorizationFlowManager.checkIfAuthorizationIsComplete(
             user = user,
             collectedClaims = claims
         )
@@ -131,7 +131,7 @@ open class PasswordFlowManager(
         authorizeAttempt: AuthorizeAttempt,
         unfilteredUpdates: List<CollectedClaimUpdate>,
         password: String
-    ): AuthenticationFlowResult {
+    ): AuthorizationFlowResult {
         val claimUpdateMap = getSignUpClaims().associateWith { claim ->
             unfilteredUpdates.firstOrNull { it.claim == claim }
         }
@@ -152,13 +152,13 @@ open class PasswordFlowManager(
         authorizeManager.setAuthenticatedUserId(authorizeAttempt, user.id)
 
         // Send validation codes to the user if required.
-        authenticationFlowManager.queueRequiredValidationCodes(
+        authorizationFlowManager.queueRequiredValidationCodes(
             user = user,
             authorizeAttempt = authorizeAttempt,
             collectedClaims = collectedClaims
         )
 
-        return authenticationFlowManager.checkIfAuthenticationIsComplete(
+        return authorizationFlowManager.checkIfAuthorizationIsComplete(
             user = user,
             collectedClaims = collectedClaims
         )

@@ -102,6 +102,11 @@ class ConfigParser {
         return UriBuilder.of(value).build()
     }
 
+    fun <C : Any> getUriOrThrow(config: C, key: String, value: (C) -> String?): URI {
+        val value = getOrThrow(config, key, value)
+        return UriBuilder.of(value).build()
+    }
+
     fun <C : Any> getAbsoluteUriOrThrow(config: C, key: String, value: (C) -> String?): URI {
         return getOrThrow(config, key, value).toAbsoluteUri()
             ?: throw configExceptionOf(key, "config.invalid_url")

@@ -6,10 +6,10 @@ import com.sympauthy.api.mapper.flow.ClaimsResourceMapper
 import com.sympauthy.api.resource.flow.ClaimInputResource
 import com.sympauthy.api.resource.flow.ClaimsResource
 import com.sympauthy.api.resource.flow.FlowResultResource
-import com.sympauthy.api.util.AuthorizationFlowRedirectUriBuilder
 import com.sympauthy.api.util.flow.FlowControllerHelper
-import com.sympauthy.business.manager.flow.AuthenticationFlowManager
+import com.sympauthy.business.manager.flow.AuthorizationFlowManager
 import com.sympauthy.business.manager.flow.PasswordFlowManager
+import com.sympauthy.business.manager.flow.WebAuthorizationFlowRedirectUriBuilder
 import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.security.SecurityRule.HAS_VALID_STATE
@@ -28,12 +28,12 @@ import jakarta.inject.Inject
 @Secured(HAS_VALID_STATE)
 @Controller("/api/v1/flow/claims")
 class ClaimsController(
+    @Inject private val authorizationFlowManager: AuthorizationFlowManager,
     @Inject private val collectedClaimManager: CollectedClaimManager,
     @Inject private val passwordFlowManager: PasswordFlowManager,
-    @Inject private val authenticationFlowManager: AuthenticationFlowManager,
     @Inject private val claimsMapper: ClaimsResourceMapper,
     @Inject private val collectedClaimUpdateMapper: CollectedClaimUpdateMapper,
-    @Inject private val authorizationFlowRedirectUriBuilder: AuthorizationFlowRedirectUriBuilder,
+    @Inject private val redirectUriBuilder: WebAuthorizationFlowRedirectUriBuilder,
     @Inject private val helper: FlowControllerHelper
 ) {
 
@@ -85,6 +85,7 @@ the end-user but it declined to fulfill the value.
         @Body inputResource: ClaimInputResource
     ): FlowResultResource {
         val authorizeAttempt = authentication.authorizeAttempt
+        val flow = authorizationFlowManager.verifyIsWebFlow(authorizeAttempt)
         val user = helper.getUser(authorizeAttempt)
         val updates = getUpdates(inputResource)
 
@@ -93,12 +94,13 @@ the end-user but it declined to fulfill the value.
             throw httpExceptionOf(BAD_REQUEST, "flow.claims.missing_required")
         }
 
-        val result = authenticationFlowManager.checkIfAuthenticationIsComplete(
+        val result = authorizationFlowManager.checkIfAuthorizationIsComplete(
             user = user,
             collectedClaims = collectedClaims
         )
-        val redirectUri = authorizationFlowRedirectUriBuilder.getRedirectUri(
-            attempt = authorizeAttempt,
+        val redirectUri = redirectUriBuilder.getRedirectUri(
+            authorizeAttempt = authorizeAttempt,
+            flow = flow,
             result = result
         )
         return FlowResultResource(redirectUri.toString())

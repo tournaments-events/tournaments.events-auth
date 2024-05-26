@@ -25,6 +25,7 @@ authentication-flows:
     type: web
     sign-in: sign-in
     collect-claims: collect-claims
+    validation-code: validation-code
     error: error
 
 scope-granting-rules:

@@ -4,9 +4,10 @@ import com.sympauthy.api.controller.flow.ProvidersController.Companion.FLOW_PROV
 import com.sympauthy.api.errorhandler.ExceptionConverter
 import com.sympauthy.api.mapper.ErrorResourceMapper
 import com.sympauthy.api.util.AuthorizationFlowRedirectBuilder
-import com.sympauthy.api.util.AuthorizationFlowRedirectUriBuilder
 import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
 import com.sympauthy.business.manager.auth.oauth2.Oauth2ProviderManager
+import com.sympauthy.business.manager.flow.AuthorizationFlowManager
+import com.sympauthy.business.manager.flow.WebAuthorizationFlowRedirectUriBuilder
 import com.sympauthy.business.manager.provider.ProviderConfigManager
 import com.sympauthy.business.manager.provider.ProviderManager
 import com.sympauthy.security.SecurityRule.HAS_VALID_STATE
@@ -29,14 +30,16 @@ import jakarta.inject.Inject
 @Secured(HAS_VALID_STATE)
 @Controller(FLOW_PROVIDER_ENDPOINTS)
 class ProvidersController(
+    @Inject private val authorizationFlowManager: AuthorizationFlowManager,
     @Inject private val authorizeManager: AuthorizeManager,
     @Inject private val oauth2ProviderManager: Oauth2ProviderManager,
     @Inject private val providerManager: ProviderManager,
     @Inject private val providerConfigManager: ProviderConfigManager,
     @Inject private val exceptionConverter: ExceptionConverter,
     @Inject private val redirectBuilder: AuthorizationFlowRedirectBuilder,
-    @Inject private val redirectUriBuilder: AuthorizationFlowRedirectUriBuilder,
-    @Inject private val errorResourceMapper: ErrorResourceMapper
+    @Inject private val redirectUriBuilder: WebAuthorizationFlowRedirectUriBuilder,
+    @Inject private val errorResourceMapper: ErrorResourceMapper,
+
 ) {
 
     private val logger = loggerForClass()
@@ -80,6 +83,8 @@ Following query parameters will be populated with information about the error:
         @QueryValue("state") state: String?
     ): HttpResponse<*> {
         val authorizeAttempt = authorizeManager.verifyEncodedState(state)
+        val flow = authorizationFlowManager.verifyIsWebFlow(authorizeAttempt)
+
         return if (code != null) {
             val provider = providerConfigManager.findEnabledProviderById(providerId)
             val result = oauth2ProviderManager.signInOrSignUpUsingProvider(
@@ -88,12 +93,14 @@ Following query parameters will be populated with information about the error:
                 authorizeCode = code
             )
             val url = redirectUriBuilder.getRedirectUri(
-                attempt = authorizeAttempt,
+                authorizeAttempt = authorizeAttempt,
+                flow = flow,
                 result = result
             )
             HttpResponse.temporaryRedirect<Any>(url)
         } else {
             redirectBuilder.redirectToError(
+                flow = flow,
                 errorCode = error,
                 details = errorDescription
             )
@@ -105,7 +112,7 @@ Following query parameters will be populated with information about the error:
      * we need to redirect it back to flow UI with the details about the error.
      */
     @Error
-    suspend fun redirectToErrorPage(
+    fun redirectToErrorPage(
         request: HttpRequest<*>,
         throwable: Throwable
     ): HttpResponse<*> {
@@ -118,7 +125,9 @@ Following query parameters will be populated with information about the error:
 
         val resource = errorResourceMapper.toResource(exception, locale)
 
+        // TODO: Maybe it is possible to find the proper flow used then fallback on the default.
         return redirectBuilder.redirectToError(
+            flow = authorizationFlowManager.defaultAuthorizationFlow,
             errorCode = resource.errorCode,
             details = resource.details,
             description = resource.description

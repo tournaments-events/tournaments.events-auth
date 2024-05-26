@@ -1,9 +1,11 @@
 package com.sympauthy.business.manager.auth.oauth2
 
 import com.sympauthy.api.exception.oauth2ExceptionOf
+import com.sympauthy.business.manager.flow.AuthorizationFlowManager
 import com.sympauthy.business.manager.jwt.JwtManager
 import com.sympauthy.business.mapper.AuthorizeAttemptMapper
 import com.sympauthy.business.model.client.Client
+import com.sympauthy.business.model.flow.AuthorizationFlow
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import com.sympauthy.business.model.oauth2.Scope
@@ -18,6 +20,7 @@ import java.util.*
 
 @Singleton
 class AuthorizeManager(
+    @Inject private val authorizationFlowManager: AuthorizationFlowManager,
     @Inject private val authorizeAttemptRepository: AuthorizeAttemptRepository,
     @Inject private val jwtManager: JwtManager,
     @Inject private val authorizeAttemptMapper: AuthorizeAttemptMapper
@@ -29,13 +32,17 @@ class AuthorizeManager(
         clientNonce: String? = null,
         uncheckedScopes: List<Scope>? = null,
         uncheckedRedirectUri: URI? = null,
-    ): AuthorizeAttempt {
+    ): AuthorizeAttemptResult {
         val scopes = getAllowedScopesForClient(client, uncheckedScopes)
         val redirectUri = checkRedirectUri(client, uncheckedRedirectUri)
         checkIsExistingAttemptWithState(clientState)
 
+        // TODO: Choose flow based on client config.
+        val flow = authorizationFlowManager.defaultAuthorizationFlow
+
         val entity = AuthorizeAttemptEntity(
             clientId = client.id,
+            authorizationFlowId = flow.id,
             redirectUri = redirectUri.toString(),
             requestedScopes = scopes.map(Scope::scope).toTypedArray(),
             state = clientState,
@@ -46,7 +53,10 @@ class AuthorizeManager(
         )
         authorizeAttemptRepository.save(entity)
 
-        return authorizeAttemptMapper.toAuthorizeAttempt(entity)
+        return AuthorizeAttemptResult(
+            authorizeAttempt = authorizeAttemptMapper.toAuthorizeAttempt(entity),
+            flow = flow
+        )
     }
 
     /**
@@ -163,3 +173,8 @@ class AuthorizeManager(
         const val STATE_KEY_NAME = "state"
     }
 }
+
+data class AuthorizeAttemptResult(
+    val authorizeAttempt: AuthorizeAttempt,
+    val flow: AuthorizationFlow
+)

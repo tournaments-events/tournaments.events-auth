@@ -15,7 +15,7 @@ import jakarta.inject.Singleton
 import java.util.*
 
 @Factory
-class FeaturesFactory(
+class FeaturesConfigFactory(
     @Inject private val parser: ConfigParser,
     @Inject private val mailSender: Optional<MailSender>
 ) {

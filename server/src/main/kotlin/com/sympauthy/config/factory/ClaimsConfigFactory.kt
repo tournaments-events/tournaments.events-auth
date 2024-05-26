@@ -14,7 +14,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 @Factory
-class ClaimFactory(
+class ClaimsConfigFactory(
     @Inject private val parser: ConfigParser,
     @Inject private val uncheckedAdvancedConfig: AdvancedConfig
 ) {

@@ -85,18 +85,21 @@ CREATE INDEX provider_user_info__user_id ON provider_user_info (user_id);
 
 CREATE TABLE authorize_attempts
 (
-    id               uuid      NOT NULL DEFAULT gen_random_uuid(),
-    client_id        text      NOT NULL,
-    redirect_uri     text      NOT NULL,
-    requested_scopes text[]    NOT NULL,
-    state            text,
-    nonce            text,
+    id                    uuid      NOT NULL DEFAULT gen_random_uuid(),
 
-    user_id          uuid,
-    granted_scopes   text[],
+    client_id             text      NOT NULL,
+    redirect_uri          text      NOT NULL,
+    requested_scopes      text[]    NOT NULL,
+    state                 text,
+    nonce                 text,
 
-    attempt_date     timestamp NOT NULL,
-    expiration_date  timestamp NOT NULL,
+    authorization_flow_id text,
+
+    user_id               uuid,
+    granted_scopes        text[],
+
+    attempt_date          timestamp NOT NULL,
+    expiration_date       timestamp NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );

@@ -11,6 +11,7 @@ import java.util.*
 @MappedEntity("authorize_attempts")
 class AuthorizeAttemptEntity(
     val clientId: String,
+    val authorizationFlowId: String? = null,
     val redirectUri: String,
     val requestedScopes: Array<String> = emptyArray(),
     val state: String? = null,

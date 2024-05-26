@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.flow
 import java.net.URI
 
 @Factory
-class ClientFactory(
+class ClientsConfigFactory(
     @Inject private val parser: ConfigParser,
     @Inject private val scopeManager: ScopeManager
 ) {

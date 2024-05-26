@@ -34,6 +34,7 @@ open class ConfigReadinessIndicator(
     @ErrorMessages @Inject private val messageSource: MessageSource,
     @Inject private val advancedConfig: AdvancedConfig,
     @Inject private val authConfig: AuthConfig,
+    @Inject private val authorizationFlowsConfig: AuthorizationFlowsConfig,
     @Inject private val claimsConfig: ClaimsConfig,
     @Inject private val clientsConfig: Flow<ClientsConfig>,
     @Inject private val featuresConfig: FeaturesConfig,
@@ -47,6 +48,7 @@ open class ConfigReadinessIndicator(
     private val configs = listOf(
         advancedConfig,
         authConfig,
+        authorizationFlowsConfig,
         claimsConfig,
         featuresConfig,
         passwordAuthConfig,
