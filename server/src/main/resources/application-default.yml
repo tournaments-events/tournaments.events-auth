@@ -20,13 +20,9 @@ auth:
     refresh-enabled: true
     refresh-expiration: 30d
 
-authentication-flows:
+clients:
   default:
-    type: web
-    sign-in: sign-in
-    collect-claims: collect-claims
-    validation-code: validation-code
-    error: error
+    flow: default
 
 scope-granting-rules:
   default:

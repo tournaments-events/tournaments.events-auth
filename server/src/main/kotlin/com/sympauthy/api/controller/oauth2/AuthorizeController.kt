@@ -184,10 +184,10 @@ The authorization server includes this value unmodified in the ID Token.
             throw e.toOauth2Exception(INVALID_REQUEST, "description.oauth2.invalid")
         }
 
-        return when (result.flow) {
+        return when (result.authorizationFlow) {
             is WebAuthorizationFlow -> responseBuilder.redirectToSignIn(
                 authorizeAttempt = result.authorizeAttempt,
-                flow = result.flow
+                flow = result.authorizationFlow
             )
         }
     }

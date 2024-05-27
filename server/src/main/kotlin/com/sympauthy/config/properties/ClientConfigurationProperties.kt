@@ -12,6 +12,7 @@ class ClientConfigurationProperties(
     @param:Parameter val id: String
 ) {
     var secret: String? = null
+    var authorizationFlow: String? = null
     var allowedRedirectUris: List<String>? = null
     var allowedScopes: List<String>? = null
     var defaultScopes: List<String>? = null

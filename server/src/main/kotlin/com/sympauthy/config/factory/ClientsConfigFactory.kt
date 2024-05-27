@@ -1,7 +1,9 @@
 package com.sympauthy.config.factory
 
 import com.sympauthy.business.manager.ScopeManager
+import com.sympauthy.business.manager.flow.AuthorizationFlowManager
 import com.sympauthy.business.model.client.Client
+import com.sympauthy.business.model.flow.AuthorizationFlow
 import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.config.ConfigParser
 import com.sympauthy.config.exception.ConfigurationException
@@ -22,20 +24,25 @@ import java.net.URI
 @Factory
 class ClientsConfigFactory(
     @Inject private val parser: ConfigParser,
-    @Inject private val scopeManager: ScopeManager
+    @Inject private val authorizationFlowManager: AuthorizationFlowManager,
+    @Inject private val scopeManager: ScopeManager,
 ) {
 
     @Singleton
-    fun provideClients(configs: List<ClientConfigurationProperties>): Flow<ClientsConfig> {
+    fun provideClients(properties: List<ClientConfigurationProperties>): Flow<ClientsConfig> {
         return flow {
             val errors = mutableListOf<ConfigurationException>()
 
-            val defaultConfig = configs.firstOrNull { it.id == DEFAULT }
+            val defaultConfig = properties.firstOrNull { it.id == DEFAULT }
 
-            val clients = configs
+            val clients = properties
                 .filter { it.id != DEFAULT }
                 .mapNotNull { config ->
-                    getClient(config = config, defaultConfig = defaultConfig, errors = errors)
+                    getClient(
+                        properties = config,
+                        defaultProperties = defaultConfig,
+                        errors = errors
+                    )
                 }
 
             val config = if (errors.isEmpty()) {
@@ -48,13 +55,13 @@ class ClientsConfigFactory(
     }
 
     private suspend fun getClient(
-        config: ClientConfigurationProperties,
-        defaultConfig: ClientConfigurationProperties?,
+        properties: ClientConfigurationProperties,
+        defaultProperties: ClientConfigurationProperties?,
         errors: MutableList<ConfigurationException>
     ): Client? {
         val secret = try {
             parser.getString(
-                config, "$CLIENTS_KEY.${config.id}.secret",
+                properties, "$CLIENTS_KEY.${properties.id}.secret",
                 ClientConfigurationProperties::secret
             )
         } catch (e: ConfigurationException) {
@@ -62,28 +69,54 @@ class ClientsConfigFactory(
             null
         }
 
-        val allowedRedirectUris = getAllowedRedirectUris(
-            config = config,
-            allowedRedirectUris = config.allowedRedirectUris ?: defaultConfig?.allowedRedirectUris,
-            errors = errors
-        )
+        val authorizationFlow = try {
+            getAuthorizationFlow(
+                key = "$CLIENTS_KEY.${properties.id}.authorization-flow",
+                flowId = properties.authorizationFlow ?: defaultProperties?.authorizationFlow
+            )
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
 
-        val allowedScopes = getScopes(
-            key = "$CLIENTS_KEY.${config.id}.allowed-scopes",
-            scopes = config.allowedScopes ?: defaultConfig?.allowedScopes,
-            errors = errors
-        )?.toSet()
+        val allowedRedirectUris = try {
+            getAllowedRedirectUris(
+                properties = properties,
+                allowedRedirectUris = properties.allowedRedirectUris ?: defaultProperties?.allowedRedirectUris,
+                errors = errors
+            )
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
 
-        val defaultScopes = getScopes(
-            key = "$CLIENTS_KEY.${config.id}.default-scopes",
-            scopes = config.defaultScopes ?: defaultConfig?.defaultScopes,
-            errors = errors
-        )
+        val allowedScopes = try {
+            getScopes(
+                key = "$CLIENTS_KEY.${properties.id}.allowed-scopes",
+                scopes = properties.allowedScopes ?: defaultProperties?.allowedScopes,
+                errors = errors
+            )?.toSet()
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
+        val defaultScopes = try {
+            getScopes(
+                key = "$CLIENTS_KEY.${properties.id}.default-scopes",
+                scopes = properties.defaultScopes ?: defaultProperties?.defaultScopes,
+                errors = errors
+            )
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
 
         return if (errors.isEmpty()) {
             return Client(
-                id = config.id,
+                id = properties.id,
                 secret = secret!!,
+                authorizationFlow = authorizationFlow,
                 allowedRedirectUris = allowedRedirectUris,
                 allowedScopes = allowedScopes,
                 defaultScopes = defaultScopes
@@ -92,7 +125,7 @@ class ClientsConfigFactory(
     }
 
     private fun getAllowedRedirectUris(
-        config: ClientConfigurationProperties,
+        properties: ClientConfigurationProperties,
         allowedRedirectUris: List<String>?,
         errors: MutableList<ConfigurationException>
     ): List<URI>? {
@@ -101,7 +134,7 @@ class ClientsConfigFactory(
         val allowedRedirectUris = allowedRedirectUris?.mapIndexedNotNull { index, uri ->
             try {
                 parser.getAbsoluteUriOrThrow(
-                    uri, "$CLIENTS_KEY.${config.id}.allowed-redirect-uris[$index]"
+                    uri, "$CLIENTS_KEY.${properties.id}.allowed-redirect-uris[$index]"
                 ) { it }
             } catch (e: ConfigurationException) {
                 listErrors.add(e)
@@ -114,6 +147,18 @@ class ClientsConfigFactory(
         } else {
             errors.addAll(listErrors)
             null
+        }
+    }
+
+    private fun getAuthorizationFlow(
+        key: String,
+        flowId: String?
+    ): AuthorizationFlow? {
+        return flowId?.let {
+            authorizationFlowManager.findById(it) ?: throw configExceptionOf(
+                "$key", "config.client.authorization_flow.invalid",
+                "flow" to flowId
+            )
         }
     }
 

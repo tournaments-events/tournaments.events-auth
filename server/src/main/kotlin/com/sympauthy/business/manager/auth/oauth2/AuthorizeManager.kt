@@ -11,6 +11,7 @@ import com.sympauthy.business.model.oauth2.OAuth2ErrorCode.INVALID_REQUEST
 import com.sympauthy.business.model.oauth2.Scope
 import com.sympauthy.data.model.AuthorizeAttemptEntity
 import com.sympauthy.data.repository.AuthorizeAttemptRepository
+import com.sympauthy.exception.LocalizedException
 import com.sympauthy.exception.localizedExceptionOf
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -37,12 +38,11 @@ class AuthorizeManager(
         val redirectUri = checkRedirectUri(client, uncheckedRedirectUri)
         checkIsExistingAttemptWithState(clientState)
 
-        // TODO: Choose flow based on client config.
-        val flow = authorizationFlowManager.defaultAuthorizationFlow
+        val authorizationFlow = client.authorizationFlow ?: authorizationFlowManager.defaultAuthorizationFlow
 
         val entity = AuthorizeAttemptEntity(
             clientId = client.id,
-            authorizationFlowId = flow.id,
+            authorizationFlowId = authorizationFlow.id,
             redirectUri = redirectUri.toString(),
             requestedScopes = scopes.map(Scope::scope).toTypedArray(),
             state = clientState,
@@ -55,14 +55,14 @@ class AuthorizeManager(
 
         return AuthorizeAttemptResult(
             authorizeAttempt = authorizeAttemptMapper.toAuthorizeAttempt(entity),
-            flow = flow
+            authorizationFlow = authorizationFlow
         )
     }
 
     /**
      * Return a list containing only the scope allowed by the [client].
      * If no scope are provided, then it returns the list of default scopes for the client.
-     * If all scopes are filtered or if default scope are empty, then throws an [OAuth2Exception].
+     * If all scopes are filtered or if default scope are empty, then throws a [LocalizedException].
      */
     internal fun getAllowedScopesForClient(
         client: Client,
@@ -176,5 +176,5 @@ class AuthorizeManager(
 
 data class AuthorizeAttemptResult(
     val authorizeAttempt: AuthorizeAttempt,
-    val flow: AuthorizationFlow
+    val authorizationFlow: AuthorizationFlow
 )
