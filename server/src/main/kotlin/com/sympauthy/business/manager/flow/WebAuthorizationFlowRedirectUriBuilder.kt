@@ -118,7 +118,7 @@ class WebAuthorizationFlowRedirectUriBuilder(
         return builder.build()
     }
 
-    private suspend fun appendStateToUri(
+    internal suspend fun appendStateToUri(
         authorizeAttempt: AuthorizeAttempt,
         uri: URI
     ): URI {
