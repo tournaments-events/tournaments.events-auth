@@ -46,6 +46,11 @@ class WebAuthorizationFlowRedirectUriBuilder(
                 flow = flow
             )
 
+            result.missingValidation -> getRedirectUriToValidateCode(
+                authorizeAttempt = authorizeAttempt,
+                flow = flow
+            )
+
             result.complete -> getRedirectUriToClient(
                 authorizeAttempt = authorizeAttempt
             )
@@ -82,6 +87,19 @@ class WebAuthorizationFlowRedirectUriBuilder(
         return appendStateToUri(
             authorizeAttempt = authorizeAttempt,
             uri = flow.collectClaimsUri
+        )
+    }
+
+    /**
+     * Return a [URI] where the end-user must be redirected to collect claims from him.
+     */
+    private suspend fun getRedirectUriToValidateCode(
+        authorizeAttempt: AuthorizeAttempt,
+        flow: WebAuthorizationFlow
+    ): URI {
+        return appendStateToUri(
+            authorizeAttempt = authorizeAttempt,
+            uri = flow.validateCodeUri
         )
     }
 
