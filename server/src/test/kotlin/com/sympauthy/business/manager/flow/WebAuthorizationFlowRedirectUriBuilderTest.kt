@@ -2,8 +2,10 @@ package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.manager.auth.oauth2.AuthorizationCodeManager
 import com.sympauthy.business.manager.auth.oauth2.AuthorizeManager
+import com.sympauthy.business.model.oauth2.AuthorizationCode
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -40,5 +42,25 @@ class WebAuthorizationFlowRedirectUriBuilderTest {
         )
 
         assertEquals("https://www.example.com?state=encodedState", result.toString())
+    }
+
+    @Test
+    fun `getRedirectUriToClient - Generate authorization code and append it to redirect uri passed by client`() = runTest {
+        val clientRedirectUri = "https://www.example.com"
+        val clientState = "clientState"
+        val rawAuthorizationCode = "authorizationCode"
+        val authorizeAttempt: AuthorizeAttempt = mockk {
+            every { redirectUri } returns clientRedirectUri
+            every { state } returns clientState
+        }
+        val authorizationCode = mockk<AuthorizationCode> {
+            every { code } returns rawAuthorizationCode
+        }
+
+        coEvery { authorizationCodeManager.generateCode(authorizeAttempt) } returns authorizationCode
+
+        val result = uriBuilder.getRedirectUriToClient(authorizeAttempt)
+
+        assertEquals("${clientRedirectUri}?state=${clientState}&code=${rawAuthorizationCode}", result.toString())
     }
 }

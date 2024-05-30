@@ -41,14 +41,14 @@ class WebAuthorizationFlowRedirectUriBuilder(
         result: AuthorizationFlowResult
     ): URI {
         return when {
-            result.missingRequiredClaims -> getRedirectUriToCollectClaims(
+            result.missingRequiredClaims -> appendStateToUri(
                 authorizeAttempt = authorizeAttempt,
-                flow = flow
+                uri = flow.collectClaimsUri
             )
 
-            result.missingValidation -> getRedirectUriToValidateCode(
+            result.missingValidation -> appendStateToUri(
                 authorizeAttempt = authorizeAttempt,
-                flow = flow
+                uri = flow.validateCodeUri
             )
 
             result.complete -> getRedirectUriToClient(
@@ -78,36 +78,10 @@ class WebAuthorizationFlowRedirectUriBuilder(
     }
 
     /**
-     * Return a [URI] where the end-user must be redirected to collect claims from him.
-     */
-    private suspend fun getRedirectUriToCollectClaims(
-        authorizeAttempt: AuthorizeAttempt,
-        flow: WebAuthorizationFlow
-    ): URI {
-        return appendStateToUri(
-            authorizeAttempt = authorizeAttempt,
-            uri = flow.collectClaimsUri
-        )
-    }
-
-    /**
-     * Return a [URI] where the end-user must be redirected to collect claims from him.
-     */
-    private suspend fun getRedirectUriToValidateCode(
-        authorizeAttempt: AuthorizeAttempt,
-        flow: WebAuthorizationFlow
-    ): URI {
-        return appendStateToUri(
-            authorizeAttempt = authorizeAttempt,
-            uri = flow.validateCodeUri
-        )
-    }
-
-    /**
      * Return a [URI] redirecting the end-user to the client with an authorization code.
      * The authorization code may be exchanged for tokens by the client using the token endpoint.
      */
-    private suspend fun getRedirectUriToClient(
+    internal suspend fun getRedirectUriToClient(
         authorizeAttempt: AuthorizeAttempt
     ): URI {
         val builder = UriBuilder.of(authorizeAttempt.redirectUri)
