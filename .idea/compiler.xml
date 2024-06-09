@@ -155,6 +155,6 @@
         <module name="sympauthy.server.test" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="21" />
+    <bytecodeTargetLevel target="17" />
   </component>
 </project>
