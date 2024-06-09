@@ -28,7 +28,7 @@ allprojects {
         set("javaJwtVersion", "4.4.0")
         set("jsonPathVersion", "2.9.0")
         set("bouncyCastleVersion", "1.78.1")
-        set("freemarkerVersion", "2.3.32")
+        set("freemarkerVersion", "2.3.33")
 
         // Test dependencies
         set("junitJupiterVersion", "5.10.2")
