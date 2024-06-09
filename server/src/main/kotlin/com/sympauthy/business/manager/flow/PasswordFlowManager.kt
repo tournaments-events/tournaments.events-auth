@@ -151,13 +151,6 @@ open class PasswordFlowManager(
         // Update the authorize attempt with the id of the user so they can retrieve their access token.
         authorizeManager.setAuthenticatedUserId(authorizeAttempt, user.id)
 
-        // Send validation codes to the user if required.
-        authorizationFlowManager.queueRequiredValidationCodes(
-            user = user,
-            authorizeAttempt = authorizeAttempt,
-            collectedClaims = collectedClaims
-        )
-
         return authorizationFlowManager.checkIfAuthorizationIsComplete(
             user = user,
             collectedClaims = collectedClaims

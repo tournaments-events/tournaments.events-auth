@@ -12,4 +12,8 @@ class FlowApiMapperFactory {
 
     @Singleton
     fun timeZoneResourceMapper(): TimeZoneResourceMapper = Mappers.getMapper(TimeZoneResourceMapper::class.java)
+
+    @Singleton
+    fun validationCodesResourceMapper(): ValidationCodesResourceMapper =
+        Mappers.getMapper(ValidationCodesResourceMapper::class.java)
 }

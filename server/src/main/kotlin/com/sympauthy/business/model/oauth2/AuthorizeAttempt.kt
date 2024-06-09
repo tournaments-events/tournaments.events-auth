@@ -1,5 +1,6 @@
 package com.sympauthy.business.model.oauth2
 
+import com.sympauthy.business.model.Expirable
 import java.time.LocalDateTime
 import java.util.*
 
@@ -60,7 +61,7 @@ data class AuthorizeAttempt(
      * When the authentication flow was initiated by the user.
      */
     val attemptDate: LocalDateTime,
-    val expirationDate: LocalDateTime
-) {
-    val expired: Boolean = expirationDate.isBefore(LocalDateTime.now())
+    override val expirationDate: LocalDateTime
+): Expirable {
+
 }

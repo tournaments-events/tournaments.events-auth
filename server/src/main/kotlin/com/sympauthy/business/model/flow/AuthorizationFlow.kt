@@ -30,11 +30,12 @@ class WebAuthorizationFlow(
      */
     val collectClaimsUri: URI,
     /**
-     * [URI] of the page in charge of collecting validation codes from the end-user.
+     * [URI] of the page in charge of collecting validation codes from the user to validate the claims that
+     * requires to be verified (ex. email).
      *
-     * This page will be presented during the authentication flow if one of the claims collected requires validation.
+     * This page will be skipped if none of the collected claims require validation.
      */
-    val validateCodeUri: URI,
+    val validateClaimsUri: URI,
     /**
      * [URI] of the page displaying an error to the end-user.
      */

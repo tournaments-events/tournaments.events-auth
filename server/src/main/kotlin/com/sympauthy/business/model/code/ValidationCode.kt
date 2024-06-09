@@ -1,5 +1,6 @@
 package com.sympauthy.business.model.code
 
+import com.sympauthy.business.model.Expirable
 import com.sympauthy.business.model.code.ValidationCodeMedia.EMAIL
 import com.sympauthy.business.model.user.claim.OpenIdClaim
 import java.time.LocalDateTime
@@ -10,6 +11,7 @@ import java.util.*
  * The [reasons] why we are sending the validation code to the end-user determine the [media] we are using.
  */
 class ValidationCode(
+    val id: UUID,
     /**
      * The validation code the end-user will have to enter.
      *
@@ -40,8 +42,8 @@ class ValidationCode(
 
     val creationDate: LocalDateTime,
     // FIXME val sentDate: LocalDateTime?, ???
-    val expirationDate: LocalDateTime
-)
+    override val expirationDate: LocalDateTime
+): Expirable
 
 /**
  * Enumeration of what we are trying to validation by using a validation code.

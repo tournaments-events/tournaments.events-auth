@@ -1,10 +1,6 @@
 package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.manager.user.CollectedClaimManager
-import com.sympauthy.business.manager.validationcode.ValidationCodeManager
-import com.sympauthy.business.model.code.ValidationCode
-import com.sympauthy.business.model.code.ValidationCodeReason
-import com.sympauthy.business.model.code.ValidationCodeReason.EMAIL_CLAIM
 import com.sympauthy.business.model.flow.AuthorizationFlow
 import com.sympauthy.business.model.flow.AuthorizationFlow.Companion.DEFAULT_AUTHORIZATION_FLOW_ID
 import com.sympauthy.business.model.flow.WebAuthorizationFlow
@@ -25,7 +21,7 @@ import jakarta.inject.Singleton
 @Singleton
 class AuthorizationFlowManager(
     @Inject private val collectedClaimManager: CollectedClaimManager,
-    @Inject private val validationCodeManager: ValidationCodeManager,
+    @Inject private val claimValidationManager: AuthorizationFlowClaimValidationManager,
     @Inject private val authorizationFlowsConfig: AuthorizationFlowsConfig,
     @Inject private val uncheckedUrlsConfig: UrlsConfig
 ) {
@@ -40,8 +36,8 @@ class AuthorizationFlowManager(
         WebAuthorizationFlow(
             id = DEFAULT_AUTHORIZATION_FLOW_ID,
             signInUri = builder.path("sign-in").build(),
-            collectClaimsUri = builder.path("collect-claims").build(),
-            validateCodeUri = builder.path("code").build(),
+            collectClaimsUri = builder.path("claims/edit").build(),
+            validateClaimsUri = builder.path("claims/validate").build(),
             errorUri = builder.path("error").build(),
         )
     }
@@ -70,50 +66,12 @@ class AuthorizationFlowManager(
         return flow
     }
 
-    /**
-     * Queue the sending of [ValidationCode]s to validate the [collectedClaims] listed.
-     */
-    suspend fun queueRequiredValidationCodes(
-        user: User,
-        authorizeAttempt: AuthorizeAttempt,
-        collectedClaims: List<CollectedClaim>
-    ): List<ValidationCode> {
-        val reasons = getRequiredValidationCodeReasons(
-            collectedClaims = collectedClaims
-        )
-        return if (reasons.isNotEmpty()) {
-            validationCodeManager.queueRequiredValidationCodes(
-                user = user,
-                authorizeAttempt = authorizeAttempt,
-                reasons = reasons,
-                collectedClaims = collectedClaims
-            )
-        } else emptyList()
-    }
-
-    /**
-     * Return the list of code validation type that must be sent to the end-user.
-     */
-    internal fun getRequiredValidationCodeReasons(
-        collectedClaims: List<CollectedClaim>
-    ): List<ValidationCodeReason> {
-        val reasons = mutableListOf<ValidationCodeReason>()
-
-        // Validate user email.
-        val emailClaim = collectedClaims.firstOrNull { it.claim.id == EMAIL_CLAIM.media.claim }
-        if (emailClaim != null && emailClaim.verified != true) {
-            reasons.add(EMAIL_CLAIM)
-        }
-
-        return reasons.filter { validationCodeManager.canSendValidationCodeForReason(it) }
-    }
-
     suspend fun checkIfAuthorizationIsComplete(
         user: User,
         collectedClaims: List<CollectedClaim>
     ): AuthorizationFlowResult {
         val missingRequiredClaims = !collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)
-        val missingValidation = getRequiredValidationCodeReasons(collectedClaims).isNotEmpty()
+        val missingValidation = claimValidationManager.getRequiredValidationCodeReasons(collectedClaims).isNotEmpty()
 
         return AuthorizationFlowResult(
             user = user,

@@ -60,7 +60,7 @@ class WebAuthorizationFlowRedirectUriBuilderTest {
         val rawValidateCodeUri = URI.create("https://www.example.com/code")
         val authorizeAttempt = mockk<AuthorizeAttempt>()
         val flow = mockk<WebAuthorizationFlow> {
-            every { validateCodeUri } returns rawValidateCodeUri
+            every { validateClaimsUri } returns rawValidateCodeUri
         }
         val flowResult = AuthorizationFlowResult(
             user = mockk(),

@@ -102,10 +102,10 @@ class AuthorizationFlowsConfigFactory(
             null
         }
 
-        val validateCodeUri = try {
+        val validateClaimsUri = try {
             getWebAuthenticationFlowUri(
-                properties, "$AUTHORIZATION_FLOWS_KEY.${properties.id}.validate-code", rootUri,
-                AuthorizationFlowConfigurationProperties::validateCode
+                properties, "$AUTHORIZATION_FLOWS_KEY.${properties.id}.validate-claims", rootUri,
+                AuthorizationFlowConfigurationProperties::validateClaims
             )
         } catch (e: ConfigurationException) {
             flowErrors.add(e)
@@ -127,7 +127,7 @@ class AuthorizationFlowsConfigFactory(
                 id = properties.id,
                 signInUri = signInUri!!,
                 collectClaimsUri = collectClaimsUri!!,
-                validateCodeUri = validateCodeUri!!,
+                validateClaimsUri = validateClaimsUri!!,
                 errorUri = errorUri!!
             )
         } else {

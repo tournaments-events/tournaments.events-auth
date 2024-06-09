@@ -3,6 +3,7 @@ package com.sympauthy.business.manager.user
 import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.mapper.CollectedClaimMapper
 import com.sympauthy.business.mapper.CollectedClaimUpdateMapper
+import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.CollectedClaimUpdate
 import com.sympauthy.business.model.user.User
@@ -24,6 +25,24 @@ open class CollectedClaimManager(
     @Inject private val collectedClaimMapper: CollectedClaimMapper,
     @Inject private val collectedClaimUpdateMapper: CollectedClaimUpdateMapper
 ) {
+
+    /**
+     * Return the list of [CollectedClaim] collected from the user associated to the [authorizeAttempt].
+     *
+     * Only the claims that are readable according to the client ([AuthorizeAttempt.clientId])
+     * and the requested scope ([AuthorizeAttempt.requestedScopes]) of the [authorizeAttempt] will be returned.
+     */
+    suspend fun findClaimsReadableByAttempt(
+        authorizeAttempt: AuthorizeAttempt
+    ): List<CollectedClaim> {
+        if (authorizeAttempt.userId == null) {
+            return emptyList()
+        }
+        return findReadableUserInfoByUserId(
+            userId = authorizeAttempt.userId,
+            scopes = authorizeAttempt.grantedScopes ?: authorizeAttempt.requestedScopes
+        )
+    }
 
     /**
      * Return the user info we have collected for the user identified by [userId].

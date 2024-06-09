@@ -15,7 +15,7 @@ class AuthorizationFlowConfigurationProperties(
     var root: String? = null
     var signIn: String? = null
     var collectClaims: String? = null
-    var validateCode: String? = null
+    var validateClaims: String? = null
     var error: String? = null
 
     companion object {

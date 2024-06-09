@@ -48,7 +48,7 @@ class WebAuthorizationFlowRedirectUriBuilder(
 
             result.missingValidation -> appendStateToUri(
                 authorizeAttempt = authorizeAttempt,
-                uri = flow.validateCodeUri
+                uri = flow.validateClaimsUri
             )
 
             result.complete -> getRedirectUriToClient(

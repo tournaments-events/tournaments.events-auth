@@ -138,6 +138,7 @@ CREATE TABLE authentication_tokens
 
 CREATE TABLE validation_codes
 (
+    id              uuid      NOT NULL DEFAULT gen_random_uuid(),
     code            text      NOT NULL,
 
     user_id         uuid      NOT NULL,
@@ -147,9 +148,12 @@ CREATE TABLE validation_codes
 
     creation_date   timestamp NOT NULL,
     expiration_date timestamp NOT NULL,
-    PRIMARY KEY (code),
+    PRIMARY KEY (id),
+    UNIQUE (attempt_id, code),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+CREATE INDEX validation_codes__attempt_id ON validation_codes (attempt_id) WHERE attempt_id IS NOT NULL;
 
 -- Cryptographic keys table
 

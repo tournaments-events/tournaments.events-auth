@@ -13,10 +13,13 @@ import com.sympauthy.util.loggerForClass
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import jakarta.transaction.Transactional
-import java.time.LocalDateTime
 
 /**
  * Component in charge of the generation of validation code that will be sent to the end-user.
+ *
+ * As the validation code are limited in scope to a single authorization flow, we do not need to enforce the
+ * uniqueness of the across all our users. The only case of collision is if the generator generates a code that
+ * was already sent to the user when the users ask to send another code.
  */
 @Singleton
 open class ValidationCodeGenerator(
@@ -30,17 +33,12 @@ open class ValidationCodeGenerator(
     @Transactional
     open suspend fun generateValidationCode(
         user: User,
+        authorizeAttempt: AuthorizeAttempt,
         media: ValidationCodeMedia,
-        reasons: List<ValidationCodeReason>,
-        authorizeAttempt: AuthorizeAttempt?
+        reasons: List<ValidationCodeReason>
     ): ValidationCode {
         var tryCount = 0
         var savedEntity: ValidationCodeEntity? = null
-
-        val expirationDate = when {
-            authorizeAttempt != null -> authorizeAttempt.expirationDate
-            else -> LocalDateTime.now().plusHours(1) // FIXME Allow to configure expiration date
-        }
 
         while (savedEntity == null && tryCount < MAX_ATTEMPTS) {
             try {
@@ -49,8 +47,8 @@ open class ValidationCodeGenerator(
                     userId = user.id,
                     media = media.name,
                     reasons = reasons.map(ValidationCodeReason::name).toTypedArray(),
-                    attemptId = authorizeAttempt?.id,
-                    expirationDate = expirationDate,
+                    attemptId = authorizeAttempt.id,
+                    expirationDate = authorizeAttempt.expirationDate,
                 )
                 savedEntity = validationCodeRepository.save(entity)
             } catch (e: Exception) {

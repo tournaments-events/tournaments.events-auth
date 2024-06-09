@@ -1,13 +1,8 @@
 package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.manager.user.CollectedClaimManager
-import com.sympauthy.business.manager.validationcode.ValidationCodeManager
-import com.sympauthy.business.model.code.ValidationCode
-import com.sympauthy.business.model.code.ValidationCodeReason
-import com.sympauthy.business.model.oauth2.AuthorizeAttempt
-import com.sympauthy.business.model.user.CollectedClaim
-import com.sympauthy.business.model.user.User
-import io.mockk.coEvery
+import com.sympauthy.config.model.AuthorizationFlowsConfig
+import com.sympauthy.config.model.UrlsConfig
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -15,7 +10,6 @@ import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -27,49 +21,22 @@ class AuthorizationFlowManagerTest {
     lateinit var collectedClaimManager: CollectedClaimManager
 
     @MockK
-    lateinit var validationCodeManager: ValidationCodeManager
+    lateinit var claimValidationManager: AuthorizationFlowClaimValidationManager
+
+    @MockK
+    lateinit var authorizationFlowsConfig: AuthorizationFlowsConfig
+
+    @MockK
+    lateinit var uncheckedUrlsConfig: UrlsConfig
 
     @SpyK
     @InjectMockKs
     lateinit var manager: AuthorizationFlowManager
 
     @Test
-    fun `queueRequiredValidationCodes - Queues validation codes`() = runTest {
-        val user = mockk<User>()
-        val authorizeAttempt = mockk<AuthorizeAttempt>()
-        val reasons = listOf(
-            ValidationCodeReason.EMAIL_CLAIM,
-            ValidationCodeReason.RESET_PASSWORD
-        )
-        val collectedClaims = listOf(
-            mockk<CollectedClaim>()
-        )
-        val validationCode = mockk<ValidationCode>()
-
-        every { manager.getRequiredValidationCodeReasons(collectedClaims) } returns reasons
-        coEvery {
-            validationCodeManager.queueRequiredValidationCodes(
-                user = user,
-                authorizeAttempt = authorizeAttempt,
-                reasons = reasons,
-                collectedClaims = collectedClaims
-            )
-        } returns listOf(validationCode)
-
-        val result = manager.queueRequiredValidationCodes(
-            user = user,
-            authorizeAttempt = authorizeAttempt,
-            collectedClaims = collectedClaims
-        )
-
-        assertEquals(1, result.count())
-        assertEquals(validationCode, result.getOrNull(0))
-    }
-
-    @Test
     fun `checkIfAuthorizationIsComplete - Non complete if missing claims`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns false
-        every { manager.getRequiredValidationCodeReasons(any()) } returns emptyList()
+        every { claimValidationManager.getRequiredValidationCodeReasons(any()) } returns emptyList()
 
         val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
@@ -79,7 +46,7 @@ class AuthorizationFlowManagerTest {
     @Test
     fun `checkIfAuthorizationIsComplete - Non complete if missing validation`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns true
-        every { manager.getRequiredValidationCodeReasons(any()) } returns listOf(mockk())
+        every { claimValidationManager.getRequiredValidationCodeReasons(any()) } returns listOf(mockk())
 
         val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
@@ -89,7 +56,7 @@ class AuthorizationFlowManagerTest {
     @Test
     fun `checkIfAuthorizationIsComplete - Complete`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns true
-        every { manager.getRequiredValidationCodeReasons(any()) } returns emptyList()
+        every { claimValidationManager.getRequiredValidationCodeReasons(any()) } returns emptyList()
 
         val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
