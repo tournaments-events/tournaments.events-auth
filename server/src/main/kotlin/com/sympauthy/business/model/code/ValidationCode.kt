@@ -2,6 +2,7 @@ package com.sympauthy.business.model.code
 
 import com.sympauthy.business.model.Expirable
 import com.sympauthy.business.model.code.ValidationCodeMedia.EMAIL
+import com.sympauthy.business.model.code.ValidationCodeMedia.SMS
 import com.sympauthy.business.model.user.claim.OpenIdClaim
 import java.time.LocalDateTime
 import java.util.*
@@ -55,6 +56,11 @@ enum class ValidationCodeReason(
      * A validation code has been sent by email to the end-user to verify its email claim.
      */
     EMAIL_CLAIM(EMAIL),
+
+    /**
+     * A validation code has been sent by SMS to the end-user to verify its phone number claim.
+     */
+    PHONE_NUMBER_CLAIM(SMS),
     RESET_PASSWORD(EMAIL),
 }
 
@@ -68,5 +74,6 @@ enum class ValidationCodeMedia(
      */
     val claim: String
 ) {
-    EMAIL(OpenIdClaim.EMAIL.id)
+    EMAIL(OpenIdClaim.EMAIL.id),
+    SMS(OpenIdClaim.PHONE_NUMBER.id)
 }

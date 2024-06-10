@@ -9,35 +9,17 @@ import io.swagger.v3.oas.annotations.media.Schema
 @Serdeable
 data class ValidationCodeResource(
     @get:Schema(
-        description = "The media used to send the code to the user."
+        description = "The media used to send the code to the user.",
+        example = "MAIL"
     )
-    val media: ValidationCodeMediaResource,
+    val media: String,
     @get:Schema(
-        description = "The list of reasons this code was send to the user."
-    )
-    val reasons: List<ValidationCodeReasonResource>
-)
-
-
-@Schema(
-    description = """
-Enumeration of media this authorization server can use to send validation code to the user:
-- ```EMAIL```
-"""
-)
-enum class ValidationCodeMediaResource {
-    EMAIL
-}
-
-@Schema(
-    description = """
-Enumeration of reason this authorization server send validation code to the user:
+        description = """
+The list of reasons this code was send to the user.
 - ```EMAIL_CLAIM```: Verify if the user has access to the email box he is pretending to own.
 - ```RESET_PASSWORD```: Verify the user has access to the email box associated to an existing account before 
   allowing him to reset its password.
 """
+    )
+    val reasons: List<String>
 )
-enum class ValidationCodeReasonResource {
-    EMAIL_CLAIM,
-    RESET_PASSWORD
-}
