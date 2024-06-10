@@ -33,6 +33,7 @@ scope-granting-rules:
       - anyUser
 
 ui:
+  display-name: SympAuthy
   mail:
     email-background-color: "#f3f3f5"
     primary-color: ""

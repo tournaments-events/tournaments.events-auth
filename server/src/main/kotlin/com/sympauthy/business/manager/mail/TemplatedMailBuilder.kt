@@ -76,7 +76,7 @@ class TemplatedMailBuilder(
     }
 
     internal fun localizeMessage(messageKey: String): String? {
-        return messageSource.getMessage(messageKey, locale).orElse(null)
+        return messageSource.getMessage(messageKey, locale, model).orElse(null)
     }
 
     companion object {

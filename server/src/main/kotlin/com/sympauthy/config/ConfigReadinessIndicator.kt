@@ -40,6 +40,7 @@ open class ConfigReadinessIndicator(
     @Inject private val featuresConfig: FeaturesConfig,
     @Inject private val passwordAuthConfig: PasswordAuthConfig,
     @Inject private val scopesConfig: ScopesConfig,
+    @Inject private val uiConfig: UIConfig,
     @Inject private val urlsConfig: UrlsConfig
 ) : HealthIndicator, ApplicationEventListener<ServiceReadyEvent> {
 
@@ -53,6 +54,7 @@ open class ConfigReadinessIndicator(
         featuresConfig,
         passwordAuthConfig,
         scopesConfig,
+        uiConfig,
         urlsConfig
     )
 

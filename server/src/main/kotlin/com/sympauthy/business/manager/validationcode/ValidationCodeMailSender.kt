@@ -7,6 +7,7 @@ import com.sympauthy.business.model.code.ValidationCodeMedia.EMAIL
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
 import com.sympauthy.config.model.FeaturesConfig
+import com.sympauthy.config.model.UIConfig
 import com.sympauthy.config.model.orThrow
 import io.micronaut.context.annotation.Requires
 import jakarta.inject.Inject
@@ -21,7 +22,8 @@ import java.util.*
 class ValidationCodeMailSender(
     @Inject private val mailBuilderFactory: TemplatedMailBuilderFactory,
     @Inject private val mailSender: MailSender,
-    @Inject private val uncheckedFeaturesConfig: FeaturesConfig
+    @Inject private val uncheckedFeaturesConfig: FeaturesConfig,
+    @Inject private val uncheckedUIConfig: UIConfig
 ) : ValidationCodeMediaSender {
 
     override val media = EMAIL
@@ -33,11 +35,13 @@ class ValidationCodeMailSender(
 
     override suspend fun sendValidationCode(
         user: User,
-        claim: CollectedClaim,
+        collectedClaim: CollectedClaim,
         validationCode: ValidationCode
     ) {
-        val email = claim.value?.toString()
-        if (claim.claim.id != media.claim || email.isNullOrBlank()) {
+        val uiConfig = uncheckedUIConfig.orThrow()
+
+        val email = collectedClaim.value?.toString()
+        if (collectedClaim.claim.id != media.claim || email.isNullOrBlank()) {
             throw IllegalArgumentException("${this::class.simpleName} requires a ${media.claim} claim as parameter.")
         }
 
@@ -49,9 +53,9 @@ class ValidationCodeMailSender(
                 receiver(email)
 
                 set("code", validationCode.code)
+                set("displayName", uiConfig.displayName)
+
                 localizedSubject("mail.validation_code.subject")
-                localizedTitle("mail.validation_code.title")
-                localizedPreviewText("mail.validation_code.preview_text")
             }
 
         // FIXME Launch in IO thread to avoid blocking
