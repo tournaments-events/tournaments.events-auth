@@ -59,7 +59,7 @@ jobs:
 
       - id: build
         name: Build & Push docker image for ${{ inputs.arch }}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: true
           context: .
