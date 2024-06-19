@@ -12,6 +12,9 @@ import java.util.*
  * The [reasons] why we are sending the validation code to the end-user determine the [media] we are using.
  */
 class ValidationCode(
+    /**
+     * Uniq identifier of the code.
+     */
     val id: UUID,
     /**
      * The validation code the end-user will have to enter.
@@ -42,9 +45,21 @@ class ValidationCode(
     val attemptId: UUID?,
 
     val creationDate: LocalDateTime,
+
+    /**
+     * The date at which this validation code can be resent to the user on explicit demand.
+     * If null, the validation code cannot be resent to the user.
+     */
+    val resendDate: LocalDateTime?,
+
+    /**
+     * The date when this authorization server received a matching code from the user.
+     */
+    val validationDate: LocalDateTime? = null,
+
     // FIXME val sentDate: LocalDateTime?, ???
     override val expirationDate: LocalDateTime
-): Expirable
+) : Expirable
 
 /**
  * Enumeration of what we are trying to validation by using a validation code.

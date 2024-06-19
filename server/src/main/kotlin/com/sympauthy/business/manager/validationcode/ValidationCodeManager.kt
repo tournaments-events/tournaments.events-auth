@@ -27,15 +27,20 @@ open class ValidationCodeManager(
      */
     suspend fun findCodeForReasonsDuringAttempt(
         authorizeAttempt: AuthorizeAttempt,
-        reasons: List<ValidationCodeReason>
+        reasons: List<ValidationCodeReason>,
+        includesExpired: Boolean = false
     ): List<ValidationCode> {
-        return validationCodeRepository
+        var sequence = validationCodeRepository
             .findByAttemptIdAndReasonsIn(
                 attemptId = authorizeAttempt.id,
                 reasons = reasons.map(ValidationCodeReason::name)
             )
+            .asSequence()
             .map(validationCodeMapper::toValidationCode)
-            .filterNot(ValidationCode::expired)
+        if (!includesExpired) {
+            sequence = sequence.filterNot(ValidationCode::expired)
+        }
+        return sequence.toList()
     }
 
     /**

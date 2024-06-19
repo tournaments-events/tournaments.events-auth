@@ -19,5 +19,15 @@ interface AuthorizeAttemptRepository : CoroutineCrudRepository<AuthorizeAttemptE
     )
     suspend fun findByCode(code: String): AuthorizeAttemptEntity?
 
+    @Query(
+        """
+        SELECT * FROM authorize_attempts
+        WHERE expiration_date < now() at time zone 'utc'
+        """
+    )
+    suspend fun findExpired(): List<AuthorizeAttemptEntity>
+
     suspend fun updateUserIdAndGrantedScopes(@Id id: UUID, userId: UUID, grantedScopes: List<String>?)
+
+    suspend fun deleteByIds(ids: List<UUID>): Int
 }

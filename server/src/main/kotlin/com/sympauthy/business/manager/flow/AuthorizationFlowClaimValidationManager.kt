@@ -3,8 +3,10 @@ package com.sympauthy.business.manager.flow
 import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.validationcode.ValidationCodeManager
 import com.sympauthy.business.model.code.ValidationCode
+import com.sympauthy.business.model.code.ValidationCodeMedia
 import com.sympauthy.business.model.code.ValidationCodeReason
 import com.sympauthy.business.model.code.ValidationCodeReason.EMAIL_CLAIM
+import com.sympauthy.business.model.code.ValidationCodeReason.PHONE_NUMBER_CLAIM
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
@@ -22,6 +24,13 @@ open class AuthorizationFlowClaimValidationManager(
     @Inject private val validationCodeManager: ValidationCodeManager,
 ) {
 
+
+    /**
+     * List of all [ValidationCodeReason] why this manager can send validation code to the user.
+     * The list also contain reasons which this authorization server is not able to send a validation code for.
+     */
+    val validationCodeReasons: List<ValidationCodeReason> = listOf(EMAIL_CLAIM, PHONE_NUMBER_CLAIM)
+
     /**
      * Return the list of reason why we must send validation code to the user.
      * The list will only contain reason which this authorization server is able to send a validation code for.
@@ -34,6 +43,10 @@ open class AuthorizationFlowClaimValidationManager(
             .filter { validationCodeManager.canSendValidationCodeForReason(it) }
     }
 
+    /**
+     * Return the list of reason why we must send validation code to the user.
+     * The list may contain reasons which this authorization server is not able to send a validation code for.
+     */
     internal fun getUnfilteredValidationCodeReasons(
         collectedClaims: List<CollectedClaim>
     ): List<ValidationCodeReason> {
@@ -64,7 +77,7 @@ open class AuthorizationFlowClaimValidationManager(
         )
 
         val existingCodes = validationCodeManager.findCodeForReasonsDuringAttempt(
-            authorizeAttempt  = authorizeAttempt,
+            authorizeAttempt = authorizeAttempt,
             reasons = reasons
         )
 
@@ -83,5 +96,18 @@ open class AuthorizationFlowClaimValidationManager(
             // No validation code to send to the user.
             emptyList()
         }
+    }
+
+    @Transactional
+    open suspend fun validateCode(
+        authorizeAttempt: AuthorizeAttempt,
+        media: ValidationCodeMedia,
+        code: String
+    ) {
+        val codes = validationCodeManager.findCodeForReasonsDuringAttempt(
+            authorizeAttempt = authorizeAttempt,
+            reasons = validationCodeReasons
+        )
+        // FIXME
     }
 }

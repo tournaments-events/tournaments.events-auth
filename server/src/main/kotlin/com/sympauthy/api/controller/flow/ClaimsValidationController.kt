@@ -1,6 +1,7 @@
 package com.sympauthy.api.controller.flow
 
 import com.sympauthy.api.mapper.flow.ValidationCodesResourceMapper
+import com.sympauthy.api.resource.flow.ClaimValidationFlowResultResource
 import com.sympauthy.api.resource.flow.ClaimsValidationResource
 import com.sympauthy.api.util.flow.FlowControllerHelper
 import com.sympauthy.business.manager.flow.AuthorizationFlowClaimValidationManager
@@ -58,8 +59,8 @@ receive the previous one.
     @Post
     suspend fun validate(
         authentication: Authentication,
-    ) {
-        TODO("FIXME")
+    ): ClaimValidationFlowResultResource {
+        return TODO("FIXME")
     }
 
     @Operation(

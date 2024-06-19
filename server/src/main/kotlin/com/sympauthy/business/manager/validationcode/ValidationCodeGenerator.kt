@@ -48,6 +48,7 @@ open class ValidationCodeGenerator(
                     media = media.name,
                     reasons = reasons.map(ValidationCodeReason::name).toTypedArray(),
                     attemptId = authorizeAttempt.id,
+                    resendDate = null, // FIXME
                     expirationDate = authorizeAttempt.expirationDate,
                 )
                 savedEntity = validationCodeRepository.save(entity)

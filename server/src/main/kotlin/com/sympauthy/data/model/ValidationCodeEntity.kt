@@ -17,6 +17,8 @@ class ValidationCodeEntity(
     val attemptId: UUID?,
 
     val creationDate: LocalDateTime = LocalDateTime.now(),
+    val resendDate: LocalDateTime?,
+    val validationDate: LocalDateTime? = null,
     val expirationDate: LocalDateTime
 ) {
     @Id @GeneratedValue

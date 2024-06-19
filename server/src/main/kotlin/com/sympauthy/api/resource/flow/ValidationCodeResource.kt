@@ -9,6 +9,11 @@ import io.swagger.v3.oas.annotations.media.Schema
 @Serdeable
 data class ValidationCodeResource(
     @get:Schema(
+        description = "Unique identifier of the code.",
+        example = "c6e88c2c-6a31-4478-b6f0-3a3ef981eb2b"
+    )
+    val id: String,
+    @get:Schema(
         description = "The media used to send the code to the user.",
         example = "MAIL"
     )

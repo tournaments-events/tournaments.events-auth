@@ -2,6 +2,8 @@
 # additional configurations.
 
 advanced:
+  authorization-flow:
+    expiration: 30m
   hash:
     block-size: 8
     cost-parameter: 16_384
@@ -13,6 +15,9 @@ advanced:
     private-alg: rs256
   keys-generation-strategy: autoincrement
   user-merging-strategy: by-mail
+  validation-code:
+    resend-delay: 1m
+    expiration: 10m
 
 auth:
   token:

@@ -5,6 +5,7 @@ CREATE TABLE users
     id            uuid      NOT NULL DEFAULT random_uuid(),
     status        text      NOT NULL,
     creation_date timestamp NOT NULL,
+
     PRIMARY KEY (id)
 );
 
@@ -16,6 +17,7 @@ CREATE TABLE collected_claims
     claim           text      NOT NULL,
     `value`         text,
     verified        boolean,
+
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id),
     UNIQUE (user_id, claim)
@@ -34,6 +36,7 @@ CREATE TABLE passwords
 
     creation_date   timestamp NOT NULL,
     expiration_date timestamp,
+
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
@@ -75,6 +78,7 @@ CREATE TABLE provider_user_info
     phone_number_verified boolean,
 
     updated_at            timestamp,
+
     PRIMARY KEY (provider_id, user_id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
@@ -100,6 +104,7 @@ CREATE TABLE authorize_attempts
 
     attempt_date          timestamp  NOT NULL,
     expiration_date       timestamp  NOT NULL,
+
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
@@ -112,6 +117,7 @@ CREATE TABLE authorization_codes
     code            text      NOT NULL,
     creation_date   timestamp NOT NULL,
     expiration_date timestamp NOT NULL,
+
     PRIMARY KEY (attempt_id),
     FOREIGN KEY (attempt_id) REFERENCES authorize_attempts (id)
 );
@@ -130,6 +136,7 @@ CREATE TABLE authentication_tokens
     revoked              boolean    NOT NULL,
     issue_date           timestamp  NOT NULL,
     expiration_date      timestamp,
+
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
@@ -142,15 +149,19 @@ CREATE TABLE validation_codes
     code            text       NOT NULL,
 
     user_id         uuid       NOT NULL,
-    attempt_id      uuid,
+    attempt_id      uuid       NOT NULL,
     media           text       NOT NULL,
     reasons         text array NOT NULL,
 
     creation_date   timestamp  NOT NULL,
+    resend_date     timestamp,
+    validation_date timestamp,
     expiration_date timestamp  NOT NULL,
+
     PRIMARY KEY (id),
     UNIQUE (attempt_id, code),
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (attempt_id) REFERENCES authorize_attempts (id)
 );
 
 CREATE INDEX validation_codes__attempt_id ON validation_codes (attempt_id);
@@ -169,6 +180,7 @@ CREATE TABLE crypto_keys
     private_key_format text      NOT NULL,
 
     creation_date      timestamp NOT NULL,
+
     PRIMARY KEY (name)
 );
 
@@ -185,6 +197,7 @@ CREATE TABLE indexed_crypto_keys
     private_key_format text      NOT NULL,
 
     creation_date      timestamp NOT NULL,
+
     PRIMARY KEY (name, index)
 );
 

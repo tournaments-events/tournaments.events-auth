@@ -12,4 +12,6 @@ interface ValidationCodeRepository : CoroutineCrudRepository<ValidationCodeEntit
     ): List<ValidationCodeEntity>
 
     suspend fun deleteByIds(ids: List<UUID>)
+
+    suspend fun deleteByAttemptIdIn(attemptIds: List<UUID>): Int
 }
