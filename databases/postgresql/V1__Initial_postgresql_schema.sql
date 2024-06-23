@@ -11,12 +11,13 @@ CREATE TABLE users
 
 CREATE TABLE collected_claims
 (
-    id              uuid      NOT NULL DEFAULT gen_random_uuid(),
-    user_id         uuid      NOT NULL,
-    collection_date timestamp NOT NULL,
-    claim           text      NOT NULL,
-    value           text,
-    verified        boolean,
+    id                uuid      NOT NULL DEFAULT gen_random_uuid(),
+    user_id           uuid      NOT NULL,
+    collection_date   timestamp NOT NULL,
+    claim             text      NOT NULL,
+    value             text,
+    verified          boolean,
+    verification_date timestamp,
 
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users (id),

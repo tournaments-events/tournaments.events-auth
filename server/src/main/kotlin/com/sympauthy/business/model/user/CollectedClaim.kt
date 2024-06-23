@@ -24,5 +24,10 @@ data class CollectedClaim(
      * null if the verification is not relevant for the claim.
      */
     val verified: Boolean?,
-    val collectionDate: LocalDateTime
+    val collectionDate: LocalDateTime,
+    /**
+     * When the value has been verified by this authorization server.
+     * null if the verification is not relevant for the claim or has not been verified yet.
+     */
+    val verificationDate: LocalDateTime?
 )

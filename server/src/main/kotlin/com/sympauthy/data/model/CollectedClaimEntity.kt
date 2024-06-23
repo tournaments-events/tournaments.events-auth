@@ -14,7 +14,8 @@ class CollectedClaimEntity(
     var claim: String,
     var value: String?,
     var verified: Boolean?,
-    var collectionDate: LocalDateTime
+    var collectionDate: LocalDateTime,
+    var verificationDate: LocalDateTime?
 ) {
     // This id has no real use, we should use a composed primary key here instead.
     // But since we cannot query on embedded key using Criteria API, we must keep everything flat...

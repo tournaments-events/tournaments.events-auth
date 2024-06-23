@@ -80,20 +80,20 @@ open class PasswordFlowManager(
         password: String?
     ): AuthorizationFlowResult {
         if (!signInEnabled) {
-            throw businessExceptionOf("password.flow.sign_in.disabled", recommendedStatus = HttpStatus.BAD_REQUEST)
+            throw businessExceptionOf("flow.password.sign_in.disabled", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
         if (login.isNullOrBlank() || password.isNullOrBlank()) {
-            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
+            throw businessExceptionOf("flow.password.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
 
         val user = findByLogin(login)
         // The user does not exist or has been created using a third-party provider.
         if (user == null || user.status != UserStatus.ENABLED) {
-            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
+            throw businessExceptionOf("flow.password.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
 
         if (!passwordManager.arePasswordMatching(user, password)) {
-            throw businessExceptionOf("password.flow.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
+            throw businessExceptionOf("flow.password.sign_in.invalid", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
 
         // Update the authorize attempt with the id of the user so they can retrieve their access token.
@@ -163,8 +163,8 @@ open class PasswordFlowManager(
             .firstOrNull()
         if (missingClaim != null) {
             throw businessExceptionOf(
-                detailsId = "password.flow.sign_up.missing_claim",
-                descriptionId = "password.flow.sign_up.missing_claim",
+                detailsId = "flow.password.sign_up.missing_claim",
+                descriptionId = "flow.password.sign_up.missing_claim",
                 recommendedStatus = HttpStatus.BAD_REQUEST,
                 "claim" to missingClaim.id
             )
@@ -184,7 +184,7 @@ open class PasswordFlowManager(
             .mapNotNull(claimValueMapper::toEntity)
         val existingCollectedClaims = collectedClaimRepository.findAnyClaimMatching(claimIds, values)
         if (existingCollectedClaims.isNotEmpty()) {
-            throw businessExceptionOf("password.flow.sign_up.existing", recommendedStatus = HttpStatus.BAD_REQUEST)
+            throw businessExceptionOf("flow.password.sign_up.existing", recommendedStatus = HttpStatus.BAD_REQUEST)
         }
     }
 }

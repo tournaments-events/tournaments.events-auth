@@ -178,4 +178,19 @@ open class CollectedClaimManager(
             }
         return collectedClaimRepository.saveAll(entitiesToCreate).toList()
     }
+
+    /**
+     * Mark the [claims] collected from the user validated.
+     */
+    suspend fun validateClaims(
+        userId: UUID,
+        claims: List<Claim>
+    ) {
+        claims.map(Claim::id).forEach {
+            collectedClaimRepository.updateClaimsToVerified(
+                userId = userId,
+                claim = it
+            )
+        }
+    }
 }

@@ -5,10 +5,12 @@ import com.sympauthy.business.mapper.ValidationCodeMapper
 import com.sympauthy.business.model.code.ValidationCode
 import com.sympauthy.business.model.code.ValidationCodeMedia.EMAIL
 import com.sympauthy.business.model.code.ValidationCodeReason.EMAIL_CLAIM
+import com.sympauthy.business.model.code.ValidationCodeReason.PHONE_NUMBER_CLAIM
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.claim.Claim
+import com.sympauthy.data.model.ValidationCodeEntity
 import com.sympauthy.data.repository.ValidationCodeRepository
 import io.mockk.coEvery
 import io.mockk.every
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class ValidationCodeManagerTest {
@@ -165,5 +168,84 @@ class ValidationCodeManagerTest {
                 collectedClaims = listOf()
             )
         }
+    }
+
+    @Test
+    fun `findCodeForReasonsDuringAttempt - Does not return non-matching reasons or expired`() = runTest {
+        val authorizeAttemptId = UUID.randomUUID()
+        val authorizeAttempt = mockk<AuthorizeAttempt> {
+            every { id } returns authorizeAttemptId
+        }
+        val expiredEntity = mockk<ValidationCodeEntity>()
+        val nonMatchingEntity = mockk<ValidationCodeEntity>()
+        val matchingEntity = mockk<ValidationCodeEntity>()
+        val expiredCode = mockk<ValidationCode> {
+            every { reasons } returns listOf(EMAIL_CLAIM)
+            every { expired } returns true
+        }
+        val matchingCode = mockk<ValidationCode> {
+            every { reasons } returns listOf(EMAIL_CLAIM)
+            every { expired } returns false
+        }
+        val nonMatchingCode = mockk<ValidationCode> {
+            every { reasons } returns listOf(PHONE_NUMBER_CLAIM)
+            every { expired } returns false
+        }
+
+        coEvery { validationCodeRepository.findByAttemptId(authorizeAttemptId) } returns listOf(
+            expiredEntity, nonMatchingEntity, matchingEntity
+        )
+        every { validationCodeMapper.toValidationCode(expiredEntity) } returns expiredCode
+        every { validationCodeMapper.toValidationCode(matchingEntity) } returns matchingCode
+        every { validationCodeMapper.toValidationCode(nonMatchingEntity) } returns nonMatchingCode
+
+        val result = manager.findCodeForReasonsDuringAttempt(
+            authorizeAttempt = authorizeAttempt,
+            reasons = listOf(EMAIL_CLAIM),
+            includesExpired = false
+        )
+
+        assertEquals(1, result.size)
+        assertSame(matchingCode, result.getOrNull(0))
+    }
+
+    @Test
+    fun `findCodeForReasonsDuringAttempt - Does not return non-matching reasons`() = runTest {
+        val authorizeAttemptId = UUID.randomUUID()
+        val authorizeAttempt = mockk<AuthorizeAttempt> {
+            every { id } returns authorizeAttemptId
+        }
+        val expiredEntity = mockk<ValidationCodeEntity>()
+        val nonMatchingEntity = mockk<ValidationCodeEntity>()
+        val matchingEntity = mockk<ValidationCodeEntity>()
+        val expiredCode = mockk<ValidationCode> {
+            every { reasons } returns listOf(EMAIL_CLAIM)
+            every { expired } returns true
+        }
+        val matchingCode = mockk<ValidationCode> {
+            every { reasons } returns listOf(EMAIL_CLAIM)
+            every { expired } returns false
+        }
+        val nonMatchingCode = mockk<ValidationCode> {
+            every { reasons } returns listOf(PHONE_NUMBER_CLAIM)
+            every { expired } returns false
+        }
+
+        coEvery { validationCodeRepository.findByAttemptId(authorizeAttemptId) } returns listOf(
+            expiredEntity, nonMatchingEntity, matchingEntity
+        )
+        every { validationCodeMapper.toValidationCode(expiredEntity) } returns expiredCode
+        every { validationCodeMapper.toValidationCode(matchingEntity) } returns matchingCode
+        every { validationCodeMapper.toValidationCode(nonMatchingEntity) } returns nonMatchingCode
+
+        val result = manager.findCodeForReasonsDuringAttempt(
+            authorizeAttempt = authorizeAttempt,
+            reasons = listOf(EMAIL_CLAIM),
+            includesExpired = true
+        )
+
+        assertEquals(2, result.size)
+        assertSame(expiredCode, result.getOrNull(0))
+        assertSame(matchingCode, result.getOrNull(1))
     }
 }

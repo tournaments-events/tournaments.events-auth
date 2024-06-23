@@ -31,12 +31,12 @@ open class ValidationCodeManager(
         includesExpired: Boolean = false
     ): List<ValidationCode> {
         var sequence = validationCodeRepository
-            .findByAttemptIdAndReasonsIn(
-                attemptId = authorizeAttempt.id,
-                reasons = reasons.map(ValidationCodeReason::name)
-            )
+            .findByAttemptId(attemptId = authorizeAttempt.id)
             .asSequence()
             .map(validationCodeMapper::toValidationCode)
+            .filter { entity ->
+                entity.reasons.any { reasons.contains(it) }
+            }
         if (!includesExpired) {
             sequence = sequence.filterNot(ValidationCode::expired)
         }

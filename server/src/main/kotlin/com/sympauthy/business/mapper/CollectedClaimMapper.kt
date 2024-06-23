@@ -31,7 +31,8 @@ abstract class CollectedClaimMapper {
             claim = claim,
             value = value,
             verified = entity.verified,
-            collectionDate = entity.collectionDate
+            collectionDate = entity.collectionDate,
+            verificationDate = entity.verificationDate
         )
     }
 }

@@ -1,12 +1,18 @@
 package com.sympauthy.api.controller.flow
 
-import com.sympauthy.api.mapper.flow.ValidationCodesResourceMapper
-import com.sympauthy.api.resource.flow.ClaimValidationFlowResultResource
+import com.sympauthy.api.mapper.flow.ClaimValidationResourceMapper
+import com.sympauthy.api.resource.flow.ClaimValidationInputResource
+import com.sympauthy.api.resource.flow.ClaimValidationResultResource
 import com.sympauthy.api.resource.flow.ClaimsValidationResource
 import com.sympauthy.api.util.flow.FlowControllerHelper
 import com.sympauthy.business.manager.flow.AuthorizationFlowClaimValidationManager
+import com.sympauthy.business.manager.flow.AuthorizationFlowManager
+import com.sympauthy.business.manager.flow.WebAuthorizationFlowRedirectUriBuilder
+import com.sympauthy.business.manager.user.CollectedClaimManager
+import com.sympauthy.business.model.code.ValidationCodeMedia
 import com.sympauthy.security.SecurityRule.HAS_VALID_STATE
 import com.sympauthy.security.authorizeAttempt
+import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
@@ -18,8 +24,11 @@ import jakarta.inject.Inject
 @Secured(HAS_VALID_STATE)
 @Controller("/api/v1/flow/claims/validation-codes")
 class ClaimsValidationController(
+    @Inject private val authorizationFlowManager: AuthorizationFlowManager,
     @Inject private val claimValidationManager: AuthorizationFlowClaimValidationManager,
-    @Inject private val resourceMapper: ValidationCodesResourceMapper,
+    @Inject private val collectedClaimManager: CollectedClaimManager,
+    @Inject private val resourceMapper: ClaimValidationResourceMapper,
+    @Inject private val redirectUriBuilder: WebAuthorizationFlowRedirectUriBuilder,
     @Inject private val flowControllerHelper: FlowControllerHelper
 ) {
 
@@ -59,8 +68,37 @@ receive the previous one.
     @Post
     suspend fun validate(
         authentication: Authentication,
-    ): ClaimValidationFlowResultResource {
-        return TODO("FIXME")
+        @Body inputResource: ClaimValidationInputResource
+    ): ClaimValidationResultResource {
+        val authorizeAttempt = authentication.authorizeAttempt
+        val user = flowControllerHelper.getUser(authentication)
+        val flow = authorizationFlowManager.verifyIsWebFlow(authorizeAttempt)
+
+        claimValidationManager.validateClaimsByCode(
+            authorizeAttempt = authorizeAttempt,
+            media = ValidationCodeMedia.valueOf(inputResource.media),
+            code = inputResource.code
+        )
+
+        val collectedClaims = collectedClaimManager.findClaimsReadableByAttempt(authorizeAttempt)
+        val result = authorizationFlowManager.checkIfAuthorizationIsComplete(
+            user = user,
+            collectedClaims = collectedClaims,
+        )
+        return if (result.missingValidation) {
+            val validationCodes = claimValidationManager.getOrSendValidationCodes(
+                authorizeAttempt = authorizeAttempt,
+                user = user
+            )
+            resourceMapper.toResultResource(validationCodes)
+        } else {
+            val redirectUri = redirectUriBuilder.getRedirectUri(
+                authorizeAttempt = authorizeAttempt,
+                flow = flow,
+                result = result
+            )
+            resourceMapper.toResultResource(redirectUri)
+        }
     }
 
     @Operation(
@@ -70,7 +108,7 @@ receive the previous one.
     )
     @Post("/resend")
     suspend fun resendValidationCode(
-        authentication: Authentication,
+        authentication: Authentication
     ) {
         TODO("FIXME")
     }

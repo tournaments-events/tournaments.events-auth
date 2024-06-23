@@ -1,5 +1,7 @@
 package com.sympauthy.business.manager.flow
 
+import com.sympauthy.business.exception.businessExceptionOf
+import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.validationcode.ValidationCodeManager
 import com.sympauthy.business.model.code.ValidationCode
@@ -10,6 +12,8 @@ import com.sympauthy.business.model.code.ValidationCodeReason.PHONE_NUMBER_CLAIM
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.CollectedClaim
 import com.sympauthy.business.model.user.User
+import com.sympauthy.business.model.user.claim.Claim
+import io.micronaut.http.HttpStatus.BAD_REQUEST
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import jakarta.transaction.Transactional
@@ -20,6 +24,7 @@ import kotlinx.coroutines.coroutineScope
  */
 @Singleton
 open class AuthorizationFlowClaimValidationManager(
+    @Inject private val claimManager: ClaimManager,
     @Inject private val collectedClaimManager: CollectedClaimManager,
     @Inject private val validationCodeManager: ValidationCodeManager,
 ) {
@@ -30,6 +35,17 @@ open class AuthorizationFlowClaimValidationManager(
      * The list also contain reasons which this authorization server is not able to send a validation code for.
      */
     val validationCodeReasons: List<ValidationCodeReason> = listOf(EMAIL_CLAIM, PHONE_NUMBER_CLAIM)
+
+    /**
+     * Return the claim validated by the [reason], null if the [reason] actually does not validate a claim.
+     */
+    fun getClaimValidatedBy(reason: ValidationCodeReason): Claim? {
+        val claimId = when (reason) {
+            EMAIL_CLAIM -> EMAIL_CLAIM.media.claim
+            else -> null
+        }
+        return claimId?.let(claimManager::findById)
+    }
 
     /**
      * Return the list of reason why we must send validation code to the user.
@@ -50,15 +66,12 @@ open class AuthorizationFlowClaimValidationManager(
     internal fun getUnfilteredValidationCodeReasons(
         collectedClaims: List<CollectedClaim>
     ): List<ValidationCodeReason> {
-        val reasons = mutableListOf<ValidationCodeReason>()
-
-        // Validate user email.
-        val emailClaim = collectedClaims.firstOrNull { it.claim.id == EMAIL_CLAIM.media.claim }
-        if (emailClaim != null && emailClaim.verified != true) {
-            reasons.add(EMAIL_CLAIM)
+        return validationCodeReasons.mapNotNull { reason ->
+            getClaimValidatedBy(reason)?.let { claim ->
+                val collectedClaim = collectedClaims.firstOrNull { it.claim.id == claim.id }
+                if (collectedClaim?.verified != true) reason else null
+            }
         }
-
-        return reasons
     }
 
     /**
@@ -99,15 +112,47 @@ open class AuthorizationFlowClaimValidationManager(
     }
 
     @Transactional
-    open suspend fun validateCode(
+    open suspend fun validateClaimsByCode(
         authorizeAttempt: AuthorizeAttempt,
         media: ValidationCodeMedia,
         code: String
     ) {
+        val validationCode = findCodeSendByMediaDuringAttempt(
+            authorizeAttempt = authorizeAttempt,
+            media = media
+        )
+
+        if (validationCode == null) {
+            return
+        }
+        if (validationCode.code != code) {
+            throw businessExceptionOf(
+                detailsId = "flow.claim_validation.invalid_code",
+                recommendedStatus = BAD_REQUEST
+            )
+        }
+
+        val claims = validationCode.reasons.mapNotNull(this::getClaimValidatedBy)
+        collectedClaimManager.validateClaims(
+            userId = authorizeAttempt.userId!!,
+            claims = claims
+        )
+    }
+
+    /**
+     * Return the code we have sent to the user to validate a claim using the provided [media] during the
+     * [authorizeAttempt].
+     *
+     * This method ignores return codes that have been sent for other reason like resetting user password, etc.
+     */
+    internal suspend fun findCodeSendByMediaDuringAttempt(
+        authorizeAttempt: AuthorizeAttempt,
+        media: ValidationCodeMedia
+    ): ValidationCode? {
         val codes = validationCodeManager.findCodeForReasonsDuringAttempt(
             authorizeAttempt = authorizeAttempt,
             reasons = validationCodeReasons
         )
-        // FIXME
+        return codes.firstOrNull { it.media == media }
     }
 }
