@@ -1,5 +1,6 @@
 package com.sympauthy.business.manager.flow
 
+import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.validationcode.ValidationCodeManager
 import com.sympauthy.business.model.code.ValidationCode
@@ -26,6 +27,9 @@ import org.junit.jupiter.api.extension.ExtendWith
 class AuthorizationFlowClaimValidationManagerTest {
 
     @MockK
+    lateinit var claimManager: ClaimManager
+
+    @MockK
     lateinit var collectedClaimManager: CollectedClaimManager
 
     @MockK
@@ -45,6 +49,9 @@ class AuthorizationFlowClaimValidationManagerTest {
             every { verified } returns false
         }
 
+        every { manager.validationCodeReasons } returns listOf(EMAIL_CLAIM)
+        every { manager.getClaimValidatedBy(EMAIL_CLAIM) } returns emailClaim
+
         val result = manager.getUnfilteredValidationCodeReasons(listOf(collectedClaim))
 
         assertTrue(result.contains(EMAIL_CLAIM))
@@ -59,6 +66,9 @@ class AuthorizationFlowClaimValidationManagerTest {
             every { claim } returns emailClaim
             every { verified } returns true
         }
+
+        every { manager.validationCodeReasons } returns listOf(EMAIL_CLAIM)
+        every { manager.getClaimValidatedBy(EMAIL_CLAIM) } returns emailClaim
 
         val result = manager.getUnfilteredValidationCodeReasons(listOf(collectedClaim))
 
