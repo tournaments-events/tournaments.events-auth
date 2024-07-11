@@ -29,12 +29,12 @@ open class AuthorizationFlowClaimValidationManager(
     @Inject private val validationCodeManager: ValidationCodeManager,
 ) {
 
-
     /**
      * List of all [ValidationCodeReason] why this manager can send validation code to the user.
      * The list also contain reasons which this authorization server is not able to send a validation code for.
      */
-    val validationCodeReasons: List<ValidationCodeReason> = listOf(EMAIL_CLAIM, PHONE_NUMBER_CLAIM)
+    val validationCodeReasons: List<ValidationCodeReason>
+        get() = listOf(EMAIL_CLAIM, PHONE_NUMBER_CLAIM)
 
     /**
      * Return the claim validated by the [reason], null if the [reason] actually does not validate a claim.
@@ -42,6 +42,7 @@ open class AuthorizationFlowClaimValidationManager(
     fun getClaimValidatedBy(reason: ValidationCodeReason): Claim? {
         val claimId = when (reason) {
             EMAIL_CLAIM -> EMAIL_CLAIM.media.claim
+            PHONE_NUMBER_CLAIM -> PHONE_NUMBER_CLAIM.media.claim
             else -> null
         }
         return claimId?.let(claimManager::findById)
@@ -111,28 +112,46 @@ open class AuthorizationFlowClaimValidationManager(
         }
     }
 
+    /**
+     * Resend the codes that were previously sent to this [user] during the [authorizeAttempt].
+     * Return the list of codes that have been resent.
+     *
+     * For a code to be resent using a given media, all previous code sent using this media must have passed
+     * their [ValidationCode.resendDate]. A null [ValidationCode.resendDate] correspond to a never expiring code.
+     */
+    fun resendValidationCodes(
+        authorizeAttempt: AuthorizeAttempt,
+        user: User
+    ): List<ValidationCode> {
+        return TODO()
+    }
+
     @Transactional
     open suspend fun validateClaimsByCode(
         authorizeAttempt: AuthorizeAttempt,
         media: ValidationCodeMedia,
         code: String
     ) {
-        val validationCode = findCodeSendByMediaDuringAttempt(
+        val validationCodes = findCodesSentDuringAttempt(
             authorizeAttempt = authorizeAttempt,
             media = media
         )
 
-        if (validationCode == null) {
-            return
-        }
-        if (validationCode.code != code) {
+        val matchingValidationCode = validationCodes.firstOrNull { it.code == code }
+        if (matchingValidationCode == null) {
             throw businessExceptionOf(
                 detailsId = "flow.claim_validation.invalid_code",
                 recommendedStatus = BAD_REQUEST
             )
         }
+        if (matchingValidationCode.expired) {
+            throw businessExceptionOf(
+                detailsId = "flow.claim_validation.expired_code",
+                recommendedStatus = BAD_REQUEST
+            )
+        }
 
-        val claims = validationCode.reasons.mapNotNull(this::getClaimValidatedBy)
+        val claims = matchingValidationCode.reasons.mapNotNull(this::getClaimValidatedBy)
         collectedClaimManager.validateClaims(
             userId = authorizeAttempt.userId!!,
             claims = claims
@@ -140,19 +159,24 @@ open class AuthorizationFlowClaimValidationManager(
     }
 
     /**
-     * Return the code we have sent to the user to validate a claim using the provided [media] during the
-     * [authorizeAttempt].
+     * Return the code we have sent to the user to validate a claim during the [authorizeAttempt].
+     * If a [media] is provided, it will only return codes send using this [media].
      *
      * This method ignores return codes that have been sent for other reason like resetting user password, etc.
      */
-    internal suspend fun findCodeSendByMediaDuringAttempt(
+    internal suspend fun findCodesSentDuringAttempt(
         authorizeAttempt: AuthorizeAttempt,
-        media: ValidationCodeMedia
-    ): ValidationCode? {
+        media: ValidationCodeMedia? = null
+    ): List<ValidationCode> {
         val codes = validationCodeManager.findCodeForReasonsDuringAttempt(
             authorizeAttempt = authorizeAttempt,
-            reasons = validationCodeReasons
+            reasons = validationCodeReasons,
+            includesExpired = true
         )
-        return codes.firstOrNull { it.media == media }
+        return if (media != null) {
+            codes.filter { it.media == media }
+        } else {
+            codes
+        }
     }
 }

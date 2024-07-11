@@ -2,8 +2,10 @@ package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.manager.ClaimManager
 import com.sympauthy.business.manager.user.CollectedClaimManager
+import com.sympauthy.business.manager.util.coAssertThrowsBusinessException
 import com.sympauthy.business.manager.validationcode.ValidationCodeManager
 import com.sympauthy.business.model.code.ValidationCode
+import com.sympauthy.business.model.code.ValidationCodeMedia
 import com.sympauthy.business.model.code.ValidationCodeReason.EMAIL_CLAIM
 import com.sympauthy.business.model.code.ValidationCodeReason.PHONE_NUMBER_CLAIM
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
@@ -22,6 +24,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class AuthorizationFlowClaimValidationManagerTest {
@@ -145,5 +148,85 @@ class AuthorizationFlowClaimValidationManagerTest {
         assertEquals(2, result.count())
         assertEquals(sentEmailValidationCode, result.getOrNull(0))
         assertEquals(sentPhoneNumberValidationCode, result.getOrNull(1))
+    }
+
+    @Test
+    fun `resendValidationCodes - `() {
+        TODO()
+    }
+
+    @Test
+    fun `validateClaimsByCode - Validate claims`() = runTest {
+        val attemptUserId = UUID.randomUUID()
+        val authorizeAttempt = mockk<AuthorizeAttempt> {
+            every { userId } returns attemptUserId
+        }
+        val media = ValidationCodeMedia.EMAIL
+        val reason = EMAIL_CLAIM
+        val validCode = "123456"
+        val validValidationCode = mockk<ValidationCode> {
+            every { code } returns validCode
+            every { reasons } returns listOf(reason)
+            every { expired } returns false
+        }
+        val emailClaim = mockk<Claim>()
+
+        coEvery {
+            manager.findCodesSentDuringAttempt(authorizeAttempt = authorizeAttempt, media = media)
+        } returns listOf(validValidationCode)
+        every { manager.getClaimValidatedBy(reason) } returns emailClaim
+        coEvery {
+            collectedClaimManager.validateClaims(userId = attemptUserId, claims = listOf(emailClaim))
+        } returns Unit
+
+        manager.validateClaimsByCode(
+            authorizeAttempt = authorizeAttempt,
+            media = media,
+            code = validCode,
+        )
+    }
+
+    @Test
+    fun `validateClaimsByCode - Invalid if no code is matching`() = runTest {
+        val authorizeAttempt = mockk<AuthorizeAttempt>()
+        val media = ValidationCodeMedia.EMAIL
+        val validValidationCode = mockk<ValidationCode> {
+            every { code } returns "123456"
+        }
+
+        coEvery {
+            manager.findCodesSentDuringAttempt(authorizeAttempt = authorizeAttempt, media = media)
+        } returns listOf(validValidationCode)
+
+        coAssertThrowsBusinessException("flow.claim_validation.invalid_code") {
+            manager.validateClaimsByCode(
+                authorizeAttempt = authorizeAttempt,
+                media = media,
+                code = "654321",
+            )
+        }
+    }
+
+    @Test
+    fun `validateClaimsByCode - Invalid if code is expired`() = runTest {
+        val authorizeAttempt = mockk<AuthorizeAttempt>()
+        val media = ValidationCodeMedia.EMAIL
+        val validCode = "123456"
+        val validValidationCode = mockk<ValidationCode> {
+            every { code } returns validCode
+            every { expired } returns true
+        }
+
+        coEvery {
+            manager.findCodesSentDuringAttempt(authorizeAttempt = authorizeAttempt, media = media)
+        } returns listOf(validValidationCode)
+
+        coAssertThrowsBusinessException("flow.claim_validation.expired_code") {
+            manager.validateClaimsByCode(
+                authorizeAttempt = authorizeAttempt,
+                media = media,
+                code = validCode,
+            )
+        }
     }
 }

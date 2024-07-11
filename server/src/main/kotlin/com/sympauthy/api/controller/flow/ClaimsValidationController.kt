@@ -3,6 +3,7 @@ package com.sympauthy.api.controller.flow
 import com.sympauthy.api.mapper.flow.ClaimsValidationFlowResultResourceMapper
 import com.sympauthy.api.resource.flow.ClaimValidationInputResource
 import com.sympauthy.api.resource.flow.ClaimsValidationFlowResultResource
+import com.sympauthy.api.resource.flow.ResendClaimsValidationCodesResultResource
 import com.sympauthy.api.util.flow.FlowControllerHelper
 import com.sympauthy.business.manager.flow.AuthorizationFlowClaimValidationManager
 import com.sympauthy.business.manager.flow.AuthorizationFlowManager
@@ -121,13 +122,26 @@ receive the previous one.
 
     @Operation(
         method = "Resend claim validation code",
-        description = "Resend a validation code to the user.",
+        description =
+"""
+Send new codes to validate the claims populated by the user earlier using their associated media.
+""",
         tags = ["flow"]
     )
     @Post("/resend")
-    suspend fun resendValidationCode(
+    suspend fun resendValidationCodes(
         authentication: Authentication
-    ) {
-        TODO("FIXME")
+    ): ResendClaimsValidationCodesResultResource {
+        val authorizeAttempt = authentication.authorizeAttempt
+        val user = flowControllerHelper.getUser(authentication)
+
+        val validationCodes = claimValidationManager.resendValidationCodes(
+            authorizeAttempt = authorizeAttempt,
+            user = user
+        )
+
+        return ResendClaimsValidationCodesResultResource(
+            codes = validationCodes.map(resourceMapper::toResource),
+        )
     }
 }
