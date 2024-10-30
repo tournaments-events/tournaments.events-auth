@@ -27,7 +27,7 @@ allprojects {
         set("mapStructVersion", "1.5.5.Final")
         set("javaJwtVersion", "4.4.0")
         set("jsonPathVersion", "2.9.0")
-        set("bouncyCastleVersion", "1.78.1")
+        set("bouncyCastleVersion", "1.79")
         set("freemarkerVersion", "2.3.33")
 
         // Test dependencies
