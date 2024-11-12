@@ -164,6 +164,46 @@ class AuthorizationFlowClaimValidationManagerTest {
     }
 
     @Test
+    fun `resendValidationCodes - Send new validation code if previous is expired`() = runTest {
+        val authorizeAttempt = mockk<AuthorizeAttempt>()
+        val user = mockk<User>()
+        val media = EMAIL
+        val expiredCode = mockk<ValidationCode>()
+        val refreshedCode = mockk<ValidationCode>()
+        val claims = emptyList<CollectedClaim>()
+
+        coEvery {
+            validationCodeManager.findLatestCodeSentByMediaDuringAttempt(
+                authorizeAttempt = authorizeAttempt,
+                media = media,
+                includesExpired = true,
+            )
+        } returns expiredCode
+        every { validationCodeManager.canBeRefreshed(expiredCode) } returns true
+        coEvery { collectedClaimManager.findClaimsReadableByAttempt(authorizeAttempt) } returns claims
+        coEvery {
+            validationCodeManager.refreshAndQueueValidationCode(
+                user = user,
+                authorizeAttempt = authorizeAttempt,
+                collectedClaims = claims,
+                validationCode = expiredCode,
+            )
+        } returns ValidationCodeManager.RefreshResult(
+            refreshed = true,
+            validationCode = refreshedCode,
+        )
+
+        val result = manager.resendValidationCode(
+            authorizeAttempt = authorizeAttempt,
+            user = user,
+            media = media,
+        )
+
+        assertTrue(result.resent)
+        assertSame(refreshedCode, result.validationCode)
+    }
+
+    @Test
     fun `resendValidationCodes - Do nothing if no code previously sent`() = runTest {
         val authorizeAttempt = mockk<AuthorizeAttempt>()
         val user = mockk<User>()
@@ -185,6 +225,32 @@ class AuthorizationFlowClaimValidationManagerTest {
 
         assertEquals(false, result.resent)
         assertNull(result.validationCode)
+    }
+
+    @Test
+    fun `resendValidationCodes - Do nothing if previous code is not refreshable`() = runTest {
+        val authorizeAttempt = mockk<AuthorizeAttempt>()
+        val user = mockk<User>()
+        val media = EMAIL
+        val existingCode = mockk<ValidationCode>()
+
+        coEvery {
+            validationCodeManager.findLatestCodeSentByMediaDuringAttempt(
+                authorizeAttempt = authorizeAttempt,
+                media = media,
+                includesExpired = true,
+            )
+        } returns existingCode
+        every { validationCodeManager.canBeRefreshed(existingCode) } returns false
+
+        val result = manager.resendValidationCode(
+            authorizeAttempt = authorizeAttempt,
+            user = user,
+            media = media,
+        )
+
+        assertEquals(false, result.resent)
+        assertSame(existingCode, result.validationCode)
     }
 
     @Test

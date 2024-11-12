@@ -147,7 +147,13 @@ open class AuthorizationFlowClaimValidationManager(
             authorizeAttempt = authorizeAttempt,
             media = media,
             includesExpired = true,
-        ) ?: return ResendResult(false, null)
+        )
+        if (existingCode == null || !validationCodeManager.canBeRefreshed(existingCode)) {
+            return ResendResult(
+                resent = false,
+                validationCode = existingCode,
+            )
+        }
 
         val collectedClaims = collectedClaimManager.findClaimsReadableByAttempt(
             authorizeAttempt = authorizeAttempt,
