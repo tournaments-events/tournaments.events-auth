@@ -5,11 +5,28 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @Serdeable
 @Schema(
-    description = "Result containing the new validation codes that have been sent to the user."
+    description = """
+Result of the resent operation on a claim validation code.
+"""
 )
 data class ResendClaimsValidationCodesResultResource(
+
     @get:Schema(
-        name = "List of new codes send to the user requiring validation."
+        description = "The media for which a new validation code has been asked.",
     )
-    val codes: List<ValidationCodeResource>? = null,
+    val media: String,
+
+    @get:Schema(
+        description = """
+Indicates whether this authorization server has sent a new validation code to the end-user or not.
+        """
+    )
+    val resent: Boolean,
+
+    @get:Schema(
+        description = """
+Information about the new validation code that has been sent to the end-user. Empty or absent if resent is false. 
+"""
+    )
+    val code: ValidationCodeResource? = null,
 )

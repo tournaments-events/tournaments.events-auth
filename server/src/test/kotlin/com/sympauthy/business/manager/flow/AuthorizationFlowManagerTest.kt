@@ -36,7 +36,7 @@ class AuthorizationFlowManagerTest {
     @Test
     fun `checkIfAuthorizationIsComplete - Non complete if missing claims`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns false
-        every { claimValidationManager.getRequiredValidationCodeReasons(any()) } returns emptyList()
+        every { claimValidationManager.getReasonsToSendValidationCode(any()) } returns emptyList()
 
         val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
@@ -46,7 +46,7 @@ class AuthorizationFlowManagerTest {
     @Test
     fun `checkIfAuthorizationIsComplete - Non complete if missing validation`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns true
-        every { claimValidationManager.getRequiredValidationCodeReasons(any()) } returns listOf(mockk())
+        every { claimValidationManager.getReasonsToSendValidationCode(any()) } returns listOf(mockk())
 
         val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
@@ -56,7 +56,7 @@ class AuthorizationFlowManagerTest {
     @Test
     fun `checkIfAuthorizationIsComplete - Complete`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns true
-        every { claimValidationManager.getRequiredValidationCodeReasons(any()) } returns emptyList()
+        every { claimValidationManager.getReasonsToSendValidationCode(any()) } returns emptyList()
 
         val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 

@@ -6,17 +6,19 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(
     description = """
-Result indicating if the user is expected to enter codes to validates its claims or if the user can continue the
-authorization flow.
+Result indicating if the user is expected to enter a code to validates some claims collected 
+or if the user can continue the authorization flow.
     """
 )
 @Serdeable
-data class ClaimsValidationFlowResultResource(
+data class SendValidationCodeOrGetFlowResultResource(
 
     @get:Schema(
-        name = "List of codes send to the user requiring validation."
+        name = "validation_code",
+        description = "Information about the validation code sent to the user by the authorization server.",
     )
-    val codes: List<ValidationCodeResource>? = null,
+    @get:JsonProperty("code")
+    val code: ValidationCodeResource? = null,
 
     @get:Schema(
         name = "redirect_url",

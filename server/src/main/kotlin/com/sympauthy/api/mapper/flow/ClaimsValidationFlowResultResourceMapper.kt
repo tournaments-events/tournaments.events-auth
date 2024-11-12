@@ -1,9 +1,11 @@
 package com.sympauthy.api.mapper.flow
 
 import com.sympauthy.api.mapper.config.OutputResourceMapperConfig
-import com.sympauthy.api.resource.flow.ClaimsValidationFlowResultResource
+import com.sympauthy.api.resource.flow.ResendClaimsValidationCodesResultResource
+import com.sympauthy.api.resource.flow.SendValidationCodeOrGetFlowResultResource
 import com.sympauthy.api.resource.flow.ValidationCodeResource
 import com.sympauthy.business.model.code.ValidationCode
+import com.sympauthy.business.model.code.ValidationCodeMedia
 import org.mapstruct.Mapper
 import java.net.URI
 
@@ -12,15 +14,27 @@ import java.net.URI
 )
 abstract class ClaimsValidationFlowResultResourceMapper {
 
-    fun toResource(validationCodes: List<ValidationCode>): ClaimsValidationFlowResultResource {
-        return ClaimsValidationFlowResultResource(
-            codes = validationCodes.map(this::toResource)
+    fun toFlowResultResource(validationCode: ValidationCode): SendValidationCodeOrGetFlowResultResource {
+        return SendValidationCodeOrGetFlowResultResource(
+            code = toResource(validationCode)
         )
     }
 
-    fun toResource(redirectUri: URI): ClaimsValidationFlowResultResource {
-        return ClaimsValidationFlowResultResource(
+    fun toFlowResultResource(redirectUri: URI): SendValidationCodeOrGetFlowResultResource {
+        return SendValidationCodeOrGetFlowResultResource(
             redirectUrl = redirectUri.toString()
+        )
+    }
+
+    fun toResendResultResource(
+        media: ValidationCodeMedia,
+        resent: Boolean,
+        newValidationCode: ValidationCode?
+    ): ResendClaimsValidationCodesResultResource {
+        return ResendClaimsValidationCodesResultResource(
+            media = media.name,
+            resent = resent,
+            code = newValidationCode?.let(this::toResource)
         )
     }
 

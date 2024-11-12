@@ -12,6 +12,7 @@ import com.sympauthy.exception.localizedExceptionOf
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import jakarta.transaction.Transactional
+import java.time.LocalDateTime
 
 @Singleton
 open class ValidationCodeManager(
@@ -44,6 +45,44 @@ open class ValidationCodeManager(
     }
 
     /**
+     * Return the list of [ValidationCode] generated during the [authorizeAttempt] and sent using the provided
+     * [media].
+     */
+    suspend fun findCodeSentByMediaDuringAttempt(
+        authorizeAttempt: AuthorizeAttempt,
+        media: ValidationCodeMedia,
+        includesExpired: Boolean = false
+    ): List<ValidationCode> {
+        var sequence = validationCodeRepository
+            .findByAttemptIdAndMedia(
+                attemptId = authorizeAttempt.id,
+                media = media.name
+            )
+            .asSequence()
+            .map(validationCodeMapper::toValidationCode)
+        if (!includesExpired) {
+            sequence = sequence.filterNot(ValidationCode::expired)
+        }
+        return sequence.toList()
+    }
+
+    /**
+     * Return the latest [ValidationCode] generated during the [authorizeAttempt] and sent using the provided
+     * [media].
+     */
+    internal suspend fun findLatestCodeSentByMediaDuringAttempt(
+        authorizeAttempt: AuthorizeAttempt,
+        media: ValidationCodeMedia,
+        includesExpired: Boolean = false
+    ): ValidationCode? {
+        return findCodeSentByMediaDuringAttempt(
+            authorizeAttempt = authorizeAttempt,
+            media = media,
+            includesExpired = includesExpired
+        ).maxBy(ValidationCode::creationDate)
+    }
+
+    /**
      * Return true if this authorization server can send validation code to the end-user for the provided [reason].
      * False otherwise.
      */
@@ -62,6 +101,13 @@ open class ValidationCodeManager(
         collectedClaims: List<CollectedClaim>,
         reasons: List<ValidationCodeReason>
     ): List<ValidationCode> {
+        if (user.id != authorizeAttempt.userId) {
+            throw IllegalArgumentException("The user (${user.id}) does not match the one in the authorizeAttempt (${authorizeAttempt.userId}).")
+        }
+        if (collectedClaims.any { it.userId != user.id }) {
+            throw IllegalArgumentException("One of the collectedClaims does not have a matching user (${user.id}).")
+        }
+
         val reasonsByMediaMap = reasons.groupBy(ValidationCodeReason::media)
 
         val senderByMediaMap = getSenderByMediaMap(
@@ -88,6 +134,72 @@ open class ValidationCodeManager(
         }
 
         return codes
+    }
+
+    /**
+     * Queue the sending of a new [ValidationCode] to refresh the provided [validationCode].
+     * The [RefreshResult] will contain the newly generated [ValidationCode].
+     *
+     * If the [validationCode] cannot be refreshed according to [canBeRefreshed] rules, then this method
+     * will not generate and send a new [ValidationCode]. The [RefreshResult] will contain the provided
+     * [validationCode].
+     */
+    open suspend fun refreshAndQueueValidationCode(
+        user: User,
+        authorizeAttempt: AuthorizeAttempt,
+        collectedClaims: List<CollectedClaim>,
+        validationCode: ValidationCode
+    ): RefreshResult {
+        if (validationCode.attemptId != authorizeAttempt.id) {
+            throw IllegalArgumentException("The authorizeAttempt (${authorizeAttempt.id}) does not match the one in the validationCode (${validationCode.attemptId}).")
+        }
+        if (user.id != authorizeAttempt.userId) {
+            throw IllegalArgumentException("The user (${user.id}) does not match the one in the authorizeAttempt (${authorizeAttempt.userId}).")
+        }
+        if (collectedClaims.any { it.userId != user.id }) {
+            throw IllegalArgumentException("One of the collectedClaims does not have a matching user (${user.id}).")
+        }
+
+        if (!canBeRefreshed(validationCode)) {
+            return RefreshResult(
+                refreshed = false,
+                validationCode = validationCode,
+            )
+        }
+
+        val newValidationCode = validationCodeGenerator.generateValidationCode(
+            user = user,
+            media = validationCode.media,
+            reasons = validationCode.reasons,
+            authorizeAttempt = authorizeAttempt
+        )
+
+        val senderByMediaMap = getSenderByMediaMap(
+            medias = setOf(validationCode.media),
+            collectedClaims = collectedClaims
+        )
+
+        val sender = senderByMediaMap[newValidationCode.media] ?: throw localizedExceptionOf(
+            "validationcode.missing_sender",
+            "media" to newValidationCode.code
+        )
+        sender.sender.sendValidationCode(
+            user = user,
+            collectedClaim = sender.collectedClaim,
+            validationCode = newValidationCode
+        )
+        return RefreshResult(
+            refreshed = true,
+            validationCode = newValidationCode,
+        )
+    }
+
+    /**
+     * Return true if on a demand to refresh of the validation code, this server should generate a new validation code
+     * or keep the provided [validationCode].
+     */
+    fun canBeRefreshed(validationCode: ValidationCode): Boolean {
+        return validationCode.expired || validationCode.resendDate?.isAfter(LocalDateTime.now()) == true
     }
 
     internal fun getSenderByMediaMap(
@@ -126,5 +238,17 @@ open class ValidationCodeManager(
         val media: ValidationCodeMedia,
         val sender: ValidationCodeMediaSender,
         val collectedClaim: CollectedClaim
+    )
+
+    data class RefreshResult(
+        /**
+         * True if a new [ValidationCode] has been generated and sent to the user.
+         */
+        val refreshed: Boolean,
+        /**
+         * The new [ValidationCode] generated and sent to the user if [refreshed] is true.
+         * Otherwise,the [ValidationCode] provided to the [refreshAndQueueValidationCode] method.
+         */
+        val validationCode: ValidationCode
     )
 }

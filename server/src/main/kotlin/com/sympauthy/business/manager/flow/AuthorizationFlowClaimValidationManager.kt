@@ -49,22 +49,25 @@ open class AuthorizationFlowClaimValidationManager(
     }
 
     /**
-     * Return the list of reason why we must send validation code to the user.
+     * Return the list of reason why the authorization server must send validation code to the user.
+     *
      * The list will only contain reason which this authorization server is able to send a validation code for.
      * ex. the authorization server cannot verify an email if there is no email sending solution configured.
      */
-    fun getRequiredValidationCodeReasons(
+    fun getReasonsToSendValidationCode(
         collectedClaims: List<CollectedClaim>
     ): List<ValidationCodeReason> {
-        return getUnfilteredValidationCodeReasons(collectedClaims)
+        return getUnfilteredReasonsToSendValidationCode(collectedClaims)
             .filter { validationCodeManager.canSendValidationCodeForReason(it) }
     }
 
     /**
-     * Return the list of reason why we must send validation code to the user.
-     * The list may contain reasons which this authorization server is not able to send a validation code for.
+     * Return the list of reason why the authorization server must send validation code to the user.
+     *
+     * The list may contain [ValidationCodeReason] which this authorization server is not able to send a validation code
+     * for.
      */
-    internal fun getUnfilteredValidationCodeReasons(
+    internal fun getUnfilteredReasonsToSendValidationCode(
         collectedClaims: List<CollectedClaim>
     ): List<ValidationCodeReason> {
         return validationCodeReasons.mapNotNull { reason ->
@@ -76,40 +79,55 @@ open class AuthorizationFlowClaimValidationManager(
     }
 
     /**
-     * Get the validation codes to validate the claims collected for the [user].
+     * Return the list of [ValidationCodeMedia] the authorization server must send validation code to,
+     * in order to validate of the [collectedClaims].
+     */
+    fun getMediaToSendValidationCodeTo(
+        collectedClaims: List<CollectedClaim>
+    ): List<ValidationCodeMedia> {
+        return getReasonsToSendValidationCode(collectedClaims)
+            .map { it.media }
+            .distinct()
+    }
+
+    /**
+     * Send a [ValidationCode] to the [user] using the provided [media] if necessary.
+     *
+     * This method will:
+     * - If there is no claim that require a validation, then this method returns null.
+     * - If a [ValidationCode] has been previously sent, then this method does not send a new code
+     * and return the latest generated [ValidationCode] (even if it is expired).
+     * - Otherwise, send a validation code to the [user] using the provided [media] to validate claims collected by this
+     * authorization server.
      */
     @Transactional
-    open suspend fun getOrSendValidationCodes(
+    open suspend fun getOrSendValidationCode(
         authorizeAttempt: AuthorizeAttempt,
-        user: User
-    ): List<ValidationCode> = coroutineScope {
+        user: User,
+        media: ValidationCodeMedia
+    ): ValidationCode? = coroutineScope {
         val collectedClaims = collectedClaimManager.findClaimsReadableByAttempt(
             authorizeAttempt = authorizeAttempt
         )
-        val reasons = getRequiredValidationCodeReasons(
+
+        val reasons = getReasonsToSendValidationCode(
             collectedClaims = collectedClaims
-        )
+        ).filter { it.media == media }
+        if (reasons.isEmpty()) return@coroutineScope null
 
-        val existingCodes = validationCodeManager.findCodeForReasonsDuringAttempt(
+        val existingCode = validationCodeManager.findLatestCodeSentByMediaDuringAttempt(
             authorizeAttempt = authorizeAttempt,
-            reasons = reasons
+            media = media,
+            includesExpired = true
         )
-
-        if (existingCodes.flatMap { it.reasons }.toSet() == reasons.toSet()) {
-            // Only in case of prefect match we will reuse the existing validation codes
-            existingCodes
-        } else if (reasons.isNotEmpty()) {
-            validationCodeManager.revokeValidationCodes(existingCodes)
+        if (existingCode == null) {
             validationCodeManager.queueRequiredValidationCodes(
                 user = user,
                 authorizeAttempt = authorizeAttempt,
                 reasons = reasons,
                 collectedClaims = collectedClaims
-            )
-        } else {
-            // No validation code to send to the user.
-            emptyList()
-        }
+            ).firstOrNull()
+        } else existingCode
     }
 
     /**
@@ -119,11 +137,32 @@ open class AuthorizationFlowClaimValidationManager(
      * For a code to be resent using a given media, all previous code sent using this media must have passed
      * their [ValidationCode.resendDate]. A null [ValidationCode.resendDate] correspond to a never expiring code.
      */
-    fun resendValidationCodes(
+    @Transactional
+    open suspend fun resendValidationCode(
         authorizeAttempt: AuthorizeAttempt,
-        user: User
-    ): List<ValidationCode> {
-        return TODO()
+        user: User,
+        media: ValidationCodeMedia
+    ): ResendResult {
+        val existingCode = validationCodeManager.findLatestCodeSentByMediaDuringAttempt(
+            authorizeAttempt = authorizeAttempt,
+            media = media,
+            includesExpired = true,
+        ) ?: return ResendResult(false, null)
+
+        val collectedClaims = collectedClaimManager.findClaimsReadableByAttempt(
+            authorizeAttempt = authorizeAttempt,
+        )
+
+        val result = validationCodeManager.refreshAndQueueValidationCode(
+            user = user,
+            authorizeAttempt = authorizeAttempt,
+            collectedClaims = collectedClaims,
+            validationCode = existingCode,
+        )
+        return ResendResult(
+            resent = result.refreshed,
+            validationCode = result.validationCode,
+        )
     }
 
     @Transactional
@@ -166,7 +205,7 @@ open class AuthorizationFlowClaimValidationManager(
      */
     internal suspend fun findCodesSentDuringAttempt(
         authorizeAttempt: AuthorizeAttempt,
-        media: ValidationCodeMedia? = null
+        media: ValidationCodeMedia? = null,
     ): List<ValidationCode> {
         val codes = validationCodeManager.findCodeForReasonsDuringAttempt(
             authorizeAttempt = authorizeAttempt,
@@ -179,4 +218,16 @@ open class AuthorizationFlowClaimValidationManager(
             codes
         }
     }
+
+    data class ResendResult(
+        /**
+         * True if a new [ValidationCode] has been generated and sent to the user.
+         */
+        val resent: Boolean,
+        /**
+         * The new [ValidationCode] generated and sent to the user if [resent] is true.
+         * Otherwise, the previous [ValidationCode] sent to the user if it exists.
+         */
+        val validationCode: ValidationCode?
+    )
 }

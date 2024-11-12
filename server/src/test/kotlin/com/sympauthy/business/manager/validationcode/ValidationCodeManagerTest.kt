@@ -12,13 +12,11 @@ import com.sympauthy.business.model.user.User
 import com.sympauthy.business.model.user.claim.Claim
 import com.sympauthy.data.model.ValidationCodeEntity
 import com.sympauthy.data.repository.ValidationCodeRepository
-import io.mockk.coEvery
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -91,12 +89,47 @@ class ValidationCodeManagerTest {
     }
 
     @Test
+    fun `getSenderByMediaMap - Throws exception if sender is missing`() {
+        val collectedEmailClaim = mockk<CollectedClaim> {}
+
+        assertThrowsLocalizedException("validationcode.missing_sender") {
+            manager.getSenderByMediaMap(
+                medias = setOf(EMAIL),
+                collectedClaims = listOf(collectedEmailClaim)
+            )
+        }
+    }
+
+    @Test
+    fun `getSenderByMediaMap - Throws exception if collected claim is missing`() {
+        val sender = mockk<ValidationCodeMediaSender> {
+            every { media } returns EMAIL
+        }
+
+        senders.add(sender)
+
+        assertThrowsLocalizedException("validationcode.missing_claim") {
+            manager.getSenderByMediaMap(
+                medias = setOf(EMAIL),
+                collectedClaims = listOf()
+            )
+        }
+    }
+
+    @Test
     fun `queueRequiredValidationCodes - Generate codes for each reasons and send them through associated medias`() =
         runTest {
             val reason = EMAIL_CLAIM
-            val user = mockk<User>()
-            val authorizeAttempt = mockk<AuthorizeAttempt>()
-            val collectedClaim = mockk<CollectedClaim>()
+            val mockUserId = UUID.randomUUID()
+            val user = mockk<User> {
+                every { id } returns mockUserId
+            }
+            val authorizeAttempt = mockk<AuthorizeAttempt> {
+                every { userId } returns mockUserId
+            }
+            val collectedClaim = mockk<CollectedClaim> {
+                every { userId } returns mockUserId
+            }
             val sender = mockk<ValidationCodeMediaSender> {
                 every { media } returns EMAIL
             }
@@ -141,34 +174,6 @@ class ValidationCodeManagerTest {
             assertEquals(1, result.size)
             assertTrue(result.contains(validationCode))
         }
-
-    @Test
-    fun `getSenderByMediaMap - Throws exception if sender is missing`() {
-        val collectedEmailClaim = mockk<CollectedClaim> {}
-
-        assertThrowsLocalizedException("validationcode.missing_sender") {
-            manager.getSenderByMediaMap(
-                medias = setOf(EMAIL),
-                collectedClaims = listOf(collectedEmailClaim)
-            )
-        }
-    }
-
-    @Test
-    fun `getSenderByMediaMap - Throws exception if collected claim is missing`() {
-        val sender = mockk<ValidationCodeMediaSender> {
-            every { media } returns EMAIL
-        }
-
-        senders.add(sender)
-
-        assertThrowsLocalizedException("validationcode.missing_claim") {
-            manager.getSenderByMediaMap(
-                medias = setOf(EMAIL),
-                collectedClaims = listOf()
-            )
-        }
-    }
 
     @Test
     fun `findCodeForReasonsDuringAttempt - Does not return non-matching reasons or expired`() = runTest {
@@ -247,5 +252,66 @@ class ValidationCodeManagerTest {
         assertEquals(2, result.size)
         assertSame(expiredCode, result.getOrNull(0))
         assertSame(matchingCode, result.getOrNull(1))
+    }
+
+    @Test
+    fun `findCodeForReasonsDuringAttempt - Does not include expired`() = runTest {
+        val authorizeAttemptId = UUID.randomUUID()
+        val authorizeAttempt = mockk<AuthorizeAttempt> {
+            every { id } returns authorizeAttemptId
+        }
+        val media = EMAIL
+        val validCodeEntity = mockk<ValidationCodeEntity>()
+        val validCode = mockk<ValidationCode> {
+            every { expired } returns false
+        }
+        val expiredCodeEntity = mockk<ValidationCodeEntity>()
+        val expiredCode = mockk<ValidationCode> {
+            every { expired } returns true
+        }
+
+        coEvery { validationCodeRepository.findByAttemptIdAndMedia(authorizeAttemptId, media.name) } returns listOf(
+            validCodeEntity, expiredCodeEntity
+        )
+        every { validationCodeMapper.toValidationCode(validCodeEntity) } returns validCode
+        every { validationCodeMapper.toValidationCode(expiredCodeEntity) } returns expiredCode
+
+        val result = manager.findCodeSentByMediaDuringAttempt(
+            authorizeAttempt = authorizeAttempt,
+            media = media,
+            includesExpired = false,
+        )
+
+        assertEquals(1, result.size)
+        assertSame(validCode, result.getOrNull(0))
+    }
+
+    @Test
+    fun `refreshAndQueueValidationCode - Do nothing if validation is not refreshable`() = runTest {
+        val mockUserId = UUID.randomUUID()
+        val user = mockk<User> {
+            every { id } returns mockUserId
+        }
+        val mockAttemptId = UUID.randomUUID()
+        val attempt = mockk<AuthorizeAttempt> {
+            every { id } returns mockAttemptId
+            every { userId } returns mockUserId
+        }
+        val validationCode = mockk<ValidationCode> {
+            every { attemptId } returns mockAttemptId
+        }
+
+        every { manager.canBeRefreshed(validationCode) } returns false
+
+        val result = manager.refreshAndQueueValidationCode(
+            user = user,
+            authorizeAttempt = attempt,
+            collectedClaims = emptyList(),
+            validationCode = validationCode,
+        )
+
+        assertFalse(result.refreshed)
+        assertSame(validationCode, result.validationCode)
+        coVerify(exactly = 0) { validationCodeGenerator.generateValidationCode(mockk(), mockk(), mockk(), mockk()) }
     }
 }

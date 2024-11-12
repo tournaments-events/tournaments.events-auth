@@ -8,6 +8,8 @@ interface ValidationCodeRepository : CoroutineCrudRepository<ValidationCodeEntit
 
     suspend fun findByAttemptId(attemptId: UUID): List<ValidationCodeEntity>
 
+    suspend fun findByAttemptIdAndMedia(attemptId: UUID, media: String): List<ValidationCodeEntity>
+
     suspend fun deleteByIds(ids: List<UUID>)
 
     suspend fun deleteByAttemptIdIn(attemptIds: List<UUID>): Int

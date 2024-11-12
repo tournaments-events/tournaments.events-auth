@@ -5,7 +5,7 @@ import com.sympauthy.business.manager.user.CollectedClaimManager
 import com.sympauthy.business.manager.util.coAssertThrowsBusinessException
 import com.sympauthy.business.manager.validationcode.ValidationCodeManager
 import com.sympauthy.business.model.code.ValidationCode
-import com.sympauthy.business.model.code.ValidationCodeMedia
+import com.sympauthy.business.model.code.ValidationCodeMedia.EMAIL
 import com.sympauthy.business.model.code.ValidationCodeReason.EMAIL_CLAIM
 import com.sympauthy.business.model.code.ValidationCodeReason.PHONE_NUMBER_CLAIM
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
@@ -43,7 +43,7 @@ class AuthorizationFlowClaimValidationManagerTest {
     lateinit var manager: AuthorizationFlowClaimValidationManager
 
     @Test
-    fun `getUnfilteredValidationCodeReasons - Verify email`() {
+    fun `getUnfilteredReasonsToSendValidationCode - Verify email`() {
         val emailClaim = mockk<Claim> {
             every { id } returns OpenIdClaim.EMAIL.id
         }
@@ -55,13 +55,13 @@ class AuthorizationFlowClaimValidationManagerTest {
         every { manager.validationCodeReasons } returns listOf(EMAIL_CLAIM)
         every { manager.getClaimValidatedBy(EMAIL_CLAIM) } returns emailClaim
 
-        val result = manager.getUnfilteredValidationCodeReasons(listOf(collectedClaim))
+        val result = manager.getUnfilteredReasonsToSendValidationCode(listOf(collectedClaim))
 
         assertTrue(result.contains(EMAIL_CLAIM))
     }
 
     @Test
-    fun `getUnfilteredValidationCodeReasons - Do not verify email if claim already verified`() {
+    fun `getUnfilteredReasonsToSendValidationCode - Do not verify email if claim already verified`() {
         val emailClaim = mockk<Claim> {
             every { id } returns OpenIdClaim.EMAIL.id
         }
@@ -73,86 +73,118 @@ class AuthorizationFlowClaimValidationManagerTest {
         every { manager.validationCodeReasons } returns listOf(EMAIL_CLAIM)
         every { manager.getClaimValidatedBy(EMAIL_CLAIM) } returns emailClaim
 
-        val result = manager.getUnfilteredValidationCodeReasons(listOf(collectedClaim))
+        val result = manager.getUnfilteredReasonsToSendValidationCode(listOf(collectedClaim))
 
         assertFalse(result.contains(EMAIL_CLAIM))
     }
 
     @Test
-    fun `getOrSendValidationCodes - Return existing codes if no additional reasons`() = runTest {
+    fun `getOrSendValidationCodes - Send code to media`() = runTest {
         val user = mockk<User>()
         val authorizeAttempt = mockk<AuthorizeAttempt>()
+        val media = EMAIL
         val collectedClaims = listOf(mockk<CollectedClaim>())
-        val existingValidationCode = mockk<ValidationCode> {
-            every { reasons } returns listOf(EMAIL_CLAIM)
-        }
+        val reasons = listOf(EMAIL_CLAIM)
+        val validationCode = mockk<ValidationCode>()
 
         coEvery { collectedClaimManager.findClaimsReadableByAttempt(authorizeAttempt) } returns collectedClaims
-        every { manager.getRequiredValidationCodeReasons(collectedClaims) } returns listOf(EMAIL_CLAIM)
+        every { manager.getReasonsToSendValidationCode(collectedClaims) } returns reasons
         coEvery {
-            validationCodeManager.findCodeForReasonsDuringAttempt(
+            validationCodeManager.findLatestCodeSentByMediaDuringAttempt(
                 authorizeAttempt = authorizeAttempt,
-                reasons = listOf(EMAIL_CLAIM)
+                media = media,
+                includesExpired = true,
             )
-        } returns listOf(existingValidationCode)
-
-        val result = manager.getOrSendValidationCodes(
-            authorizeAttempt = authorizeAttempt,
-            user = user,
-        )
-
-        assertEquals(1, result.count())
-        assertEquals(existingValidationCode, result.getOrNull(0))
-    }
-
-    @Test
-    fun `getOrSendValidationCodes - Revoke existing codes and send validation codes for reasons`() = runTest {
-        val user = mockk<User>()
-        val authorizeAttempt = mockk<AuthorizeAttempt>()
-        val collectedClaims = listOf(mockk<CollectedClaim>())
-        val existingValidationCode = mockk<ValidationCode> {
-            every { reasons } returns listOf(EMAIL_CLAIM)
-        }
-        val sentEmailValidationCode = mockk<ValidationCode> {
-            every { reasons } returns listOf(EMAIL_CLAIM)
-        }
-        val sentPhoneNumberValidationCode = mockk<ValidationCode> {
-            every { reasons } returns listOf(PHONE_NUMBER_CLAIM)
-        }
-
-        coEvery { collectedClaimManager.findClaimsReadableByAttempt(authorizeAttempt) } returns collectedClaims
-        every {
-            manager.getRequiredValidationCodeReasons(collectedClaims)
-        } returns listOf(EMAIL_CLAIM, PHONE_NUMBER_CLAIM)
-        coEvery {
-            validationCodeManager.findCodeForReasonsDuringAttempt(
-                authorizeAttempt = authorizeAttempt,
-                reasons = listOf(EMAIL_CLAIM, PHONE_NUMBER_CLAIM)
-            )
-        } returns listOf(existingValidationCode)
-        coEvery { validationCodeManager.revokeValidationCodes(listOf(existingValidationCode)) } returns Unit
+        } returns null
         coEvery {
             validationCodeManager.queueRequiredValidationCodes(
                 user = user,
                 authorizeAttempt = authorizeAttempt,
                 collectedClaims = collectedClaims,
-                reasons = listOf(EMAIL_CLAIM, PHONE_NUMBER_CLAIM)
+                reasons = reasons,
             )
-        } returns listOf(sentEmailValidationCode, sentPhoneNumberValidationCode)
+        } returns listOf(validationCode)
 
-        val result = manager.getOrSendValidationCodes(
+        val result = manager.getOrSendValidationCode(
             authorizeAttempt = authorizeAttempt,
             user = user,
+            media = media,
         )
 
-        assertEquals(2, result.count())
-        assertEquals(sentEmailValidationCode, result.getOrNull(0))
-        assertEquals(sentPhoneNumberValidationCode, result.getOrNull(1))
+        assertSame(validationCode, result)
     }
 
     @Test
-    fun `resendValidationCodes - `() {
-        TODO()
+    fun `getOrSendValidationCodes - Return existing code`() = runTest {
+        val user = mockk<User>()
+        val authorizeAttempt = mockk<AuthorizeAttempt>()
+        val media = EMAIL
+        val collectedClaims = listOf(mockk<CollectedClaim>())
+        val existingValidationCode = mockk<ValidationCode> {
+            every { reasons } returns listOf(EMAIL_CLAIM)
+        }
+
+        coEvery { collectedClaimManager.findClaimsReadableByAttempt(authorizeAttempt) } returns collectedClaims
+        every { manager.getReasonsToSendValidationCode(collectedClaims) } returns listOf(EMAIL_CLAIM)
+        coEvery {
+            validationCodeManager.findLatestCodeSentByMediaDuringAttempt(
+                authorizeAttempt = authorizeAttempt,
+                media = media,
+                includesExpired = true,
+            )
+        } returns existingValidationCode
+
+        val result = manager.getOrSendValidationCode(
+            authorizeAttempt = authorizeAttempt,
+            user = user,
+            media = media,
+        )
+
+        assertEquals(existingValidationCode, result)
+    }
+
+    @Test
+    fun `getOrSendValidationCodes - Return null if no reason to send code to media`() = runTest {
+        val user = mockk<User>()
+        val authorizeAttempt = mockk<AuthorizeAttempt>()
+        val media = EMAIL
+        val collectedClaims = listOf(mockk<CollectedClaim>())
+        val reasons = listOf(PHONE_NUMBER_CLAIM)
+
+        coEvery { collectedClaimManager.findClaimsReadableByAttempt(authorizeAttempt) } returns collectedClaims
+        every { manager.getReasonsToSendValidationCode(collectedClaims) } returns reasons
+
+        val result = manager.getOrSendValidationCode(
+            authorizeAttempt = authorizeAttempt,
+            user = user,
+            media = media,
+        )
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `resendValidationCodes - Do nothing if no code previously sent`() = runTest {
+        val authorizeAttempt = mockk<AuthorizeAttempt>()
+        val user = mockk<User>()
+        val media = EMAIL
+
+        coEvery {
+            validationCodeManager.findLatestCodeSentByMediaDuringAttempt(
+                authorizeAttempt = authorizeAttempt,
+                media = media,
+                includesExpired = true,
+            )
+        } returns null
+
+        val result = manager.resendValidationCode(
+            authorizeAttempt = authorizeAttempt,
+            user = user,
+            media = media,
+        )
+
+        assertEquals(false, result.resent)
+        assertNull(result.validationCode)
     }
 
     @Test
@@ -161,7 +193,7 @@ class AuthorizationFlowClaimValidationManagerTest {
         val authorizeAttempt = mockk<AuthorizeAttempt> {
             every { userId } returns attemptUserId
         }
-        val media = ValidationCodeMedia.EMAIL
+        val media = EMAIL
         val reason = EMAIL_CLAIM
         val validCode = "123456"
         val validValidationCode = mockk<ValidationCode> {
@@ -189,7 +221,7 @@ class AuthorizationFlowClaimValidationManagerTest {
     @Test
     fun `validateClaimsByCode - Invalid if no code is matching`() = runTest {
         val authorizeAttempt = mockk<AuthorizeAttempt>()
-        val media = ValidationCodeMedia.EMAIL
+        val media = EMAIL
         val validValidationCode = mockk<ValidationCode> {
             every { code } returns "123456"
         }
@@ -210,7 +242,7 @@ class AuthorizationFlowClaimValidationManagerTest {
     @Test
     fun `validateClaimsByCode - Invalid if code is expired`() = runTest {
         val authorizeAttempt = mockk<AuthorizeAttempt>()
-        val media = ValidationCodeMedia.EMAIL
+        val media = EMAIL
         val validCode = "123456"
         val validValidationCode = mockk<ValidationCode> {
             every { code } returns validCode

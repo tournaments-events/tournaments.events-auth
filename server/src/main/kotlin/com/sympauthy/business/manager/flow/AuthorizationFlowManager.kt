@@ -71,7 +71,7 @@ class AuthorizationFlowManager(
         collectedClaims: List<CollectedClaim>
     ): AuthorizationFlowResult {
         val missingRequiredClaims = !collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)
-        val missingValidation = claimValidationManager.getRequiredValidationCodeReasons(collectedClaims).isNotEmpty()
+        val missingValidation = claimValidationManager.getReasonsToSendValidationCode(collectedClaims).isNotEmpty()
 
         return AuthorizationFlowResult(
             user = user,
