@@ -1,6 +1,6 @@
 buildscript {
     val kotlinVersion = project.findProperty("kotlinVersion")
-    val micronautVersion = project.findProperty("micronautVersion")
+    val micronautPluginVersion = project.findProperty("micronautPluginVersion")
 
     repositories {
         gradlePluginPortal()
@@ -11,7 +11,7 @@ buildscript {
         classpath("org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:$kotlinVersion")
         classpath("org.jetbrains.kotlin.plugin.allopen:org.jetbrains.kotlin.plugin.allopen.gradle.plugin:$kotlinVersion")
         classpath("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:$kotlinVersion-1.0.27")
-        classpath("io.micronaut.gradle:micronaut-gradle-plugin:$micronautVersion")
+        classpath("io.micronaut.gradle:micronaut-gradle-plugin:$micronautPluginVersion")
     }
 }
 

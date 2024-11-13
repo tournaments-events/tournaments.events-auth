@@ -1,6 +1,8 @@
 package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.manager.user.CollectedClaimManager
+import com.sympauthy.business.model.code.ValidationCodeMedia
+import com.sympauthy.business.model.code.ValidationCodeReason
 import com.sympauthy.business.model.flow.AuthorizationFlow
 import com.sympauthy.business.model.flow.AuthorizationFlow.Companion.DEFAULT_AUTHORIZATION_FLOW_ID
 import com.sympauthy.business.model.flow.WebAuthorizationFlow
@@ -71,12 +73,14 @@ class AuthorizationFlowManager(
         collectedClaims: List<CollectedClaim>
     ): AuthorizationFlowResult {
         val missingRequiredClaims = !collectedClaimManager.areAllRequiredClaimCollected(collectedClaims)
-        val missingValidation = claimValidationManager.getReasonsToSendValidationCode(collectedClaims).isNotEmpty()
+        val missingMediaForClaimValidation = claimValidationManager.getReasonsToSendValidationCode(collectedClaims)
+            .map(ValidationCodeReason::media)
+            .distinct()
 
         return AuthorizationFlowResult(
             user = user,
             missingRequiredClaims = missingRequiredClaims,
-            missingValidation = missingValidation
+            missingMediaForClaimValidation = missingMediaForClaimValidation,
         )
     }
 }
@@ -94,9 +98,9 @@ data class AuthorizationFlowResult(
      */
     val missingRequiredClaims: Boolean,
     /**
-     * True if some claims requires a validation by the end-user.
+     * List of media we must send a validation code too according to the claims collected from the end-user.
      */
-    val missingValidation: Boolean,
+    val missingMediaForClaimValidation: List<ValidationCodeMedia>,
 ) {
 
     /**
@@ -104,6 +108,6 @@ data class AuthorizationFlowResult(
      */
     val complete: Boolean = listOf(
         missingRequiredClaims,
-        missingValidation
+        missingMediaForClaimValidation.isNotEmpty(),
     ).none { it }
 }

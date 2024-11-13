@@ -30,9 +30,11 @@ class WebAuthorizationFlow(
      */
     val collectClaimsUri: URI,
     /**
-     * [URI] of the page in charge of collecting validation codes from the user to validate the claims that
+     * [URI] of the page in charge of collecting validation code from the user to validate claims that
      * requires to be verified (ex. email).
+     * The **media** query param will contain the media with which a validation must be performed (ex. EMAIL).
      *
+     * The authorization flow may go through this page multiple times with different media.
      * This page will be skipped if none of the collected claims require validation.
      */
     val validateClaimsUri: URI,
