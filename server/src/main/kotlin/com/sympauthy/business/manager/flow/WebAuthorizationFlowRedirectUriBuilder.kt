@@ -46,9 +46,10 @@ class WebAuthorizationFlowRedirectUriBuilder(
                 uri = flow.collectClaimsUri
             )
 
-            result.missingValidation -> appendStateToUri(
+            result.missingMediaForClaimValidation.isNotEmpty() -> getRedirectUriToClaimValidation(
                 authorizeAttempt = authorizeAttempt,
-                uri = flow.validateClaimsUri
+                flow = flow,
+                result = result,
             )
 
             result.complete -> getRedirectUriToClient(
@@ -57,6 +58,25 @@ class WebAuthorizationFlowRedirectUriBuilder(
 
             else -> TODO()
         }
+    }
+
+    /**
+     * Return the [URI] where the end-user must be redirected to validate
+     */
+    suspend fun getRedirectUriToClaimValidation(
+        authorizeAttempt: AuthorizeAttempt,
+        flow: WebAuthorizationFlow,
+        result: AuthorizationFlowResult,
+    ): URI {
+        val uri = flow.validateClaimsUri.let(UriBuilder::of)
+            .apply {
+                result.missingMediaForClaimValidation.firstOrNull()?.let { queryParam("media", it.name) }
+            }
+            .build()
+        return appendStateToUri(
+            authorizeAttempt = authorizeAttempt,
+            uri = uri,
+        )
     }
 
     /**

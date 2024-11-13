@@ -1,6 +1,7 @@
 package com.sympauthy.business.manager.flow
 
 import com.sympauthy.business.manager.user.CollectedClaimManager
+import com.sympauthy.business.model.code.ValidationCodeReason
 import com.sympauthy.config.model.AuthorizationFlowsConfig
 import com.sympauthy.config.model.UrlsConfig
 import io.mockk.every
@@ -46,11 +47,13 @@ class AuthorizationFlowManagerTest {
     @Test
     fun `checkIfAuthorizationIsComplete - Non complete if missing validation`() = runTest {
         every { collectedClaimManager.areAllRequiredClaimCollected(any()) } returns true
-        every { claimValidationManager.getReasonsToSendValidationCode(any()) } returns listOf(mockk())
+        every { claimValidationManager.getReasonsToSendValidationCode(any()) } returns listOf(
+            ValidationCodeReason.EMAIL_CLAIM,
+        )
 
         val result = manager.checkIfAuthorizationIsComplete(mockk(), mockk())
 
-        assertTrue(result.missingValidation)
+        assertTrue(result.missingMediaForClaimValidation.isNotEmpty())
     }
 
     @Test

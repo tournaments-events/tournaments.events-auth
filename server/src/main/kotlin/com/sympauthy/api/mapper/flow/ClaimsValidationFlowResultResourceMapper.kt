@@ -1,8 +1,8 @@
 package com.sympauthy.api.mapper.flow
 
 import com.sympauthy.api.mapper.config.OutputResourceMapperConfig
+import com.sympauthy.api.resource.flow.ClaimsValidationFlowResultResource
 import com.sympauthy.api.resource.flow.ResendClaimsValidationCodesResultResource
-import com.sympauthy.api.resource.flow.SendValidationCodeOrGetFlowResultResource
 import com.sympauthy.api.resource.flow.ValidationCodeResource
 import com.sympauthy.business.model.code.ValidationCode
 import com.sympauthy.business.model.code.ValidationCodeMedia
@@ -14,15 +14,20 @@ import java.net.URI
 )
 abstract class ClaimsValidationFlowResultResourceMapper {
 
-    fun toFlowResultResource(validationCode: ValidationCode): SendValidationCodeOrGetFlowResultResource {
-        return SendValidationCodeOrGetFlowResultResource(
+    fun toFlowResultResource(validationCode: ValidationCode): ClaimsValidationFlowResultResource {
+        return ClaimsValidationFlowResultResource(
+            media = validationCode.media.name,
             code = toResource(validationCode)
         )
     }
 
-    fun toFlowResultResource(redirectUri: URI): SendValidationCodeOrGetFlowResultResource {
-        return SendValidationCodeOrGetFlowResultResource(
-            redirectUrl = redirectUri.toString()
+    fun toFlowResultResource(
+        media: ValidationCodeMedia,
+        redirectUri: URI,
+    ): ClaimsValidationFlowResultResource {
+        return ClaimsValidationFlowResultResource(
+            media = media.name,
+            redirectUrl = redirectUri.toString(),
         )
     }
 

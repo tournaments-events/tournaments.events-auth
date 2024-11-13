@@ -32,16 +32,15 @@ class ClaimsValidationController(
 ) {
 
     @Operation(
-        method = "Send validation code to collect for media",
+        method = "Send validation code through the media",
         description = """
-Send the codes to validate the claims populated by the user earlier using their associated media.
-Then return the list of validation codes the authorization server expect from the user.
+Send the code to validate the claims populated by the user earlier through the media.
 ex. this authorization server will send an email to the email claim of the user to validate it has access to the box.
 
-If there is no more validation code expected by the authorization server for this media, 
+If there is no more validation code expected to be sent through the media by the authorization server, 
 the response will contain the redirect uri where the user must be redirected to continue the authorization flow.
 
-To avoid spamming the user, if a validation code has already been sent to the user for the media,
+To avoid spamming the user, if a validation code has already been sent to the user through the media,
 the code will not be sent again but it will still be present in the output.
 
 The dedicated operation "Resend claim validation code" allows the user to ask for another code in case they did not
@@ -50,12 +49,12 @@ receive the previous one.
         responses = [
             ApiResponse(
                 responseCode = "200",
-                description = ""
+                description = """
+Result containing either:
+- information about the code expected from the end-user.
+- a redirect uri for the end-user to continue the authorization flow.
+""",
             ),
-            ApiResponse(
-                responseCode = "204",
-                description = "No validation code required for this media."
-            )
         ],
         tags = ["flow"]
     )
@@ -63,7 +62,7 @@ receive the previous one.
     suspend fun getValidationCodeToCollectForMedia(
         authentication: Authentication,
         media: ValidationCodeMedia,
-    ): SendValidationCodeOrGetFlowResultResource {
+    ): ClaimsValidationFlowResultResource {
         val authorizeAttempt = authentication.authorizeAttempt
         val user = flowControllerHelper.getUser(authentication)
         val flow = authorizationFlowManager.verifyIsWebFlow(authorizeAttempt)
@@ -77,7 +76,7 @@ receive the previous one.
         val validationCode = claimValidationManager.getOrSendValidationCode(
             authorizeAttempt = authorizeAttempt,
             user = user,
-            media = media
+            media = media,
         )
 
         return if (validationCode != null) {
@@ -86,9 +85,12 @@ receive the previous one.
             val redirectUri = redirectUriBuilder.getRedirectUri(
                 authorizeAttempt = authorizeAttempt,
                 flow = flow,
-                result = result
+                result = result,
             )
-            resourceMapper.toFlowResultResource(redirectUri)
+            resourceMapper.toFlowResultResource(
+                redirectUri = redirectUri,
+                media = media,
+            )
         }
     }
 
