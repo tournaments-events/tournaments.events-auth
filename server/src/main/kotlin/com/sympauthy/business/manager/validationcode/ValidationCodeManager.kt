@@ -79,7 +79,7 @@ open class ValidationCodeManager(
             authorizeAttempt = authorizeAttempt,
             media = media,
             includesExpired = includesExpired
-        ).maxBy(ValidationCode::creationDate)
+        ).maxByOrNull(ValidationCode::creationDate)
     }
 
     /**
