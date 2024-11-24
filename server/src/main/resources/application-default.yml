@@ -16,6 +16,7 @@ advanced:
   keys-generation-strategy: autoincrement
   user-merging-strategy: by-mail
   validation-code:
+    length: 6
     resend-delay: 1m
     expiration: 10m
 

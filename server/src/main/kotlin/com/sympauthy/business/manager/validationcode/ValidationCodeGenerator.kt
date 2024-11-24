@@ -7,12 +7,15 @@ import com.sympauthy.business.model.code.ValidationCodeMedia
 import com.sympauthy.business.model.code.ValidationCodeReason
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.User
+import com.sympauthy.config.model.AdvancedConfig
+import com.sympauthy.config.model.orThrow
 import com.sympauthy.data.model.ValidationCodeEntity
 import com.sympauthy.data.repository.ValidationCodeRepository
 import com.sympauthy.util.loggerForClass
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import jakarta.transaction.Transactional
+import kotlin.math.pow
 
 /**
  * Component in charge of the generation of validation code that will be sent to the end-user.
@@ -25,10 +28,20 @@ import jakarta.transaction.Transactional
 open class ValidationCodeGenerator(
     @Inject private val validationCodeRepository: ValidationCodeRepository,
     @Inject private val validationCodeMapper: ValidationCodeMapper,
-    @Inject private val randomGenerator: RandomGenerator
+    @Inject private val randomGenerator: RandomGenerator,
+    @Inject private val advancedConfig: AdvancedConfig
 ) {
 
     private val logger = loggerForClass()
+
+    val validationCodeLength: Int
+        get() = advancedConfig.orThrow().validationCode.length
+
+    val validationCodeBound: Int
+        get() = 10.0.pow(validationCodeLength - 1).toInt()
+
+    val validationCodeFormat: String
+        get() = "%0${validationCodeLength}d"
 
     @Transactional
     open suspend fun generateValidationCode(
@@ -65,10 +78,10 @@ open class ValidationCodeGenerator(
 
     internal fun generateCode(): String {
         val code = randomGenerator.generateInt(
-            origin = VALICATION_CODE_ORIGIN,
-            bound = VALIDATION_CODE_BOUND
+            origin = 0,
+            bound = validationCodeBound
         )
-        return String.format(CODE_FORMAT, code)
+        return String.format(validationCodeFormat, code)
     }
 
     companion object {
@@ -76,8 +89,5 @@ open class ValidationCodeGenerator(
          * Number of times we will try to regenerate a code in case we have a collision.
          */
         private const val MAX_ATTEMPTS = 10
-        private const val CODE_FORMAT = "%06d"
-        private const val VALICATION_CODE_ORIGIN = 0
-        private const val VALIDATION_CODE_BOUND = 100_000
     }
 }

@@ -4,6 +4,7 @@ import com.sympauthy.business.manager.jwt.CryptoKeysGenerationStrategy
 import com.sympauthy.business.model.jwt.JwtAlgorithm
 import com.sympauthy.business.model.user.UserMergingStrategy
 import com.sympauthy.config.exception.ConfigurationException
+import java.time.Duration
 
 sealed class AdvancedConfig(
     configurationErrors: List<ConfigurationException>? = null
@@ -14,7 +15,8 @@ data class EnabledAdvancedConfig(
     val keysGenerationStrategy: CryptoKeysGenerationStrategy,
     val publicJwtAlgorithm: JwtAlgorithm,
     val privateJwtAlgorithm: JwtAlgorithm,
-    val hashConfig: HashConfig
+    val hashConfig: HashConfig,
+    val validationCode: ValidationCodeConfig,
 ) : AdvancedConfig()
 
 class DisabledAdvancedConfig(
@@ -33,6 +35,12 @@ data class HashConfig(
      * Number of bytes generated as an output of the hashing algorithm.
      */
     val keyLengthInBytes: Int,
+)
+
+data class ValidationCodeConfig(
+    val length: Int,
+    val resendDelay: Duration,
+    val expiration: Duration,
 )
 
 fun AdvancedConfig.orThrow(): EnabledAdvancedConfig {

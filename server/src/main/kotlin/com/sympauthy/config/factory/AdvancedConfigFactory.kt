@@ -10,12 +10,15 @@ import com.sympauthy.config.model.AdvancedConfig
 import com.sympauthy.config.model.DisabledAdvancedConfig
 import com.sympauthy.config.model.EnabledAdvancedConfig
 import com.sympauthy.config.model.HashConfig
+import com.sympauthy.config.model.ValidationCodeConfig
 import com.sympauthy.config.properties.AdvancedConfigurationProperties
 import com.sympauthy.config.properties.AdvancedConfigurationProperties.Companion.ADVANCED_KEY
 import com.sympauthy.config.properties.HashConfigurationProperties
 import com.sympauthy.config.properties.HashConfigurationProperties.Companion.HASH_KEY
 import com.sympauthy.config.properties.JwtConfigurationProperties
 import com.sympauthy.config.properties.JwtConfigurationProperties.Companion.JWT_KEY
+import com.sympauthy.config.properties.ValidationCodeConfigurationProperties
+import com.sympauthy.config.properties.ValidationCodeConfigurationProperties.Companion.VALIDATION_CODE_KEY
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -30,6 +33,7 @@ class AdvancedConfigFactory(
         properties: AdvancedConfigurationProperties,
         jwtProperties: JwtConfigurationProperties,
         hashProperties: HashConfigurationProperties,
+        validationCodeProperties: ValidationCodeConfigurationProperties,
         keyGenerationStategies: Map<String, CryptoKeysGenerationStrategy>,
     ): AdvancedConfig {
         val errors = mutableListOf<ConfigurationException>()
@@ -70,13 +74,17 @@ class AdvancedConfigFactory(
         val (hashConfig, hashErrors) = getHashConfig(hashProperties)
         errors.addAll(hashErrors)
 
+        val (validationCodeConfig, validationCodeErrors) = getValidationCodeConfig(validationCodeProperties)
+        errors.addAll(validationCodeErrors)
+
         return if (errors.isEmpty()) {
             return EnabledAdvancedConfig(
                 userMergingStrategy = userMergingStrategy!!,
                 keysGenerationStrategy = keysGenerationStrategy!!,
                 publicJwtAlgorithm = publicJwtAlgorithm!!,
                 privateJwtAlgorithm = privateJwtAlgorithm!!,
-                hashConfig = hashConfig!!
+                hashConfig = hashConfig!!,
+                validationCode = validationCodeConfig!!,
             )
         } else {
             DisabledAdvancedConfig(errors)
@@ -244,4 +252,62 @@ class AdvancedConfigFactory(
     }
 
     private fun isPowerOf2(var0: Int): Boolean = (var0 and var0 - 1) == 0
+
+    private fun getValidationCodeConfig(
+        properties: ValidationCodeConfigurationProperties
+    ): Pair<ValidationCodeConfig?, List<ConfigurationException>> {
+        val errors = mutableListOf<ConfigurationException>()
+
+        val expiration = try {
+            parser.getDuration(
+                properties,
+                "$VALIDATION_CODE_KEY.expiration", ValidationCodeConfigurationProperties::expiration
+            )
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
+        val length = try {
+            getValidationCodeLength(properties)
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
+        val resendDelay = try {
+            parser.getDuration(
+                properties,
+                "$VALIDATION_CODE_KEY.resend-delay", ValidationCodeConfigurationProperties::resendDelay
+            )
+        } catch (e: ConfigurationException) {
+            errors.add(e)
+            null
+        }
+
+        return if (errors.isEmpty()) {
+            val validationCodeConfig = ValidationCodeConfig(
+                expiration = expiration!!,
+                length = length!!,
+                resendDelay = resendDelay!!,
+            )
+            return validationCodeConfig to emptyList()
+        } else {
+            return null to errors
+        }
+    }
+
+    private fun getValidationCodeLength(properties: ValidationCodeConfigurationProperties): Int {
+        val key = "$HASH_KEY.block-size"
+        val blockSize = parser.getIntOrThrow(
+            properties, key,
+            ValidationCodeConfigurationProperties::length
+        )
+        if (blockSize <= 0) {
+            throw configExceptionOf(key, "config.advanced.validation_code.invalid_length")
+        }
+        return blockSize
+    }
+
+
 }
