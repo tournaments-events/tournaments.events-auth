@@ -8,13 +8,17 @@ import com.sympauthy.business.model.code.ValidationCodeReason
 import com.sympauthy.business.model.oauth2.AuthorizeAttempt
 import com.sympauthy.business.model.user.User
 import com.sympauthy.config.model.AdvancedConfig
+import com.sympauthy.config.model.ValidationCodeConfig
 import com.sympauthy.config.model.orThrow
 import com.sympauthy.data.model.ValidationCodeEntity
 import com.sympauthy.data.repository.ValidationCodeRepository
 import com.sympauthy.util.loggerForClass
+import com.sympauthy.util.min
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import jakarta.transaction.Transactional
+import java.time.LocalDateTime
+import java.time.LocalDateTime.now
 import kotlin.math.pow
 
 /**
@@ -34,13 +38,13 @@ open class ValidationCodeGenerator(
 
     private val logger = loggerForClass()
 
-    val validationCodeLength: Int
+    internal val validationCodeLength: Int
         get() = advancedConfig.orThrow().validationCode.length
 
-    val validationCodeBound: Int
+    internal val validationCodeBound: Int
         get() = 10.0.pow(validationCodeLength - 1).toInt()
 
-    val validationCodeFormat: String
+    internal val validationCodeFormat: String
         get() = "%0${validationCodeLength}d"
 
     @Transactional
@@ -53,6 +57,13 @@ open class ValidationCodeGenerator(
         var tryCount = 0
         var savedEntity: ValidationCodeEntity? = null
 
+        val creationDate = now()
+        val expirationDate = getExpirationDate(
+            creationDate = creationDate,
+            authorizeAttempt = authorizeAttempt
+        )
+        val resendDate = getResendDate(creationDate)
+
         while (savedEntity == null && tryCount < MAX_ATTEMPTS) {
             try {
                 val entity = ValidationCodeEntity(
@@ -61,8 +72,9 @@ open class ValidationCodeGenerator(
                     media = media.name,
                     reasons = reasons.map(ValidationCodeReason::name).toTypedArray(),
                     attemptId = authorizeAttempt.id,
-                    resendDate = null, // FIXME
-                    expirationDate = authorizeAttempt.expirationDate,
+                    creationDate = creationDate,
+                    expirationDate = expirationDate,
+                    resendDate = resendDate
                 )
                 savedEntity = validationCodeRepository.save(entity)
             } catch (e: Exception) {
@@ -82,6 +94,28 @@ open class ValidationCodeGenerator(
             bound = validationCodeBound
         )
         return String.format(validationCodeFormat, code)
+    }
+
+    /**
+     * Return the expiration date for a newly created validation code at [creationDate].
+     *
+     * It is the minimum between the [ValidationCodeConfig.expiration] delay in the server configuration.
+     * and the [AuthorizeAttempt.expirationDate] of the provided [authorizeAttempt].
+     */
+    internal fun getExpirationDate(
+        authorizeAttempt: AuthorizeAttempt,
+        creationDate: LocalDateTime
+    ): LocalDateTime {
+        val expiration = advancedConfig.orThrow().validationCode.expiration
+        return min(
+            authorizeAttempt.expirationDate,
+            creationDate.plus(expiration)
+        )
+    }
+
+    internal fun getResendDate(creationDate: LocalDateTime): LocalDateTime? {
+        val resendDelay = advancedConfig.orThrow().validationCode.resendDelay ?: return null
+        return creationDate.plus(resendDelay)
     }
 
     companion object {

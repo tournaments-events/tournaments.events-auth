@@ -39,7 +39,7 @@ data class HashConfig(
 
 data class ValidationCodeConfig(
     val length: Int,
-    val resendDelay: Duration,
+    val resendDelay: Duration?,
     val expiration: Duration,
 )
 

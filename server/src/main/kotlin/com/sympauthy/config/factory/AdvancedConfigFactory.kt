@@ -259,7 +259,7 @@ class AdvancedConfigFactory(
         val errors = mutableListOf<ConfigurationException>()
 
         val expiration = try {
-            parser.getDuration(
+            parser.getDurationOrThrow(
                 properties,
                 "$VALIDATION_CODE_KEY.expiration", ValidationCodeConfigurationProperties::expiration
             )
@@ -289,7 +289,7 @@ class AdvancedConfigFactory(
             val validationCodeConfig = ValidationCodeConfig(
                 expiration = expiration!!,
                 length = length!!,
-                resendDelay = resendDelay!!,
+                resendDelay = resendDelay,
             )
             return validationCodeConfig to emptyList()
         } else {
@@ -308,6 +308,4 @@ class AdvancedConfigFactory(
         }
         return blockSize
     }
-
-
 }
